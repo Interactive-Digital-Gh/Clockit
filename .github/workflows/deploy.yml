@@ -28,8 +28,8 @@ jobs:
           cd /var/www/production/clockit-api
           git fetch origin main
           git reset --hard origin/main
-          .venv/bin/pip install -q -r requirements.txt
-          .venv/bin/alembic upgrade head
+          venv/bin/pip install -q -r requirements.txt
+          venv/bin/alembic upgrade head
           sudo /usr/bin/systemctl restart clockit-api
           sleep 3
           curl -sf --max-time 10 http://127.0.0.1:8010/health
