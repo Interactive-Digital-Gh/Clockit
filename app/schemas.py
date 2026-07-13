@@ -118,6 +118,12 @@ class EmployeeUpdate(BaseModel):
     is_active: bool | None = None
 
 
+class EmployeeSelfUpdate(BaseModel):
+    """What an employee may change about themselves (mobile onboarding)."""
+
+    name: str | None = None
+
+
 class EmployeeOut(ORMModel, EmployeeBase):
     id: uuid.UUID
     agency: AgencyRef | None = None

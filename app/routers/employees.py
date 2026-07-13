@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, joinedload
 from ..database import get_db
 from ..deps import get_current_admin, get_current_employee, require_roles
 from ..models import ADMIN_ROLES, Employee
-from ..schemas import EmployeeCreate, EmployeeOut, EmployeeUpdate
+from ..schemas import EmployeeCreate, EmployeeOut, EmployeeSelfUpdate, EmployeeUpdate
 
 router = APIRouter(prefix="/employees", tags=["employees"])
 
@@ -17,6 +17,21 @@ router = APIRouter(prefix="/employees", tags=["employees"])
 @router.get("/me", response_model=EmployeeOut)
 def my_employee(db: Session = Depends(get_db), emp: Employee = Depends(get_current_employee)):
     """The signed-in employee's own full record (mobile app)."""
+    return db.scalar(
+        select(Employee).options(joinedload(Employee.agency)).where(Employee.id == emp.id)
+    )
+
+
+@router.patch("/me", response_model=EmployeeOut)
+def update_my_employee(
+    body: EmployeeSelfUpdate,
+    db: Session = Depends(get_db),
+    emp: Employee = Depends(get_current_employee),
+):
+    """Self-service: set your display name during mobile onboarding."""
+    if body.name and body.name.strip():
+        emp.name = body.name.strip()
+        db.commit()
     return db.scalar(
         select(Employee).options(joinedload(Employee.agency)).where(Employee.id == emp.id)
     )
