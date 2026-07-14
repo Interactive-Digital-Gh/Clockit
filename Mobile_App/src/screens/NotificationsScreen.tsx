@@ -5,26 +5,8 @@ import { ArrowLeft01Icon, InformationCircleIcon } from '@hugeicons/core-free-ico
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../constants/colors';
-
-const PREFS_KEY = '@notif_prefs';
-
-interface NotifPrefs {
-  clockInReminder: boolean;
-  clockOutReminder: boolean;
-  lateAlert: boolean;
-  weeklySummary: boolean;
-  monthlyReport: boolean;
-}
-
-const DEFAULT_PREFS: NotifPrefs = {
-  clockInReminder: true,
-  clockOutReminder: true,
-  lateAlert: false,
-  weeklySummary: true,
-  monthlyReport: false,
-};
+import { DEFAULT_PREFS, loadPrefs, savePrefs, type NotifPrefs } from '../lib/notifications';
 
 function SectionHeader({ label }: { label: string }) {
   return <Text style={styles.sectionHeader}>{label}</Text>;
@@ -66,15 +48,14 @@ export default function NotificationsScreen() {
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_PREFS);
 
   useEffect(() => {
-    AsyncStorage.getItem(PREFS_KEY).then((raw) => {
-      if (raw) setPrefs(JSON.parse(raw));
-    });
+    loadPrefs().then(setPrefs);
   }, []);
 
   const toggle = (key: keyof NotifPrefs) => {
     const next = { ...prefs, [key]: !prefs[key] };
     setPrefs(next);
-    AsyncStorage.setItem(PREFS_KEY, JSON.stringify(next));
+    // Persists and reschedules the device's notifications to match.
+    savePrefs(next).catch(() => {});
   };
 
   return (
@@ -136,7 +117,9 @@ export default function NotificationsScreen() {
         <View style={styles.notice}>
           <HugeiconsIcon icon={InformationCircleIcon} size={16} color={COLORS.muted} />
           <Text style={styles.noticeText}>
-            Push notifications will be available in a future update. These preferences will be applied then.
+            Reminders are scheduled on this device: clock-in at 8:15 AM and clock-out at
+            5:00 PM on weekdays, summaries on Monday mornings. They fire at those times
+            even on days you've already clocked in.
           </Text>
         </View>
       </ScrollView>

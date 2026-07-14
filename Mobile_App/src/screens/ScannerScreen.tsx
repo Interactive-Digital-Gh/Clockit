@@ -9,6 +9,7 @@ import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../context/AppContext';
 import { clockInEmployee } from '../services/attendanceService';
+import { notifyLateClockIn } from '../lib/notifications';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList>;
@@ -74,6 +75,9 @@ export default function ScannerScreen() {
         hour: 'numeric', minute: '2-digit',
       });
       clockIn(time);
+      if (record.status?.toLowerCase() === 'late') {
+        notifyLateClockIn(record.clock_in_time).catch(() => {});
+      }
       nav.replace('Success', { clockInTime: time });
     } catch (err: any) {
       scannedRef.current = false;

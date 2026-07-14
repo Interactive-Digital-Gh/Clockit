@@ -21,6 +21,7 @@ import * as Notifications from 'expo-notifications';
 import { AppProvider } from './src/context/AppContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { runAutoClockOutCheck, loadUserFromStorage } from './src/tasks/autoClockOut';
+import { loadPrefs, syncScheduledNotifications } from './src/lib/notifications';
 
 const AUTO_CLOCK_OUT_TASK = 'auto-clock-out';
 
@@ -49,6 +50,10 @@ Notifications.setNotificationHandler({
 async function setupBackgroundFetch() {
   const { status } = await Notifications.requestPermissionsAsync();
   if (status !== 'granted') return;
+
+  // Reminders/summaries are local scheduled notifications — make the device's
+  // schedule match the saved preferences on every launch.
+  await syncScheduledNotifications(await loadPrefs()).catch(() => {});
 
   const isRegistered = await TaskManager.isTaskRegisteredAsync(AUTO_CLOCK_OUT_TASK);
   if (!isRegistered) {
