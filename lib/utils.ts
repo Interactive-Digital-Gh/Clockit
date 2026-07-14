@@ -61,7 +61,7 @@ export function formatHours(hours: number | null | undefined, decimals = 1): str
   return `${hours.toFixed(decimals)}h`
 }
 
-/** Attendance status vocabulary the mobile app actually writes — see attendance-app/src/config/attendance.ts */
+/** Attendance status vocabulary the mobile app actually writes — see Mobile_App/src/config/attendance.ts */
 export const ATTENDANCE_STATUS = {
   present: { label: "On time", badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   late: { label: "Late", badgeClass: "bg-amber-50 text-amber-700 border-amber-200" },

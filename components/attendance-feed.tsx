@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { LogIn, LogOut, Radio } from "lucide-react"
-import { supabase } from "@/lib/supabase/client"
+import { api } from "@/lib/api"
 import { formatTime, getInitials, cn } from "@/lib/utils"
 
 interface FeedEvent {
@@ -14,70 +14,50 @@ interface FeedEvent {
 }
 
 const MAX_EVENTS = 20
+const POLL_INTERVAL_MS = 15_000
 
+function todayDate() {
+  return new Date().toISOString().split("T")[0]
+}
+
+// The FastAPI backend has no realtime channel (Supabase did), so the feed polls
+// today's attendance and derives clock-in/out events, newest first. Swap to
+// SSE/WebSockets later if a true live stream is needed.
 export function AttendanceFeed() {
   const [events, setEvents] = React.useState<FeedEvent[]>([])
   const [connected, setConnected] = React.useState(false)
-  const namesRef = React.useRef<Map<string, string>>(new Map())
 
   React.useEffect(() => {
     let cancelled = false
-    let channel: ReturnType<typeof supabase.channel> | null = null
 
-    const setup = async () => {
-      const { data } = await supabase.from("employees").select("id, name")
-      if (cancelled) return
-      namesRef.current = new Map((data ?? []).map((e) => [e.id, e.name]))
+    const poll = async () => {
+      try {
+        const records = await api.attendance({ on_date: todayDate() })
+        if (cancelled) return
 
-      // Unique name per mount — React Strict Mode's dev-only double-invoke
-      // (mount → cleanup → mount) can otherwise race with the previous
-      // channel's async removal and throw "cannot add postgres_changes
-      // callbacks after subscribe()" on a still-shared channel object.
-      channel = supabase
-        .channel(`attendance-feed-${Math.random().toString(36).slice(2)}`)
-        .on(
-          "postgres_changes",
-          { event: "INSERT", schema: "public", table: "attendance_records" },
-          (payload) => {
-            const row = payload.new as { id: string; employee_id: string; clock_in_time: string }
-            pushEvent({
-              id: `${row.id}-in`,
-              employeeName: namesRef.current.get(row.employee_id) ?? "Unknown",
-              kind: "in",
-              time: row.clock_in_time,
-            })
+        const derived: FeedEvent[] = []
+        for (const r of records) {
+          const name = r.employee?.name ?? "Unknown"
+          derived.push({ id: `${r.id}-in`, employeeName: name, kind: "in", time: r.clock_in_time })
+          if (r.clock_out_time) {
+            derived.push({ id: `${r.id}-out`, employeeName: name, kind: "out", time: r.clock_out_time })
           }
-        )
-        .on(
-          "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "attendance_records" },
-          (payload) => {
-            const row = payload.new as { id: string; employee_id: string; clock_out_time: string | null }
-            const previous = payload.old as { clock_out_time: string | null }
-            if (row.clock_out_time && !previous?.clock_out_time) {
-              pushEvent({
-                id: `${row.id}-out`,
-                employeeName: namesRef.current.get(row.employee_id) ?? "Unknown",
-                kind: "out",
-                time: row.clock_out_time,
-              })
-            }
-          }
-        )
-        .subscribe((status) => {
-          if (!cancelled) setConnected(status === "SUBSCRIBED")
-        })
+        }
+        derived.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+
+        setEvents(derived.slice(0, MAX_EVENTS))
+        setConnected(true)
+      } catch {
+        if (!cancelled) setConnected(false)
+      }
     }
 
-    const pushEvent = (event: FeedEvent) => {
-      if (!cancelled) setEvents((prev) => [event, ...prev].slice(0, MAX_EVENTS))
-    }
-
-    setup()
+    poll()
+    const timer = setInterval(poll, POLL_INTERVAL_MS)
 
     return () => {
       cancelled = true
-      if (channel) supabase.removeChannel(channel)
+      clearInterval(timer)
     }
   }, [])
 
@@ -93,7 +73,7 @@ export function AttendanceFeed() {
       <CardContent>
         {events.length === 0 ? (
           <p className="text-sm text-muted-foreground italic py-6 text-center">
-            Waiting for clock-in/clock-out events…
+            No clock-in/clock-out events today yet…
           </p>
         ) : (
           <ul className="space-y-1">

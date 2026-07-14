@@ -1,4 +1,4 @@
-// Mirrors the shapes in attendance-app/src/services/attendanceService.ts —
+// Mirrors the shapes in Mobile_App/src/services/attendanceService.ts —
 // this dashboard reads the exact same Supabase project/tables.
 
 export interface Agency {
@@ -7,7 +7,12 @@ export interface Agency {
   agency_code: string | null
   address: string | null
   is_active: boolean | null
-  network_config: { allowed_subnets?: string[]; allowed_ssids?: string[]; description?: string } | null
+  network_config: {
+    allowed_public_ips?: string[]
+    allowed_subnets?: string[]
+    allowed_ssids?: string[]
+    description?: string
+  } | null
 }
 
 export interface Employee {
@@ -29,6 +34,10 @@ export interface AttendanceRecord {
   status: string
   total_hours: number | null
   employee_id: string
+  location_verified?: boolean
+  verification_source?: "office_ip" | "office_subnet" | "off_site"
+  clock_in_public_ip?: string | null
+  clock_in_local_ip?: string | null
   employee?: Pick<Employee, "id" | "name" | "email" | "agency"> | null
 }
 

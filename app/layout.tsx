@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ninani Attendance Admin",
-  description: "Employee, agency, and attendance management for the Ninani Group attendance app",
+  title: "Clockit Admin",
+  description: "Employee, agency, and attendance management for Interactive Digital",
 };
 
 export default function RootLayout({

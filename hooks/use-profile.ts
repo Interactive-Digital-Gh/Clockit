@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { supabase } from "@/lib/supabase/client"
+import { api } from "@/lib/api"
 import type { Profile } from "@/lib/types"
 
 export function useProfile() {
@@ -11,28 +11,17 @@ export function useProfile() {
   React.useEffect(() => {
     let cancelled = false
 
-    const fetchProfile = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (!user) {
-        if (!cancelled) {
-          setProfile(null)
-          setIsLoading(false)
-        }
-        return
-      }
-
-      const { data } = await supabase.from("profiles").select("id, email, full_name, role, created_at").eq("id", user.id).single()
-
-      if (!cancelled) {
-        setProfile(data as Profile | null)
-        setIsLoading(false)
-      }
-    }
-
-    fetchProfile()
+    api
+      .me()
+      .then((data) => {
+        if (!cancelled) setProfile(data)
+      })
+      .catch(() => {
+        if (!cancelled) setProfile(null)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
 
     return () => {
       cancelled = true

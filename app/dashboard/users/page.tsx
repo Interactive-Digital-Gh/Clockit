@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/ui/page-header"
 import { DataTable, type ColumnDef } from "@/components/ui/data-table"
 import { RequireRole } from "@/components/require-role"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { supabase } from "@/lib/supabase/client"
+import { api, ApiError } from "@/lib/api"
 import { formatDate, getInitials } from "@/lib/utils"
 import { toast } from "sonner"
 import { USER_MANAGER_ROLES, type Profile, type Role } from "@/lib/types"
@@ -23,28 +23,31 @@ function UsersPageContent() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchProfiles = async () => {
-      setIsLoading(true)
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      setCurrentUserId(user?.id ?? null)
-
-      const { data } = await supabase.from("profiles").select("id, email, full_name, role, created_at").order("created_at")
-      setProfiles((data as Profile[]) ?? [])
-      setIsLoading(false)
+    let cancelled = false
+    Promise.all([api.me(), api.profiles()])
+      .then(([me, data]) => {
+        if (cancelled) return
+        setCurrentUserId(me.id)
+        setProfiles(data)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+    return () => {
+      cancelled = true
     }
-    fetchProfiles()
   }, [])
 
   const handleRoleChange = async (id: string, role: Role) => {
-    const { error } = await supabase.from("profiles").update({ role }).eq("id", id)
-    if (error) {
-      toast.error(error.message)
-      return
-    }
+    const previous = profiles
     setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, role } : p)))
-    toast.success("Role updated")
+    try {
+      await api.updateProfileRole(id, role)
+      toast.success("Role updated")
+    } catch (error) {
+      setProfiles(previous) // revert on failure
+      toast.error(error instanceof ApiError ? error.message : "Failed to update role")
+    }
   }
 
   const columns: ColumnDef<Profile>[] = [

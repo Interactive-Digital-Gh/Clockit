@@ -5,11 +5,7 @@ import { UsersRound, Building2, LogIn, Clock } from "lucide-react"
 import { PageHeader } from "@/components/ui/page-header"
 import { MetricsGrid } from "@/components/ui/metric-card"
 import { AttendanceFeed } from "@/components/attendance-feed"
-import { supabase } from "@/lib/supabase/client"
-
-function todayDate() {
-  return new Date().toISOString().split("T")[0]
-}
+import { api } from "@/lib/api"
 
 export default function OverviewPage() {
   const [isLoading, setIsLoading] = useState(true)
@@ -19,28 +15,22 @@ export default function OverviewPage() {
   const [lateToday, setLateToday] = useState(0)
 
   useEffect(() => {
-    const fetchMetrics = async () => {
-      setIsLoading(true)
-      const today = todayDate()
-
-      const [{ count: employees }, { count: agencies }, { count: clockedIn }, { count: late }] = await Promise.all([
-        supabase.from("employees").select("*", { count: "exact", head: true }),
-        supabase.from("agencies").select("*", { count: "exact", head: true }),
-        supabase
-          .from("attendance_records")
-          .select("*", { count: "exact", head: true })
-          .eq("date", today)
-          .is("clock_out_time", null),
-        supabase.from("attendance_records").select("*", { count: "exact", head: true }).eq("date", today).eq("status", "late"),
-      ])
-
-      setEmployeeCount(employees ?? 0)
-      setAgencyCount(agencies ?? 0)
-      setClockedInToday(clockedIn ?? 0)
-      setLateToday(late ?? 0)
-      setIsLoading(false)
+    let cancelled = false
+    api
+      .overview()
+      .then((m) => {
+        if (cancelled) return
+        setEmployeeCount(m.employees)
+        setAgencyCount(m.agencies)
+        setClockedInToday(m.clocked_in_today)
+        setLateToday(m.late_today)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+    return () => {
+      cancelled = true
     }
-    fetchMetrics()
   }, [])
 
   return (

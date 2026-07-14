@@ -7,12 +7,13 @@ import { PageHeader } from "@/components/ui/page-header"
 import { SearchInput } from "@/components/ui/search-input"
 import { DataTable, useTableSort, type ColumnDef } from "@/components/ui/data-table"
 import { StatusBadge } from "@/components/ui/status-badge"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ExportMenu } from "@/components/export-menu"
-import { supabase } from "@/lib/supabase/client"
+import { api } from "@/lib/api"
 import { formatDate, formatTime, formatHours, cn } from "@/lib/utils"
 import type { AttendanceRecord, Agency } from "@/lib/types"
 
@@ -23,6 +24,29 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
   all: "All statuses",
   present: "On time",
   late: "Late",
+}
+
+const LOCATION_TITLE: Record<string, string> = {
+  office_ip: "Verified — request came from the office network",
+  office_subnet: "Verified — device reported an office WiFi subnet",
+  off_site: "Remote — clocked in off the office network",
+}
+
+function LocationBadge({ record }: { record: AttendanceRecord }) {
+  const source = record.verification_source ?? "off_site"
+  return (
+    <Badge
+      variant="outline"
+      title={LOCATION_TITLE[source]}
+      className={cn(
+        record.location_verified
+          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+          : "bg-amber-50 text-amber-700 border-amber-200"
+      )}
+    >
+      {record.location_verified ? "On-site" : "Remote"}
+    </Badge>
+  )
 }
 
 function rangeStartDefault(): Date {
@@ -46,29 +70,32 @@ export default function AttendancePage() {
   const { sortKey, sortOrder, toggleSort } = useTableSort<SortKey>("clockInTime", "desc")
 
   useEffect(() => {
-    supabase
-      .from("agencies")
-      .select("id, name, agency_code, address, is_active, network_config")
-      .order("name")
-      .then(({ data }) => setAgencies((data as Agency[]) ?? []))
+    let cancelled = false
+    api.agencies().then((data) => {
+      if (!cancelled) setAgencies(data)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
-    const fetchAttendance = async () => {
-      setIsLoading(true)
-      const { data } = await supabase
-        .from("attendance_records")
-        .select(
-          "id, date, clock_in_time, clock_out_time, status, total_hours, employee_id, employee:employees(id, name, email, agency_id, agency:agencies(id, name))"
-        )
-        .gte("date", format(dateRange.start, "yyyy-MM-dd"))
-        .lte("date", format(dateRange.end, "yyyy-MM-dd"))
-        .order("date", { ascending: false })
-        .order("clock_in_time", { ascending: false })
-      setRecords((data as unknown as AttendanceRecord[]) ?? [])
-      setIsLoading(false)
+    let cancelled = false
+    setIsLoading(true)
+    api
+      .attendance({
+        date_from: format(dateRange.start, "yyyy-MM-dd"),
+        date_to: format(dateRange.end, "yyyy-MM-dd"),
+      })
+      .then((data) => {
+        if (!cancelled) setRecords(data)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+    return () => {
+      cancelled = true
     }
-    fetchAttendance()
   }, [dateRange.start, dateRange.end])
 
   const filtered = useMemo(() => {
@@ -114,6 +141,7 @@ export default function AttendancePage() {
     { key: "agency", header: "Agency", render: (row) => row.employee?.agency?.name ?? "—" },
     { key: "clockInTime", header: "Clock in", sortable: true, render: (row) => formatTime(row.clock_in_time) },
     { key: "clock_out", header: "Clock out", render: (row) => formatTime(row.clock_out_time) },
+    { key: "location", header: "Location", render: (row) => <LocationBadge record={row} /> },
     { key: "totalHours", header: "Hours", sortable: true, align: "right", render: (row) => formatHours(row.total_hours) },
     { key: "status", header: "Status", sortable: true, align: "right", render: (row) => <StatusBadge status={row.status} variant="pill" /> },
   ]

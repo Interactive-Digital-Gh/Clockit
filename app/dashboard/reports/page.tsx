@@ -24,12 +24,13 @@ import {
   addDays,
   addMonths,
   addYears,
-  differenceInCalendarDays,
+  eachDayOfInterval,
   endOfMonth,
   endOfWeek,
   endOfYear,
   format,
   isSameDay,
+  isWeekend,
   startOfMonth,
   startOfWeek,
   startOfYear,
@@ -46,7 +47,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { ExportMenu } from "@/components/export-menu"
-import { supabase } from "@/lib/supabase/client"
+import { api } from "@/lib/api"
 import { formatHours, cn } from "@/lib/utils"
 import type { AttendanceRecord, Employee } from "@/lib/types"
 
@@ -61,9 +62,17 @@ interface Bucket {
 }
 
 function periodRange(timeframe: Timeframe, anchor: Date): { start: Date; end: Date } {
-  if (timeframe === "week") return { start: startOfWeek(anchor), end: endOfWeek(anchor) }
+  if (timeframe === "week") return { start: startOfWeek(anchor, { weekStartsOn: 1 }), end: endOfWeek(anchor, { weekStartsOn: 1 }) }
   if (timeframe === "month") return { start: startOfMonth(anchor), end: endOfMonth(anchor) }
   return { start: startOfYear(anchor), end: endOfYear(anchor) }
+}
+
+/** Working days (Mon–Fri) in the range that have already happened — the only
+ *  days an employee can meaningfully be "absent" on. */
+function workingDaysElapsed(start: Date, end: Date): number {
+  const today = new Date()
+  if (start > today) return 0
+  return eachDayOfInterval({ start, end: end < today ? end : today }).filter((d) => !isWeekend(d)).length
 }
 
 export default function ReportsPage() {
@@ -77,27 +86,29 @@ export default function ReportsPage() {
   const { start, end } = useMemo(() => periodRange(timeframe, currentDate), [timeframe, currentDate])
 
   useEffect(() => {
-    supabase
-      .from("employees")
-      .select("id, name, email, emp_id, job_title, agency_id, is_active, agency:agencies(id, name)")
-      .then(({ data }) => setEmployees((data as unknown as Employee[]) ?? []))
+    let cancelled = false
+    api.employees().then((data) => {
+      if (!cancelled) setEmployees(data)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
-    const fetchRecords = async () => {
-      setIsLoading(true)
-      const { data } = await supabase
-        .from("attendance_records")
-        .select(
-          "id, date, clock_in_time, clock_out_time, status, total_hours, employee_id, employee:employees(id, name, email, agency_id, agency:agencies(id, name))"
-        )
-        .gte("date", format(start, "yyyy-MM-dd"))
-        .lte("date", format(end, "yyyy-MM-dd"))
-        .order("date")
-      setRecords((data as unknown as AttendanceRecord[]) ?? [])
-      setIsLoading(false)
+    let cancelled = false
+    setIsLoading(true)
+    api
+      .attendance({ date_from: format(start, "yyyy-MM-dd"), date_to: format(end, "yyyy-MM-dd") })
+      .then((data) => {
+        if (!cancelled) setRecords(data)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+    return () => {
+      cancelled = true
     }
-    fetchRecords()
   }, [start, end])
 
   const totalEmployees = employees.length
@@ -116,14 +127,14 @@ export default function ReportsPage() {
         const inMonth = records.filter((r) => r.date >= format(monthStart, "yyyy-MM-dd") && r.date <= format(monthEnd, "yyyy-MM-dd"))
         onTime = inMonth.filter((r) => r.status !== "late").length
         late = inMonth.filter((r) => r.status === "late").length
-        const daysInMonth = differenceInCalendarDays(monthEnd, monthStart) + 1
-        absent = Math.max(totalEmployees * daysInMonth - onTime - late, 0)
+        absent = Math.max(totalEmployees * workingDaysElapsed(monthStart, monthEnd) - onTime - late, 0)
       } else {
         const dateKey = format(curr, "yyyy-MM-dd")
         const dayRecords = records.filter((r) => r.date === dateKey)
         onTime = dayRecords.filter((r) => r.status !== "late").length
         late = dayRecords.filter((r) => r.status === "late").length
-        absent = Math.max(totalEmployees - onTime - late, 0)
+        const expected = workingDaysElapsed(curr, curr) > 0 ? totalEmployees : 0
+        absent = Math.max(expected - onTime - late, 0)
       }
 
       result.push({
@@ -158,7 +169,7 @@ export default function ReportsPage() {
   }, [metrics])
 
   const agencyAttendance = useMemo(() => {
-    const daysInRange = differenceInCalendarDays(end, start) + 1
+    const daysInRange = workingDaysElapsed(start, end)
     const byAgency = new Map<string, { name: string; empCount: number; present: number }>()
     for (const emp of employees) {
       const key = emp.agency?.id ?? "unassigned"

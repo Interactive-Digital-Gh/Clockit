@@ -1,9 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { LayoutDashboardIcon, FileText, FileChartLine, UsersRound, Building2, UserCircle2, LogOut, UserCircle, Command, MoreVertical } from "lucide-react"
+import { LayoutDashboardIcon, FileText, FileChartLine, UsersRound, Building2, UserCircle2, LogOut, UserCircle, MoreVertical } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 
 import {
   Sidebar,
@@ -29,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { supabase } from "@/lib/supabase/client"
+import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { useProfile } from "@/hooks/use-profile"
 import { ADMIN_ROLES, USER_MANAGER_ROLES, type Role } from "@/lib/types"
@@ -72,8 +73,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return groups
   }, [profile])
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
+  const handleLogout = () => {
+    api.logout()
     router.push("/login")
     router.refresh()
   }
@@ -86,19 +87,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <div className={cn("flex items-center gap-3 px-5 py-6", isCollapsed && "px-0 justify-center")}>
               <div
                 className={cn(
-                  "flex items-center justify-center rounded-lg bg-primary text-primary-foreground shrink-0",
+                  "flex items-center justify-center rounded-lg bg-primary/10 shrink-0",
                   isCollapsed ? "size-7" : "size-8"
                 )}
               >
-                <Command className={cn(isCollapsed ? "size-4" : "size-5")} />
+                <Image
+                  src="/logo.png"
+                  alt="Clockit logo"
+                  width={22}
+                  height={22}
+                  className={cn(isCollapsed ? "size-4.5" : "size-5.5")}
+                />
               </div>
               {!isCollapsed && (
                 <div className="flex flex-col overflow-hidden">
                   <span className="text-sm font-semibold tracking-tight text-foreground leading-tight text-primary">
-                    Attendance Admin
+                    Clockit
                   </span>
                   <span className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground mt-1">
-                    Ninani Group
+                    Interactive Digital
                   </span>
                 </div>
               )}

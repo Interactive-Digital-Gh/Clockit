@@ -6,50 +6,51 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { supabase } from "@/lib/supabase/client"
+import { api, ApiError } from "@/lib/api"
 import { toast } from "sonner"
-import { Loader2, Eye, EyeOff } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
+// Local development sign-in. Uses the backend's DEV_MODE /auth/dev-login to mint
+// a token from just an email — no password, no Google. When Google OAuth is
+// wired up, swap handleLogin to obtain a Google ID token and POST it to
+// /auth/google/admin instead, and re-enable the Google button below.
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form">) {
   const router = useRouter()
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !password) return
+    if (!email) return
     setIsLoading(true)
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
-      toast.success("Successfully logged in")
+      await api.devLogin(email, "admin")
+      toast.success("Signed in")
       router.push("/dashboard")
       router.refresh()
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Invalid login credentials")
+      const message =
+        error instanceof ApiError && error.status === 404
+          ? "Dev login is disabled. Set DEV_MODE=true on the API, or wire up Google."
+          : error instanceof Error
+            ? error.message
+            : "Could not sign in"
+      toast.error(message)
       setIsLoading(false)
     }
   }
 
-  const handleGoogleLogin = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
-      })
-      if (error) throw error
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Could not login with Google")
-    }
+  const handleGoogleLogin = () => {
+    toast.info("Google sign-in isn't configured yet — use the email field for local dev.")
   }
 
   return (
     <form onSubmit={handleLogin} className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold">Login to your account</h1>
-        <p className="text-balance text-sm text-muted-foreground">Enter your email below to login to your account</p>
+        <h1 className="text-2xl font-bold">Sign in</h1>
+        <p className="text-balance text-sm text-muted-foreground">
+          Enter your admin email to access the dashboard
+        </p>
       </div>
       <div className="grid gap-6">
         <div className="grid gap-2">
@@ -57,33 +58,11 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
           <Input
             id="email"
             type="email"
-            placeholder="name@company.com"
+            placeholder="admin@interactivedigital.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pr-10"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              tabIndex={-1}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
         </div>
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? (
@@ -92,7 +71,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
               Signing in...
             </>
           ) : (
-            "Login"
+            "Sign in"
           )}
         </Button>
         <div className="relative">

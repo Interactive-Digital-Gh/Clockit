@@ -1,4 +1,4 @@
-import { Command } from "lucide-react"
+import Image from "next/image"
 import { LoginForm } from "@/components/login-form"
 
 export default function LoginPage() {
@@ -7,10 +7,10 @@ export default function LoginPage() {
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="#" className="flex items-center gap-2 font-medium">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Command className="size-4" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
+              <Image src="/logo.png" alt="Clockit logo" width={18} height={18} />
             </div>
-            Ninani Attendance Admin
+            Clockit Admin
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
@@ -19,8 +19,16 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-      <div className="hidden lg:flex bg-primary items-center justify-center">
-        <Command className="size-24 text-primary-foreground/20" />
+      <div className="hidden lg:flex flex-col items-center justify-center gap-7 bg-primary">
+        <div className="flex size-32 items-center justify-center rounded-[2rem] bg-white shadow-2xl">
+          <Image src="/logo.png" alt="Clockit logo" width={88} height={88} priority />
+        </div>
+        <div className="text-center">
+          <p className="text-3xl font-semibold tracking-tight text-primary-foreground">Clockit</p>
+          <p className="mt-1.5 text-sm text-primary-foreground/70">
+            Attendance management for Interactive Digital
+          </p>
+        </div>
       </div>
     </div>
   )

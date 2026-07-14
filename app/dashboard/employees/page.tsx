@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/ui/page-header"
 import { SearchInput } from "@/components/ui/search-input"
 import { DataTable, type ColumnDef } from "@/components/ui/data-table"
 import { Badge } from "@/components/ui/badge"
-import { supabase } from "@/lib/supabase/client"
+import { api } from "@/lib/api"
 import { getInitials } from "@/lib/utils"
 import { RequireRole } from "@/components/require-role"
 import { ADMIN_ROLES, type Employee } from "@/lib/types"
@@ -16,16 +16,18 @@ function EmployeesPageContent() {
   const [search, setSearch] = useState("")
 
   useEffect(() => {
-    const fetchEmployees = async () => {
-      setIsLoading(true)
-      const { data } = await supabase
-        .from("employees")
-        .select("id, name, email, emp_id, job_title, agency_id, is_active, agency:agencies(id, name)")
-        .order("name")
-      setEmployees((data as unknown as Employee[]) ?? [])
-      setIsLoading(false)
+    let cancelled = false
+    api
+      .employees()
+      .then((data) => {
+        if (!cancelled) setEmployees(data)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+    return () => {
+      cancelled = true
     }
-    fetchEmployees()
   }, [])
 
   const filtered = useMemo(() => {
@@ -74,7 +76,7 @@ function EmployeesPageContent() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Employees" description="Everyone registered in the attendance app." />
+      <PageHeader title="Employees" description="Everyone registered in Clockit." />
       <SearchInput
         inputId="employee-search"
         placeholder="Search by name or email…"
