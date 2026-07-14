@@ -11,9 +11,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
+from sqlalchemy import func
+
 from ..database import get_db
-from ..deps import get_current_admin, get_current_employee
-from ..models import AttendanceRecord, Employee
+from ..deps import get_current_admin, get_current_employee, require_roles
+from ..models import VIEW_ALL_ROLES, AttendanceRecord, Employee, Profile
 from ..schemas import AttendanceOut, AttendanceWithEmployee, ClockInRequest
 from ..services import attendance as svc
 from ..services.network import classify_location, get_client_ip
@@ -71,11 +73,36 @@ def clock_out(db: Session = Depends(get_db), emp: Employee = Depends(get_current
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc))
 
 
+# --- Personal (dashboard, any role) ----------------------------------------
+@router.get("/my", response_model=list[AttendanceOut])
+def my_attendance_as_profile(
+    db: Session = Depends(get_db),
+    prof: Profile = Depends(get_current_admin),
+    limit: int = Query(60, ge=1, le=365),
+):
+    """The signed-in dashboard user's own attendance, resolved to their
+    employee record by Google identity or email. Empty if they have none."""
+    emp = None
+    if prof.google_sub:
+        emp = db.scalar(select(Employee).where(Employee.google_sub == prof.google_sub))
+    if emp is None:
+        emp = db.scalar(select(Employee).where(func.lower(Employee.email) == prof.email.lower()))
+    if emp is None:
+        return []
+    stmt = (
+        select(AttendanceRecord)
+        .where(AttendanceRecord.employee_id == emp.id)
+        .order_by(AttendanceRecord.date.desc())
+        .limit(limit)
+    )
+    return db.scalars(stmt).all()
+
+
 # --- Admin (dashboard) ------------------------------------------------------
 @router.get("", response_model=list[AttendanceWithEmployee])
 def list_attendance(
     db: Session = Depends(get_db),
-    _=Depends(get_current_admin),
+    _=Depends(require_roles(*VIEW_ALL_ROLES)),
     date_from: date | None = None,
     date_to: date | None = None,
     on_date: date | None = None,

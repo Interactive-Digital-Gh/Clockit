@@ -1,13 +1,35 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { UsersRound, Building2, LogIn, Clock } from "lucide-react"
 import { PageHeader } from "@/components/ui/page-header"
 import { MetricsGrid } from "@/components/ui/metric-card"
 import { AttendanceFeed } from "@/components/attendance-feed"
 import { api } from "@/lib/api"
+import { useProfile } from "@/hooks/use-profile"
+import { ADMIN_ROLES } from "@/lib/types"
 
 export default function OverviewPage() {
+  const router = useRouter()
+  const { profile, isLoading: profileLoading } = useProfile()
+
+  // The Overview is an admin snapshot. Personal-view users land on their own
+  // attendance; front desk lands on the attendance browser.
+  useEffect(() => {
+    if (profileLoading || !profile) return
+    if (!ADMIN_ROLES.includes(profile.role)) {
+      router.replace(profile.role === "front_desk" ? "/dashboard/attendance" : "/dashboard/me")
+    }
+  }, [profile, profileLoading, router])
+
+  // Don't fetch admin metrics while redirecting a non-admin away.
+  if (profileLoading || !profile || !ADMIN_ROLES.includes(profile.role)) return null
+
+  return <OverviewContent />
+}
+
+function OverviewContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [employeeCount, setEmployeeCount] = useState(0)
   const [agencyCount, setAgencyCount] = useState(0)

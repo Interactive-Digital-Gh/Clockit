@@ -15,7 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ExportMenu } from "@/components/export-menu"
 import { api } from "@/lib/api"
 import { formatDate, formatTime, formatHours, cn } from "@/lib/utils"
-import type { AttendanceRecord, Agency } from "@/lib/types"
+import { VIEW_ALL_ROLES, type AttendanceRecord, type Agency } from "@/lib/types"
+import { RequireRole } from "@/components/require-role"
 
 type SortKey = "name" | "clockInTime" | "status" | "totalHours"
 type StatusFilter = "all" | "present" | "late"
@@ -56,6 +57,14 @@ function rangeStartDefault(): Date {
 }
 
 export default function AttendancePage() {
+  return (
+    <RequireRole allowed={VIEW_ALL_ROLES}>
+      <AttendancePageContent />
+    </RequireRole>
+  )
+}
+
+function AttendancePageContent() {
   const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>({
     start: rangeStartDefault(),
     end: new Date(),

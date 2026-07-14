@@ -10,8 +10,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..deps import get_current_admin
-from ..models import Agency, AttendanceRecord, Employee
+from ..deps import require_roles
+from ..models import VIEW_ALL_ROLES, Agency, AttendanceRecord, Employee
 from ..schemas import AttendanceSummary, OverviewMetrics
 from ..services.attendance import today
 
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 
 
 @router.get("/overview", response_model=OverviewMetrics)
-def overview(db: Session = Depends(get_db), _=Depends(get_current_admin)):
+def overview(db: Session = Depends(get_db), _=Depends(require_roles(*VIEW_ALL_ROLES))):
     t = today()
     employees = db.scalar(select(func.count()).select_from(Employee))
     agencies = db.scalar(select(func.count()).select_from(Agency))
@@ -44,7 +44,7 @@ def overview(db: Session = Depends(get_db), _=Depends(get_current_admin)):
 @router.get("/attendance-summary", response_model=list[AttendanceSummary])
 def attendance_summary(
     db: Session = Depends(get_db),
-    _=Depends(get_current_admin),
+    _=Depends(require_roles(*VIEW_ALL_ROLES)),
     days: int = Query(30, ge=1, le=365),
 ):
     """Per-day present/late/total counts over the last `days` days."""

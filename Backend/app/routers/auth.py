@@ -60,7 +60,7 @@ def _login_employee(db: Session, identity: dict) -> TokenPair:
 
 def _login_admin(db: Session, identity: dict) -> TokenPair:
     """First-ever profile becomes super_admin; everyone after defaults to
-    front_desk (least privilege) and must be promoted."""
+    employee (personal view only) and must be promoted."""
     prof = db.scalar(select(Profile).where(Profile.google_sub == identity["sub"]))
     if prof is None:
         prof = db.scalar(select(Profile).where(func.lower(Profile.email) == identity["email"]))
@@ -72,7 +72,7 @@ def _login_admin(db: Session, identity: dict) -> TokenPair:
                 email=identity["email"],
                 full_name=identity["name"],
                 google_sub=identity["sub"],
-                role="super_admin" if is_first else "front_desk",
+                role="super_admin" if is_first else "employee",
             )
             db.add(prof)
         db.commit()

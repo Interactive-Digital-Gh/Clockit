@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { LayoutDashboardIcon, FileText, FileChartLine, UsersRound, Building2, UserCircle2, LogOut, UserCircle, MoreVertical } from "lucide-react"
+import { LayoutDashboardIcon, FileText, FileChartLine, UsersRound, Building2, UserCircle2, LogOut, UserCircle, MoreVertical, CalendarClock } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -33,13 +33,14 @@ import {
 import { api } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { useProfile } from "@/hooks/use-profile"
-import { ADMIN_ROLES, USER_MANAGER_ROLES, type Role } from "@/lib/types"
+import { ADMIN_ROLES, USER_MANAGER_ROLES, VIEW_ALL_ROLES, type Role } from "@/lib/types"
 
 const ROLE_LABELS: Record<Role, string> = {
   super_admin: "Super Administrator",
   it: "IT Administrator",
   hr: "HR Manager",
   front_desk: "Front Desk",
+  employee: "Employee",
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -54,13 +55,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     if (profile && ADMIN_ROLES.includes(profile.role)) {
       groups.push({ label: "Dashboard", items: [{ href: "/dashboard", label: "Overview", icon: LayoutDashboardIcon }] })
     }
+    // Everyone gets their own attendance; only viewing roles get everyone's.
     groups.push({
-      label: "Tracking",
-      items: [
-        { href: "/dashboard/attendance", label: "Attendance", icon: FileText },
-        { href: "/dashboard/reports", label: "Reports", icon: FileChartLine },
-      ],
+      label: "Personal",
+      items: [{ href: "/dashboard/me", label: "My attendance", icon: CalendarClock }],
     })
+    if (profile && VIEW_ALL_ROLES.includes(profile.role)) {
+      groups.push({
+        label: "Tracking",
+        items: [
+          { href: "/dashboard/attendance", label: "Attendance", icon: FileText },
+          { href: "/dashboard/reports", label: "Reports", icon: FileChartLine },
+        ],
+      })
+    }
     const managementItems = []
     if (profile && ADMIN_ROLES.includes(profile.role)) {
       managementItems.push({ href: "/dashboard/employees", label: "Employees", icon: UsersRound })

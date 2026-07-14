@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from ..database import get_db
 from ..deps import get_current_admin, get_current_employee, require_roles
-from ..models import ADMIN_ROLES, Employee
+from ..models import ADMIN_ROLES, VIEW_ALL_ROLES, Employee
 from ..schemas import EmployeeCreate, EmployeeOut, EmployeeSelfUpdate, EmployeeUpdate
 
 router = APIRouter(prefix="/employees", tags=["employees"])
@@ -40,7 +40,7 @@ def update_my_employee(
 @router.get("", response_model=list[EmployeeOut])
 def list_employees(
     db: Session = Depends(get_db),
-    _=Depends(get_current_admin),
+    _=Depends(require_roles(*VIEW_ALL_ROLES)),
     search: str | None = Query(None, description="Match name/email/emp_id"),
     agency_id: uuid.UUID | None = None,
     is_active: bool | None = None,
@@ -59,7 +59,9 @@ def list_employees(
 
 
 @router.get("/{employee_id}", response_model=EmployeeOut)
-def get_employee(employee_id: uuid.UUID, db: Session = Depends(get_db), _=Depends(get_current_admin)):
+def get_employee(
+    employee_id: uuid.UUID, db: Session = Depends(get_db), _=Depends(require_roles(*VIEW_ALL_ROLES))
+):
     emp = db.get(Employee, employee_id)
     if not emp:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Employee not found")

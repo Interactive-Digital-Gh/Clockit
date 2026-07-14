@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..deps import get_current_admin, get_current_employee, require_roles
-from ..models import ADMIN_ROLES, Agency, Employee
+from ..models import ADMIN_ROLES, VIEW_ALL_ROLES, Agency, Employee
 from ..schemas import AgencyCreate, AgencyOut, AgencyUpdate
 
 router = APIRouter(prefix="/agencies", tags=["agencies"])
@@ -26,12 +26,14 @@ def my_agency(db: Session = Depends(get_db), emp: Employee = Depends(get_current
 
 
 @router.get("", response_model=list[AgencyOut])
-def list_agencies(db: Session = Depends(get_db), _=Depends(get_current_admin)):
+def list_agencies(db: Session = Depends(get_db), _=Depends(require_roles(*VIEW_ALL_ROLES))):
     return db.scalars(select(Agency).order_by(Agency.name)).all()
 
 
 @router.get("/{agency_id}", response_model=AgencyOut)
-def get_agency(agency_id: uuid.UUID, db: Session = Depends(get_db), _=Depends(get_current_admin)):
+def get_agency(
+    agency_id: uuid.UUID, db: Session = Depends(get_db), _=Depends(require_roles(*VIEW_ALL_ROLES))
+):
     agency = db.get(Agency, agency_id)
     if not agency:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Agency not found")

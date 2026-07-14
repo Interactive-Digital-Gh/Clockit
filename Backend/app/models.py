@@ -27,7 +27,12 @@ ROLE_SUPER_ADMIN = "super_admin"
 ROLE_IT = "it"
 ROLE_HR = "hr"
 ROLE_FRONT_DESK = "front_desk"
-ALL_ROLES = (ROLE_SUPER_ADMIN, ROLE_IT, ROLE_HR, ROLE_FRONT_DESK)
+# Regular staff: dashboard shows only their own attendance. Default for
+# new sign-ups until promoted.
+ROLE_EMPLOYEE = "employee"
+ALL_ROLES = (ROLE_SUPER_ADMIN, ROLE_IT, ROLE_HR, ROLE_FRONT_DESK, ROLE_EMPLOYEE)
+# Roles allowed to browse other people's attendance/employee data.
+VIEW_ALL_ROLES = (ROLE_SUPER_ADMIN, ROLE_IT, ROLE_HR, ROLE_FRONT_DESK)
 ADMIN_ROLES = (ROLE_SUPER_ADMIN, ROLE_IT, ROLE_HR)
 USER_MANAGER_ROLES = (ROLE_SUPER_ADMIN, ROLE_IT)
 
@@ -131,7 +136,7 @@ class Profile(Base):
     )
     email: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     full_name: Mapped[str | None] = mapped_column(String)
-    role: Mapped[str] = mapped_column(String, nullable=False, server_default=text("'front_desk'"))
+    role: Mapped[str] = mapped_column(String, nullable=False, server_default=text("'employee'"))
     google_sub: Mapped[str | None] = mapped_column(String, unique=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()")
@@ -139,6 +144,7 @@ class Profile(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "role in ('super_admin', 'it', 'hr', 'front_desk')", name="profiles_role_check"
+            "role in ('super_admin', 'it', 'hr', 'front_desk', 'employee')",
+            name="profiles_role_check",
         ),
     )

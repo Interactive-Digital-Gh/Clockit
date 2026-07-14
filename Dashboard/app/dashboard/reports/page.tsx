@@ -47,9 +47,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { ExportMenu } from "@/components/export-menu"
+import { RequireRole } from "@/components/require-role"
 import { api } from "@/lib/api"
 import { formatHours, cn } from "@/lib/utils"
-import type { AttendanceRecord, Employee } from "@/lib/types"
+import { VIEW_ALL_ROLES, type AttendanceRecord, type Employee } from "@/lib/types"
 
 type Timeframe = "week" | "month" | "year"
 
@@ -76,6 +77,14 @@ function workingDaysElapsed(start: Date, end: Date): number {
 }
 
 export default function ReportsPage() {
+  return (
+    <RequireRole allowed={VIEW_ALL_ROLES}>
+      <ReportsPageContent />
+    </RequireRole>
+  )
+}
+
+function ReportsPageContent() {
   const [timeframe, setTimeframe] = useState<Timeframe>("week")
   const [currentDate, setCurrentDate] = useState(new Date())
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)

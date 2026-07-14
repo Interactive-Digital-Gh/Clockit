@@ -41,7 +41,7 @@ export interface AttendanceRecord {
   employee?: Pick<Employee, "id" | "name" | "email" | "agency"> | null
 }
 
-export type Role = "super_admin" | "it" | "hr" | "front_desk"
+export type Role = "super_admin" | "it" | "hr" | "front_desk" | "employee"
 
 export interface Profile {
   id: string
@@ -53,3 +53,6 @@ export interface Profile {
 
 export const ADMIN_ROLES: Role[] = ["super_admin", "it", "hr"]
 export const USER_MANAGER_ROLES: Role[] = ["super_admin", "it"]
+// Roles that may browse other people's attendance. "employee" gets only the
+// personal My-attendance view.
+export const VIEW_ALL_ROLES: Role[] = ["super_admin", "it", "hr", "front_desk"]

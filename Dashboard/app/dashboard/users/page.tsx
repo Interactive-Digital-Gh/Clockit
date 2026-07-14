@@ -15,6 +15,7 @@ const ROLE_LABELS: Record<Role, string> = {
   it: "IT Administrator",
   hr: "HR Manager",
   front_desk: "Front Desk",
+  employee: "Employee",
 }
 
 function UsersPageContent() {

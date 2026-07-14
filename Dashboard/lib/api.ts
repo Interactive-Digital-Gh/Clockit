@@ -103,6 +103,8 @@ export const api = {
     clearToken()
   },
   me: () => apiFetch<Profile>("/profiles/me"),
+  /** The signed-in user's own attendance (any role). */
+  myAttendance: (limit = 60) => apiFetch<AttendanceRecord[]>(`/attendance/my?limit=${limit}`),
 
   // Data
   overview: () => apiFetch<OverviewMetrics>("/reports/overview"),

@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-Role = Literal["super_admin", "it", "hr", "front_desk"]
+Role = Literal["super_admin", "it", "hr", "front_desk", "employee"]
 
 
 class ORMModel(BaseModel):
