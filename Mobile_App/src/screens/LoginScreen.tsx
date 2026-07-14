@@ -13,7 +13,9 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useApp } from '../context/AppContext';
-import { findOrCreateEmployee } from '../services/attendanceService';
+import { findOrCreateEmployee, googleSignInEmployee } from '../services/attendanceService';
+import { googleConfigured } from '../lib/googleAuth';
+import { EmployeeRecord } from '../services/attendanceService';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList>;
 const { height: SCREEN_H } = Dimensions.get('window');
@@ -41,29 +43,46 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Shared post-login routing: established accounts go straight in,
+  // brand-new ones collect name/department first.
+  const enterApp = async (emp: EmployeeRecord, fallbackEmail: string, googleName = '') => {
+    const established = !!(emp.emp_id || emp.job_title || emp.agency_id);
+    if (established) {
+      await signUp({
+        id: emp.id,
+        agencyId: emp.agency_id,
+        name: emp.name,
+        email: emp.email ?? fallbackEmail,
+        department: emp.job_title ?? '',
+        initials: getInitials(emp.name),
+      });
+    } else {
+      nav.navigate('SignUp', { googleName, googleEmail: emp.email ?? fallbackEmail });
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const emp = await googleSignInEmployee();
+      if (emp) await enterApp(emp, emp.email ?? '', emp.name);
+      // null = user dismissed the Google sheet; nothing to do.
+    } catch (err: any) {
+      Alert.alert('Sign in failed', err?.message ?? 'Could not reach the server. Try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Dev sign-in (email only) — works while the API runs with DEV_MODE=true.
   const handleContinue = async () => {
     const trimmed = email.trim().toLowerCase();
     if (!trimmed || loading) return;
     setLoading(true);
     try {
-      // Dev sign-in (swap for real Google OAuth later): the backend claims a
-      // pre-registered row by email or self-registers a bare one.
       const emp = await findOrCreateEmployee('', trimmed);
-      const established = !!(emp.emp_id || emp.job_title || emp.agency_id);
-      if (established) {
-        // Known account — log straight in, no onboarding.
-        await signUp({
-          id: emp.id,
-          agencyId: emp.agency_id,
-          name: emp.name,
-          email: trimmed,
-          department: emp.job_title ?? '',
-          initials: getInitials(emp.name),
-        });
-      } else {
-        // Brand-new account — collect name/department first.
-        nav.navigate('SignUp', { googleName: '', googleEmail: trimmed });
-      }
+      await enterApp(emp, trimmed);
     } catch (err: any) {
       Alert.alert('Sign in failed', err?.message ?? 'Could not reach the server. Try again.');
     } finally {
@@ -102,6 +121,33 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.cardBottom}>
+          {googleConfigured && (
+            <TouchableOpacity
+              style={[styles.googleBtn, loading && { opacity: 0.4 }]}
+              onPress={handleGoogleSignIn}
+              activeOpacity={0.9}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" style={{ flex: 1 }} />
+              ) : (
+                <>
+                  <View style={styles.googleIconWrap}>
+                    <GoogleColorIcon size={22} />
+                  </View>
+                  <Text style={styles.googleBtnText}>Continue with Google</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+
+          {/* Dev sign-in — only functions while the API has DEV_MODE=true.
+              Remove this block once Google login is confirmed in production. */}
+          <View style={styles.devDividerRow}>
+            <View style={styles.devDividerLine} />
+            <Text style={styles.devDividerText}>or dev sign-in</Text>
+            <View style={styles.devDividerLine} />
+          </View>
           <TextInput
             style={styles.emailInput}
             value={email}
@@ -115,16 +161,12 @@ export default function LoginScreen() {
             returnKeyType="go"
           />
           <TouchableOpacity
-            style={[styles.googleBtn, (!email.trim() || loading) && { opacity: 0.4 }]}
+            style={[styles.devBtn, (!email.trim() || loading) && { opacity: 0.4 }]}
             onPress={handleContinue}
             activeOpacity={0.9}
             disabled={!email.trim() || loading}
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" style={{ flex: 1 }} />
-            ) : (
-              <Text style={styles.googleBtnText}>Continue</Text>
-            )}
+            <Text style={styles.devBtnText}>Continue with email (dev)</Text>
           </TouchableOpacity>
 
           <Text style={styles.legal}>
@@ -198,5 +240,20 @@ const styles = StyleSheet.create({
   legal: {
     textAlign: 'center', fontSize: 12, color: '#9AA3B8',
     lineHeight: 18, fontFamily: 'PlusJakartaSans_400Regular',
+  },
+
+  /* Dev sign-in (temporary, DEV_MODE only) */
+  devDividerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
+  devDividerLine: { flex: 1, height: 1, backgroundColor: '#E4E8F0' },
+  devDividerText: {
+    fontSize: 11, color: '#9AA3B8', fontFamily: 'PlusJakartaSans_600SemiBold',
+    textTransform: 'uppercase', letterSpacing: 0.5,
+  },
+  devBtn: {
+    height: 50, borderRadius: 16, borderWidth: 1.5, borderColor: '#E4E8F0',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  devBtnText: {
+    fontSize: 14, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#707A91',
   },
 });

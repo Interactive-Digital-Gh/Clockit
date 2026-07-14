@@ -5,6 +5,7 @@
 // `employeeId`/`agencyId` params below are accepted for signature compatibility
 // but the "me" endpoints use the token's identity.
 import { api } from '../lib/api';
+import { googleSignIn } from '../lib/googleAuth';
 import { getLocalIpAddress } from '../utils/networkCheck';
 
 export interface EmployeeRecord {
@@ -28,10 +29,30 @@ export interface AttendanceRecord {
 }
 
 /**
- * Signs the employee in (dev-login for now — swap for Google later) and returns
- * their record. The backend creates/claims the employee row on login. If a
- * name is given and differs from the server's (e.g. the row was auto-created
- * at the login step before onboarding), it is written back.
+ * Google sign-in: runs the native flow, exchanges the Google ID token for our
+ * JWT, and returns the employee record (created/claimed by email server-side).
+ * Returns null if the user cancelled the Google flow.
+ */
+export async function googleSignInEmployee(): Promise<EmployeeRecord | null> {
+  const identity = await googleSignIn();
+  if (!identity) return null;
+  await api.googleLoginEmployee(identity.idToken);
+  const e = await api.getMyEmployee();
+  return {
+    id: e.id,
+    name: e.name,
+    email: e.email,
+    emp_id: e.emp_id,
+    job_title: e.job_title,
+    agency_id: e.agency_id,
+  };
+}
+
+/**
+ * Dev sign-in (email only — works while the API runs with DEV_MODE=true) and
+ * returns the employee record. The backend creates/claims the employee row on
+ * login. If a name is given and differs from the server's (e.g. the row was
+ * auto-created at the login step before onboarding), it is written back.
  */
 export async function findOrCreateEmployee(
   name: string,

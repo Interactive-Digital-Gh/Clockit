@@ -204,7 +204,10 @@ export default function ScannerScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B0E17' },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(11,14,23,0.55)' },
+  overlay: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(11,14,23,0.55)',
+  },
   manualBtn: {
     backgroundColor: 'rgba(255,255,255,0.12)',
     paddingVertical: 14, paddingHorizontal: 22, borderRadius: 14,

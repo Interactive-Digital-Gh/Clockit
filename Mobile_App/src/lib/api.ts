@@ -101,6 +101,15 @@ export const api = {
     await setToken(access_token);
     return access_token;
   },
+  /** Exchange a Google ID token (from native Google Sign-In) for our JWT. */
+  async googleLoginEmployee(idToken: string) {
+    const { access_token } = await apiFetch<{ access_token: string }>('/auth/google/employee', {
+      method: 'POST',
+      body: JSON.stringify({ id_token: idToken }),
+    });
+    await setToken(access_token);
+    return access_token;
+  },
   getMyEmployee: () => apiFetch<ApiEmployee>('/employees/me'),
   updateMyName: (name: string) =>
     apiFetch<ApiEmployee>('/employees/me', {
