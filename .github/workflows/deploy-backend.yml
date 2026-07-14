@@ -47,7 +47,14 @@ jobs:
           venv/bin/pip install -q -r requirements.txt
           venv/bin/alembic upgrade head
           sudo /usr/bin/systemctl restart clockit-api
-          sleep 3
-          curl -sf --max-time 10 http://127.0.0.1:8010/health
-          echo " deploy OK"
+          # Cold starts can be slow on this box — poll up to 30s before failing.
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            sleep 3
+            if curl -sf --max-time 10 http://127.0.0.1:8010/health; then
+              echo " deploy OK (healthy after $((i * 3))s)"
+              exit 0
+            fi
+          done
+          echo "service did not become healthy within 30s" >&2
+          exit 1
           DEPLOY
