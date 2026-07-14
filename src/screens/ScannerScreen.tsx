@@ -1,32 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, Alert } from 'react-native';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Camera, useCameraPermission, useObjectOutput, isScannedCode } from 'react-native-vision-camera';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Cancel01Icon, Wifi01Icon, Alert01Icon, Camera01Icon, Refresh01Icon } from '@hugeicons/core-free-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../context/AppContext';
-import { clockInEmployee, fetchAgencyAllowedSubnets } from '../services/attendanceService';
-import { checkCompanyNetwork, NetworkStatus } from '../utils/networkCheck';
-import { NETWORK } from '../config/network';
+import { clockInEmployee } from '../services/attendanceService';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList>;
-type ScanState = 'checking' | 'no_permission' | NetworkStatus;
+type ScanState = 'checking' | 'no_permission' | 'allowed';
 
 const ERROR_COPY: Record<string, { icon: any; title: string; body: string }> = {
-  no_wifi: {
-    icon: Wifi01Icon,
-    title: 'No WiFi connection',
-    body: `Connect to the ${NETWORK.companyName} office WiFi to clock in. Mobile data is not supported.`,
-  },
-  wrong_network: {
-    icon: Alert01Icon,
-    title: 'Wrong network',
-    body: `You're on WiFi but not the ${NETWORK.companyName} network (192.168.x.x). Move to the office and try again.`,
-  },
   no_permission: {
     icon: Camera01Icon,
     title: 'Camera access needed',
@@ -40,21 +28,24 @@ export default function ScannerScreen() {
   const { user, clockIn } = useApp();
   const [scanState, setScanState] = useState<ScanState>('checking');
   const [scanned, setScanned] = useState(false);
-  const [permission, requestPermission] = useCameraPermissions();
+  const { hasPermission, canRequestPermission, requestPermission } = useCameraPermission();
+  const isFocused = useIsFocused();
+  const scannedRef = useRef(false);
   const reticleOpacity = useRef(new Animated.Value(0.55)).current;
 
-  // Step 1: fetch agency subnets → Step 2: network check → Step 3: camera permission
+  // Just need camera permission — clock-in is never network-gated now; the
+  // server classifies on-site vs remote from the IP the app reports.
   useEffect(() => {
     (async () => {
-      const subnets = user?.agencyId
-        ? await fetchAgencyAllowedSubnets(user.agencyId).catch(() => [])
-        : [];
-      const network = await checkCompanyNetwork(subnets);
-      if (network !== 'allowed') { setScanState(network); return; }
-      const granted = permission?.granted ?? (await requestPermission()).granted;
-      setScanState(granted ? 'allowed' : 'no_permission');
+      if (hasPermission) {
+        setScanState('allowed');
+      } else if (canRequestPermission) {
+        setScanState((await requestPermission()) ? 'allowed' : 'no_permission');
+      } else {
+        setScanState('no_permission');
+      }
     })();
-  }, []);
+  }, [hasPermission]);
 
   // Reticle pulse while scanning
   useEffect(() => {
@@ -69,8 +60,13 @@ export default function ScannerScreen() {
     return () => loop.stop();
   }, [scanState]);
 
-  const handleQRScanned = async ({ data: _qrData }: { data: string }) => {
-    if (scanned || !user) return;
+  // The scanned QR value isn't used — clock-in is identified by the auth token
+  // and classified on-site/remote server-side from the IP. So scanning and the
+  // manual fallback below do the exact same thing. Guarded by a ref because
+  // the scan callback fires many times per second.
+  const doClockIn = async () => {
+    if (scannedRef.current || !user) return;
+    scannedRef.current = true;
     setScanned(true);
     try {
       const record = await clockInEmployee(user.id);
@@ -80,21 +76,30 @@ export default function ScannerScreen() {
       clockIn(time);
       nav.replace('Success', { clockInTime: time });
     } catch (err: any) {
+      scannedRef.current = false;
       setScanned(false);
       Alert.alert('Clock-in failed', err?.message ?? 'Could not record your attendance. Try again.');
     }
   };
 
+  const qrOutput = useObjectOutput({
+    types: ['qr'],
+    onObjectsScanned: (objects) => {
+      if (objects.some(isScannedCode)) doClockIn();
+    },
+  });
+
   const retry = async () => {
+    scannedRef.current = false;
     setScanned(false);
     setScanState('checking');
-    const subnets = user?.agencyId
-      ? await fetchAgencyAllowedSubnets(user.agencyId).catch(() => [])
-      : [];
-    const network = await checkCompanyNetwork(subnets);
-    if (network !== 'allowed') { setScanState(network); return; }
-    const granted = permission?.granted ?? (await requestPermission()).granted;
-    setScanState(granted ? 'allowed' : 'no_permission');
+    if (hasPermission) {
+      setScanState('allowed');
+    } else if (canRequestPermission) {
+      setScanState((await requestPermission()) ? 'allowed' : 'no_permission');
+    } else {
+      setScanState('no_permission');
+    }
   };
 
   const error = scanState !== 'checking' && scanState !== 'allowed' ? ERROR_COPY[scanState] : null;
@@ -103,13 +108,22 @@ export default function ScannerScreen() {
     <View style={styles.container}>
       <StatusBar style="light" />
 
+      {/* The camera must not be absolutely positioned itself — the Nitro
+          preview view doesn't lay out that way on the New Architecture and
+          renders black. A plain View does the absolute fill instead. */}
       {scanState === 'allowed' && (
-        <CameraView
-          style={StyleSheet.absoluteFillObject}
-          facing="back"
-          onBarcodeScanned={scanned ? undefined : handleQRScanned}
-          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-        />
+        <View style={StyleSheet.absoluteFill}>
+          <Camera
+            style={{ flex: 1 }}
+            device="back"
+            isActive={isFocused}
+            outputs={[qrOutput]}
+            onPreviewStarted={() => console.log('[Scanner] preview started')}
+            onError={(err) => {
+              console.warn('[Scanner] camera error:', err);
+            }}
+          />
+        </View>
       )}
       {scanState === 'allowed' && <View style={styles.overlay} />}
 
@@ -127,11 +141,11 @@ export default function ScannerScreen() {
         <View style={styles.body}>
           <View style={styles.stateCard}>
             <View style={[styles.stateIcon, { backgroundColor: 'rgba(99,102,241,0.15)' }]}>
-              <HugeiconsIcon icon={Wifi01Icon} size={28} color="#6366F1" />
+              <HugeiconsIcon icon={Camera01Icon} size={28} color="#6366F1" />
             </View>
-            <Text style={styles.stateTitle}>Checking connection…</Text>
+            <Text style={styles.stateTitle}>Preparing camera…</Text>
             <Text style={styles.stateBody}>
-              Verifying you're on the {NETWORK.companyName} network
+              Getting the scanner ready
             </Text>
           </View>
         </View>
@@ -174,10 +188,14 @@ export default function ScannerScreen() {
 
       {scanState === 'allowed' && (
         <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
-          <View style={styles.cameraTag}>
-            <HugeiconsIcon icon={Camera01Icon} size={15} color="rgba(255,255,255,0.5)" />
-            <Text style={styles.cameraText}>CAMERA FEED · scanning</Text>
-          </View>
+          <TouchableOpacity
+            style={styles.manualBtn}
+            onPress={doClockIn}
+            activeOpacity={0.85}
+            disabled={scanned}
+          >
+            <Text style={styles.manualBtnText}>Camera not working? Tap to clock in</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -187,6 +205,11 @@ export default function ScannerScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B0E17' },
   overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(11,14,23,0.55)' },
+  manualBtn: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingVertical: 14, paddingHorizontal: 22, borderRadius: 14,
+  },
+  manualBtnText: { fontSize: 14, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#fff' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 24, paddingBottom: 16, zIndex: 10,

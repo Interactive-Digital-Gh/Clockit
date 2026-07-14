@@ -29,7 +29,7 @@ export default function LockScreen() {
   const prompt = useCallback(async () => {
     setFailed(false);
     const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: 'Unlock Ninani Attendance',
+      promptMessage: 'Unlock Clockit',
       fallbackLabel: 'Use passcode',
       cancelLabel: 'Cancel',
       disableDeviceFallback: false,

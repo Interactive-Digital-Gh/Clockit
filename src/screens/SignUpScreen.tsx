@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  TextInput, ScrollView, ActivityIndicator, Alert, Dimensions,
+  TextInput, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HugeiconsIcon } from '@hugeicons/react-native';
@@ -49,14 +49,20 @@ export default function SignUpScreen() {
         department,
         initials: getInitials(name.trim()),
       });
-    } catch {
+    } catch (err: any) {
       setSaving(false);
-      Alert.alert('Sign up failed', 'Could not connect to the database. Check your connection and try again.');
+      Alert.alert(
+        'Sign up failed',
+        err?.message ?? 'Could not reach the server. Check your connection and try again.'
+      );
     }
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <StatusBar style="light" />
 
       {/* ── Hero ── */}
@@ -132,10 +138,10 @@ export default function SignUpScreen() {
         </TouchableOpacity>
 
         <Text style={styles.footerNote}>
-          Your details will only be used for attendance tracking within Ninani Group.
+          Your details will only be used for attendance tracking within Interactive Digital.
         </Text>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

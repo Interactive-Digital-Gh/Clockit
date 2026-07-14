@@ -2,6 +2,17 @@ import * as Network from 'expo-network';
 
 export type NetworkStatus = 'allowed' | 'no_wifi' | 'wrong_network';
 
+/** Device's current LAN IP, sent to the server so it can classify on-site vs
+ * remote clock-in. Returns null if unavailable. */
+export async function getLocalIpAddress(): Promise<string | null> {
+  try {
+    const ip = await Network.getIpAddressAsync();
+    return ip || null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Checks whether the device is on an allowed company network.
  *

@@ -98,7 +98,9 @@ export default function AppNavigator() {
       ) : (
         <>
           <RootStack.Screen name="Main" component={MainTabs} options={{ animation: 'fade' }} />
-          <RootStack.Screen name="Scanner" component={ScannerScreen} options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
+          {/* Not a native modal: camera previews render black inside
+              fullScreenModal containers on the New Architecture. */}
+          <RootStack.Screen name="Scanner" component={ScannerScreen} options={{ presentation: 'card', animation: 'slide_from_bottom' }} />
           <RootStack.Screen name="Success" component={SuccessScreen} options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
         </>
       )}

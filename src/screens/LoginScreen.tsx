@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Dimensions,
+  View, Text, TouchableOpacity, StyleSheet, TextInput,
+  ScrollView, KeyboardAvoidingView, Platform, Dimensions,
+  ActivityIndicator, Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HugeiconsIcon } from '@hugeicons/react-native';
@@ -11,6 +12,8 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { useApp } from '../context/AppContext';
+import { findOrCreateEmployee } from '../services/attendanceService';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList>;
 const { height: SCREEN_H } = Dimensions.get('window');
@@ -27,75 +30,116 @@ function GoogleColorIcon({ size = 28 }: { size?: number }) {
   );
 }
 
-// Simulated Google OAuth result — replace with real OAuth when ready
-const MOCK_GOOGLE = {
-  googleName: 'Alex Morgan',
-  googleEmail: 'alex.morgan@ninanigroup.com.gh',
-};
+function getInitials(name: string): string {
+  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+}
 
 export default function LoginScreen() {
   const nav = useNavigation<NavProp>();
   const insets = useSafeAreaInsets();
+  const { signUp } = useApp();
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleGoogleSignIn = () => {
+  const handleContinue = async () => {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed || loading) return;
     setLoading(true);
-    // Simulate OAuth round-trip delay
-    setTimeout(() => {
+    try {
+      // Dev sign-in (swap for real Google OAuth later): the backend claims a
+      // pre-registered row by email or self-registers a bare one.
+      const emp = await findOrCreateEmployee('', trimmed);
+      const established = !!(emp.emp_id || emp.job_title || emp.agency_id);
+      if (established) {
+        // Known account — log straight in, no onboarding.
+        await signUp({
+          id: emp.id,
+          agencyId: emp.agency_id,
+          name: emp.name,
+          email: trimmed,
+          department: emp.job_title ?? '',
+          initials: getInitials(emp.name),
+        });
+      } else {
+        // Brand-new account — collect name/department first.
+        nav.navigate('SignUp', { googleName: '', googleEmail: trimmed });
+      }
+    } catch (err: any) {
+      Alert.alert('Sign in failed', err?.message ?? 'Could not reach the server. Try again.');
+    } finally {
       setLoading(false);
-      nav.navigate('SignUp', MOCK_GOOGLE);
-    }, 800);
+    }
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <StatusBar style="light" />
 
-      {/* ── Hero — pure gradient, no text ── */}
-      <LinearGradient
-        colors={['#1E1B4B', '#312E81', '#4338CA']}
-        style={styles.hero}
-        start={{ x: 0.2, y: 0 }}
-        end={{ x: 0.9, y: 1 }}
-      />
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        {/* ── Hero — pure gradient, no text ── */}
+        <LinearGradient
+          colors={['#1E1B4B', '#312E81', '#4338CA']}
+          style={styles.hero}
+          start={{ x: 0.2, y: 0 }}
+          end={{ x: 0.9, y: 1 }}
+        />
 
-      {/* ── White card ── */}
-      <View style={[styles.card, { paddingBottom: insets.bottom + 28 }]}>
+        {/* ── White card ── */}
+        <View style={[styles.card, { paddingBottom: insets.bottom + 28 }]}>
         <View style={styles.cardTop}>
           <Text style={styles.headline}>Attendance,{'\n'}made effortless</Text>
           <Text style={styles.sub}>
-            Sign in with your work Google account to clock in and track your attendance.
+            Enter your work email to clock in and track your attendance.
           </Text>
         </View>
 
         <View style={styles.cardBottom}>
+          <TextInput
+            style={styles.emailInput}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="you@interactivedigital.com"
+            placeholderTextColor="#9AA3B8"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            autoCorrect={false}
+            onSubmitEditing={handleContinue}
+            returnKeyType="go"
+          />
           <TouchableOpacity
-            style={styles.googleBtn}
-            onPress={handleGoogleSignIn}
+            style={[styles.googleBtn, (!email.trim() || loading) && { opacity: 0.4 }]}
+            onPress={handleContinue}
             activeOpacity={0.9}
-            disabled={loading}
+            disabled={!email.trim() || loading}
           >
-            <View style={styles.googleIconWrap}>
-              {loading ? (
-                <ActivityIndicator size="small" color="#4338CA" />
-              ) : (
-                <GoogleColorIcon size={22} />
-              )}
-            </View>
-            <Text style={styles.googleBtnText}>Continue with Google</Text>
+            {loading ? (
+              <ActivityIndicator color="#fff" style={{ flex: 1 }} />
+            ) : (
+              <Text style={styles.googleBtnText}>Continue</Text>
+            )}
           </TouchableOpacity>
 
           <Text style={styles.legal}>
-            By continuing you agree to Ninani Group's attendance &amp; data policy.
+            By continuing you agree to Interactive Digital's attendance &amp; data policy.
           </Text>
         </View>
       </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+  scrollContent: { flexGrow: 1 },
 
   /* Hero */
   hero: { height: HERO_H, overflow: 'hidden' },
@@ -133,6 +177,11 @@ const styles = StyleSheet.create({
 
   /* Bottom */
   cardBottom: { gap: 16, marginTop: 52 },
+  emailInput: {
+    height: 56, borderRadius: 16, backgroundColor: '#F8F9FC',
+    borderWidth: 1.5, borderColor: '#E4E8F0', paddingHorizontal: 18,
+    fontSize: 15, fontFamily: 'PlusJakartaSans_500Medium', color: '#1A1D2E',
+  },
   googleBtn: {
     height: 56, borderRadius: 16, backgroundColor: '#4338CA',
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, gap: 0,

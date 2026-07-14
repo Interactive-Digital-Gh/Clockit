@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants/colors';
 
 const APP_VERSION = '1.0.0';
-const HR_EMAIL = 'hr@northwindlabs.com';
+const HR_EMAIL = 'hr@interactivedigital.com';
 
 const FAQ = [
   {
@@ -88,7 +88,7 @@ export default function HelpSupportScreen() {
         <View style={styles.card}>
           <TouchableOpacity
             style={styles.contactRow}
-            onPress={() => Linking.openURL(`mailto:${HR_EMAIL}?subject=Attendance App Support`)}
+            onPress={() => Linking.openURL(`mailto:${HR_EMAIL}?subject=Clockit Support`)}
             activeOpacity={0.75}
           >
             <View style={styles.iconWrap}>
@@ -103,9 +103,9 @@ export default function HelpSupportScreen() {
         </View>
 
         <View style={styles.versionBlock}>
-          <Text style={styles.versionLabel}>Attendance App</Text>
+          <Text style={styles.versionLabel}>Clockit</Text>
           <Text style={styles.versionNumber}>Version {APP_VERSION}</Text>
-          <Text style={styles.versionSub}>Northwind Labs · Internal</Text>
+          <Text style={styles.versionSub}>Interactive Digital · Internal</Text>
         </View>
       </ScrollView>
     </View>

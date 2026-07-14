@@ -46,7 +46,7 @@ export default function ProfileScreen() {
             <Text style={styles.avatarText}>{user?.initials ?? '?'}</Text>
           </View>
           <Text style={styles.name}>{user?.name}</Text>
-          <Text style={styles.role}>{user?.department} · Ninani Group</Text>
+          <Text style={styles.role}>{user?.department} · Interactive Digital</Text>
           <Text style={styles.email}>{user?.email}</Text>
         </View>
 

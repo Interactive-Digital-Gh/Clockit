@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
 import { fetchAttendanceHistory, AttendanceRecord } from '../services/attendanceService';
 import { toDisplayRecord, startOfWeek, startOfMonth, isOnOrAfter, sumHours } from '../utils/attendanceStats';
+import { HoursBars, ClockInTrend, LocationSplit } from '../components/AttendanceCharts';
 import { COLORS } from '../constants/colors';
 
 function monthYearLabel() {
@@ -18,7 +19,8 @@ export default function HistoryScreen() {
 
   useEffect(() => {
     if (!user) return;
-    fetchAttendanceHistory(user.id, 35).then(setRecords).catch(() => {});
+    // 60 covers ~12 weeks of weekdays — enough for the trend charts.
+    fetchAttendanceHistory(user.id, 60).then(setRecords).catch(() => {});
   }, [user?.id]);
 
   const monthRecords = records.filter((r) => isOnOrAfter(r.date, startOfMonth()));
@@ -46,6 +48,16 @@ export default function HistoryScreen() {
             <Text style={styles.statSecondaryLabel}>days present</Text>
           </View>
         </View>
+
+        {records.length >= 2 && (
+          <>
+            <Text style={styles.sectionLabel}>TRENDS</Text>
+            <HoursBars records={records} />
+            <ClockInTrend records={records} />
+            <LocationSplit records={records} />
+            <View style={{ height: 10 }} />
+          </>
+        )}
 
         <Text style={styles.sectionLabel}>THIS WEEK</Text>
         {weekRecords.length === 0 ? (

@@ -1,9 +1,11 @@
-import { supabase } from '../lib/supabase';
-import { isLateClockIn } from '../config/attendance';
-
-function todayDate() {
-  return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-}
+// Data layer for the mobile app. Talks to the Clockit FastAPI backend (was
+// Supabase). Function signatures/types are unchanged so screens don't need to.
+//
+// The backend identifies the employee from the bearer token, so the
+// `employeeId`/`agencyId` params below are accepted for signature compatibility
+// but the "me" endpoints use the token's identity.
+import { api } from '../lib/api';
+import { getLocalIpAddress } from '../utils/networkCheck';
 
 export interface EmployeeRecord {
   id: string;
@@ -21,117 +23,76 @@ export interface AttendanceRecord {
   clock_out_time: string | null;
   status: string;
   total_hours: number | null;
+  location_verified?: boolean;
+  verification_source?: string;
 }
 
 /**
- * Look up employee by email first (pre-registered by HR),
- * create one if not found. agency_id left null — assign via admin.
+ * Signs the employee in (dev-login for now — swap for Google later) and returns
+ * their record. The backend creates/claims the employee row on login. If a
+ * name is given and differs from the server's (e.g. the row was auto-created
+ * at the login step before onboarding), it is written back.
  */
 export async function findOrCreateEmployee(
   name: string,
   email: string,
 ): Promise<EmployeeRecord> {
-  const { data: existing } = await supabase
-    .from('employees')
-    .select('id, name, email, emp_id, job_title, agency_id')
-    .eq('email', email)
-    .maybeSingle();
-
-  if (existing) return existing;
-
-  const { data, error } = await supabase
-    .from('employees')
-    .insert({ name, email, is_active: true })
-    .select('id, name, email, emp_id, job_title, agency_id')
-    .single();
-
-  if (error) throw new Error(error.message);
-  return data;
+  await api.devLoginEmployee(email, name);
+  let e = await api.getMyEmployee();
+  if (name.trim() && e.name !== name.trim()) {
+    e = await api.updateMyName(name.trim());
+  }
+  return {
+    id: e.id,
+    name: e.name,
+    email: e.email,
+    emp_id: e.emp_id,
+    job_title: e.job_title,
+    agency_id: e.agency_id,
+  };
 }
 
-/** Returns today's attendance row for the employee, or null if not yet clocked in. */
+/** Today's attendance row for the employee, or null if not yet clocked in. */
 export async function fetchTodayAttendance(
-  employeeId: string,
+  _employeeId: string,
 ): Promise<AttendanceRecord | null> {
-  const { data } = await supabase
-    .from('attendance_records')
-    .select('id, date, clock_in_time, clock_out_time, status, total_hours')
-    .eq('employee_id', employeeId)
-    .eq('date', todayDate())
-    .maybeSingle();
-
-  return data;
+  return api.todayAttendance();
 }
 
 /**
- * Idempotent — returns existing record if already clocked in today.
- * verification_method uses 'manual' until 'qr' is added to the DB enum
- * in the full terminal system.
+ * Clock in. Never blocked by the server — the reported LAN IP (plus the
+ * server-observed public IP) is used to tag the record on-site vs remote.
  */
 export async function clockInEmployee(
-  employeeId: string,
+  _employeeId: string,
 ): Promise<AttendanceRecord> {
-  const existing = await fetchTodayAttendance(employeeId);
-  if (existing?.clock_in_time) return existing;
-
-  const clockInTime = new Date().toISOString();
-
-  const { data, error } = await supabase
-    .from('attendance_records')
-    .insert({
-      employee_id: employeeId,
-      date: todayDate(),
-      clock_in_time: clockInTime,
-      status: isLateClockIn(clockInTime) ? 'late' : 'present',
-      verification_method: 'manual',
-    })
-    .select('id, date, clock_in_time, clock_out_time, status, total_hours')
-    .single();
-
-  if (error) throw new Error(error.message);
-  return data;
+  const localIp = await getLocalIpAddress();
+  return api.clockIn(localIp);
 }
 
-/** Updates clock_out_time on the existing row for today. */
+/** Close today's open clock-in. */
 export async function clockOutEmployee(
-  employeeId: string,
+  _employeeId: string,
 ): Promise<AttendanceRecord> {
-  const { data, error } = await supabase
-    .from('attendance_records')
-    .update({ clock_out_time: new Date().toISOString() })
-    .eq('employee_id', employeeId)
-    .eq('date', todayDate())
-    .is('clock_out_time', null)
-    .select('id, date, clock_in_time, clock_out_time, status, total_hours')
-    .maybeSingle();
-
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error('No open clock-in found for today.');
-  return data;
+  return api.clockOut();
 }
 
-/** All email domains registered across active agencies. */
+/** Retained for compatibility; email-domain gating is handled server-side now. */
 export async function fetchEmailDomains(): Promise<string[]> {
-  const { data } = await supabase
-    .from('agencies')
-    .select('email_domains')
-    .eq('is_active', true);
-
-  return (data ?? []).flatMap((a) => (a.email_domains as string[]) ?? []);
+  return [];
 }
 
 /**
- * Returns the list of allowed IP subnets for the agency.
- * Empty array means no restriction is configured (allow any WiFi).
+ * Allowed LAN subnets for the employee's agency (used by the auto clock-out
+ * network check). Reads the employee's own agency.
  */
-export async function fetchAgencyAllowedSubnets(agencyId: string): Promise<string[]> {
-  const { data } = await supabase
-    .from('agencies')
-    .select('network_config')
-    .eq('id', agencyId)
-    .single();
-
-  return (data?.network_config?.allowed_subnets as string[]) ?? [];
+export async function fetchAgencyAllowedSubnets(_agencyId: string): Promise<string[]> {
+  try {
+    const agency = await api.getMyAgency();
+    return agency.network_config?.allowed_subnets ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export interface EmployeeDetails {
@@ -152,41 +113,41 @@ export interface AgencyDetails {
   network_config: { allowed_subnets: string[]; description?: string } | null;
 }
 
-/** Full employee profile for Account Details screen. */
-export async function fetchEmployeeDetails(employeeId: string): Promise<EmployeeDetails> {
-  const { data, error } = await supabase
-    .from('employees')
-    .select('emp_id, name, email, job_title, employment_type, date_join, is_active')
-    .eq('id', employeeId)
-    .single();
-
-  if (error) throw new Error(error.message);
-  return data;
+/** Full employee profile for the Account Details screen. */
+export async function fetchEmployeeDetails(_employeeId: string): Promise<EmployeeDetails> {
+  const e = await api.getMyEmployee();
+  return {
+    emp_id: e.emp_id,
+    name: e.name,
+    email: e.email,
+    job_title: e.job_title,
+    employment_type: e.employment_type,
+    date_join: e.date_join,
+    is_active: e.is_active,
+  };
 }
 
-/** Agency info for Workplace screen. */
-export async function fetchAgencyDetails(agencyId: string): Promise<AgencyDetails> {
-  const { data, error } = await supabase
-    .from('agencies')
-    .select('id, name, agency_code, address, network_config')
-    .eq('id', agencyId)
-    .single();
-
-  if (error) throw new Error(error.message);
-  return data;
+/** Agency info for the Workplace screen. */
+export async function fetchAgencyDetails(_agencyId: string): Promise<AgencyDetails> {
+  const a = await api.getMyAgency();
+  return {
+    id: a.id,
+    name: a.name,
+    agency_code: a.agency_code,
+    address: a.address,
+    network_config: a.network_config
+      ? {
+          allowed_subnets: a.network_config.allowed_subnets ?? [],
+          description: a.network_config.description,
+        }
+      : null,
+  };
 }
 
-/** Last 30 days of attendance for the employee. */
+/** Recent attendance for the employee (default last 30). */
 export async function fetchAttendanceHistory(
-  employeeId: string,
+  _employeeId: string,
   limit = 30,
 ): Promise<AttendanceRecord[]> {
-  const { data } = await supabase
-    .from('attendance_records')
-    .select('id, date, clock_in_time, clock_out_time, status, total_hours')
-    .eq('employee_id', employeeId)
-    .order('date', { ascending: false })
-    .limit(limit);
-
-  return data ?? [];
+  return api.history(limit);
 }
