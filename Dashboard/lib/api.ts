@@ -90,6 +90,15 @@ export const api = {
     setToken(access_token)
     return access_token
   },
+  /** Exchange a Google ID token (from Google Identity Services) for our JWT. */
+  async googleLogin(idToken: string) {
+    const { access_token } = await apiFetch<{ access_token: string }>("/auth/google/admin", {
+      method: "POST",
+      body: JSON.stringify({ id_token: idToken }),
+    })
+    setToken(access_token)
+    return access_token
+  },
   logout() {
     clearToken()
   },
