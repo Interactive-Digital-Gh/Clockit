@@ -35,6 +35,9 @@ jobs:
           # NEXT_PUBLIC_* vars are inlined at build time, so they must be set
           # here — the server's environment can't change them afterwards.
           NEXT_PUBLIC_API_URL: https://clockit-api.interactivedigital.com.gh
+          # Google OAuth "Web application" client ID — public by design (it's
+          # visible in the served pages), so it lives here, not in a secret.
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ""
         run: |
           npm ci
           npm run build
