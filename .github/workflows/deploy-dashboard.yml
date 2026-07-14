@@ -1,0 +1,74 @@
+name: Deploy Dashboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Dashboard/**"
+      - ".github/workflows/deploy-dashboard.yml"
+  workflow_dispatch:
+
+# Never run two deploys at once; a new push waits for the previous deploy.
+concurrency:
+  group: deploy-clockit-dashboard
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Dashboard
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Dashboard/package-lock.json
+
+      # The ID server is too RAM-constrained to run `next build`, so the app
+      # is built here and only the self-contained standalone bundle is shipped.
+      - name: Build
+        env:
+          # NEXT_PUBLIC_* vars are inlined at build time, so they must be set
+          # here — the server's environment can't change them afterwards.
+          NEXT_PUBLIC_API_URL: https://clockit-api.interactivedigital.com.gh
+        run: |
+          npm ci
+          npm run build
+          cp -r public .next/standalone/
+          cp -r .next/static .next/standalone/.next/
+          tar -czf clockit-dashboard.tar.gz -C .next/standalone .
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Upload bundle
+        run: |
+          scp -i ~/.ssh/deploy_key clockit-dashboard.tar.gz \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/clockit-dashboard.tar.gz"
+
+      - name: Deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" 'bash -s' <<'DEPLOY'
+          set -euo pipefail
+          cd /var/www/production/clockit-dashboard
+          rm -rf release.new
+          mkdir release.new
+          tar -xzf /tmp/clockit-dashboard.tar.gz -C release.new
+          rm -f /tmp/clockit-dashboard.tar.gz
+          rm -rf release.old
+          if [ -d current ]; then mv current release.old; fi
+          mv release.new current
+          sudo /usr/bin/systemctl restart clockit-dashboard
+          sleep 3
+          curl -sf --max-time 10 http://127.0.0.1:3010/login > /dev/null
+          rm -rf release.old
+          echo "deploy OK"
+          DEPLOY

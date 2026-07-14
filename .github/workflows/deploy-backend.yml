@@ -1,8 +1,11 @@
-name: Deploy to ID server
+name: Deploy API
 
 on:
   push:
     branches: [main]
+    paths:
+      - "Backend/**"
+      - ".github/workflows/deploy-backend.yml"
   workflow_dispatch:
 
 # Never run two deploys at once; a new push waits for the previous deploy.
@@ -14,6 +17,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
@@ -21,13 +26,24 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
 
-      - name: Deploy
+      # The install dir keeps its server-only pieces (.env, venv/) — everything
+      # else mirrors the repo's Backend/ subtree exactly.
+      - name: Sync code
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            --exclude '.env' \
+            --exclude 'venv/' \
+            --exclude '.git/' \
+            --exclude '__pycache__/' \
+            --exclude 'data_migration/data/' \
+            Backend/ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/var/www/production/clockit-api/"
+
+      - name: Install, migrate, restart
         run: |
           ssh -i ~/.ssh/deploy_key "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" 'bash -s' <<'DEPLOY'
           set -euo pipefail
           cd /var/www/production/clockit-api
-          git fetch origin main
-          git reset --hard origin/main
           venv/bin/pip install -q -r requirements.txt
           venv/bin/alembic upgrade head
           sudo /usr/bin/systemctl restart clockit-api
