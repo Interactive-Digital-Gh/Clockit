@@ -3,7 +3,7 @@
 The single source of truth for the Clockit **mobile app** (employee clock-in)
 and **dashboard** (admin). Only this service talks to Postgres — the clients
 talk only to this API. Replaces the previous direct-to-Supabase setup (Supabase
-Auth + auto REST + RLS are all reimplemented here).
+Auth + auto REST + RLS are all reimplemented here)...
 
 ## Stack
 - **FastAPI** + Uvicorn/Gunicorn
