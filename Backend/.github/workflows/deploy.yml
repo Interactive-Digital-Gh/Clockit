@@ -1,0 +1,37 @@
+name: Deploy to ID server
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys at once; a new push waits for the previous deploy.
+concurrency:
+  group: deploy-clockit-api
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" 'bash -s' <<'DEPLOY'
+          set -euo pipefail
+          cd /var/www/production/clockit-api
+          git fetch origin main
+          git reset --hard origin/main
+          venv/bin/pip install -q -r requirements.txt
+          venv/bin/alembic upgrade head
+          sudo /usr/bin/systemctl restart clockit-api
+          sleep 3
+          curl -sf --max-time 10 http://127.0.0.1:8010/health
+          echo " deploy OK"
+          DEPLOY
