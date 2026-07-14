@@ -1,0 +1,25 @@
+# Expo
+.expo/
+dist/
+web-build/
+
+# Dependencies
+node_modules/
+
+# Environment — never commit secrets
+.env
+.env.local
+.env*.local
+
+# Native builds
+ios/
+android/
+
+# Misc
+.DS_Store
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.idea/
+.vscode/
