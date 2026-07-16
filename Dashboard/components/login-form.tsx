@@ -103,7 +103,11 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Sign in</h1>
         <p className="text-balance text-sm text-muted-foreground">
-          Use your Google account to access the dashboard
+          Ninani Group employees: sign in with your official work email using the
+          Google button below.
+        </p>
+        <p className="text-xs text-muted-foreground/70">
+          Interactive Digital · Rezultz · BrandAlert · InnovaDDB · P2P
         </p>
       </div>
       <div className="grid gap-6">
