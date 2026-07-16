@@ -4,9 +4,28 @@
 // The backend identifies the employee from the bearer token, so the
 // `employeeId`/`agencyId` params below are accepted for signature compatibility
 // but the "me" endpoints use the token's identity.
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../lib/api';
 import { googleSignIn } from '../lib/googleAuth';
+import { ATTENDANCE_QR_PAYLOAD } from '../config/attendance';
 import { getLocalIpAddress } from '../utils/networkCheck';
+
+const QR_CACHE_KEY = '@attendance:qr_token';
+
+/**
+ * The QR token the scanner should accept. Fetched from the server (admins can
+ * rotate it from the dashboard); falls back to the last cached value, then to
+ * the built-in seed token, so scanning still works offline.
+ */
+export async function fetchAttendanceQrToken(): Promise<string> {
+  try {
+    const { token } = await api.getAttendanceQr();
+    await AsyncStorage.setItem(QR_CACHE_KEY, token);
+    return token;
+  } catch {
+    return (await AsyncStorage.getItem(QR_CACHE_KEY)) ?? ATTENDANCE_QR_PAYLOAD;
+  }
+}
 
 export interface EmployeeRecord {
   id: string;

@@ -11,12 +11,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
+import secrets
+
 from sqlalchemy import func
 
 from ..database import get_db
 from ..deps import get_current_admin, get_current_employee, require_roles
-from ..models import VIEW_ALL_ROLES, AttendanceRecord, Employee, Profile
-from ..schemas import AttendanceOut, AttendanceWithEmployee, ClockInRequest
+from ..models import ADMIN_ROLES, VIEW_ALL_ROLES, AttendanceQr, AttendanceRecord, Employee, Profile
+from ..schemas import AttendanceOut, AttendanceQrOut, AttendanceWithEmployee, ClockInRequest
 from ..services import attendance as svc
 from ..services.network import classify_location, get_client_ip
 
@@ -71,6 +73,40 @@ def clock_out(db: Session = Depends(get_db), emp: Employee = Depends(get_current
         return svc.clock_out(db, emp.id)
     except ValueError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc))
+
+
+# --- Attendance QR token ----------------------------------------------------
+def _current_qr(db: Session) -> AttendanceQr:
+    qr = db.scalar(select(AttendanceQr).order_by(AttendanceQr.created_at.desc()).limit(1))
+    if qr is None:  # pre-seed safety net; migration 0004 seeds the first row
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No attendance QR token configured")
+    return qr
+
+
+@router.get("/qr", response_model=AttendanceQrOut)
+def get_qr(db: Session = Depends(get_db), _=Depends(require_roles(*ADMIN_ROLES))):
+    """The active QR token, for the dashboard's QR management page."""
+    return _current_qr(db)
+
+
+@router.post("/qr/rotate", response_model=AttendanceQrOut)
+def rotate_qr(db: Session = Depends(get_db), admin: Profile = Depends(require_roles(*ADMIN_ROLES))):
+    """Mint a new QR token, immediately invalidating the previous one.
+    Old tokens are kept as rows for the audit trail."""
+    qr = AttendanceQr(
+        token=f"clockit:attendance:interactive-digital:{secrets.token_urlsafe(9)}",
+        rotated_by=admin.email,
+    )
+    db.add(qr)
+    db.commit()
+    db.refresh(qr)
+    return qr
+
+
+@router.get("/qr/current", response_model=AttendanceQrOut)
+def get_qr_as_employee(db: Session = Depends(get_db), _=Depends(get_current_employee)):
+    """The active QR token, for the mobile scanner to validate scans against."""
+    return _current_qr(db)
 
 
 # --- Personal (dashboard, any role) ----------------------------------------

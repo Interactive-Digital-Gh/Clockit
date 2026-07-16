@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { LayoutDashboardIcon, FileText, FileChartLine, UsersRound, Building2, UserCircle2, LogOut, UserCircle, MoreVertical, CalendarClock } from "lucide-react"
+import { LayoutDashboardIcon, FileText, FileChartLine, UsersRound, Building2, UserCircle2, LogOut, UserCircle, MoreVertical, CalendarClock, QrCode } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -73,6 +73,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     if (profile && ADMIN_ROLES.includes(profile.role)) {
       managementItems.push({ href: "/dashboard/employees", label: "Employees", icon: UsersRound })
       managementItems.push({ href: "/dashboard/agencies", label: "Agencies", icon: Building2 })
+      managementItems.push({ href: "/dashboard/qr-code", label: "QR code", icon: QrCode })
     }
     if (profile && USER_MANAGER_ROLES.includes(profile.role)) {
       managementItems.push({ href: "/dashboard/users", label: "Users", icon: UserCircle2 })

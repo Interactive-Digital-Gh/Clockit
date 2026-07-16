@@ -2,7 +2,7 @@
 // access the dashboard used to do. Auth is a bearer JWT stored in a cookie so
 // both client fetches (below) and the proxy/middleware can read it.
 
-import type { Agency, AttendanceRecord, Employee, Profile, Role } from "@/lib/types"
+import type { Agency, AttendanceQrToken, AttendanceRecord, Employee, Profile, Role } from "@/lib/types"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8010"
 
@@ -105,6 +105,10 @@ export const api = {
   me: () => apiFetch<Profile>("/profiles/me"),
   /** The signed-in user's own attendance (any role). */
   myAttendance: (limit = 60) => apiFetch<AttendanceRecord[]>(`/attendance/my?limit=${limit}`),
+
+  // Attendance QR management (admin roles)
+  attendanceQr: () => apiFetch<AttendanceQrToken>("/attendance/qr"),
+  rotateAttendanceQr: () => apiFetch<AttendanceQrToken>("/attendance/qr/rotate", { method: "POST" }),
 
   // Data
   overview: () => apiFetch<OverviewMetrics>("/reports/overview"),

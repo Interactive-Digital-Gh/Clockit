@@ -126,6 +126,22 @@ class AttendanceRecord(Base):
     )
 
 
+class AttendanceQr(Base):
+    """The rotating attendance QR token. The newest row is the active one;
+    older rows are kept as an audit trail of rotations."""
+
+    __tablename__ = "attendance_qr_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    token: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("now()")
+    )
+    rotated_by: Mapped[str | None] = mapped_column(String)  # profile email, for the audit trail
+
+
 class Profile(Base):
     """Dashboard admin user with a role. Distinct from Employee."""
 

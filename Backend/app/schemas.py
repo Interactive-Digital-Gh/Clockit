@@ -174,6 +174,15 @@ class ProfileRoleUpdate(BaseModel):
     role: Role
 
 
+# --- Attendance QR ------------------------------------------------------------
+class AttendanceQrOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    token: str
+    created_at: datetime | None = None
+    rotated_by: str | None = None
+
+
 # --- Reports ----------------------------------------------------------------
 class AttendanceSummary(BaseModel):
     date: date

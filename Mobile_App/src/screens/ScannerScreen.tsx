@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../context/AppContext';
-import { clockInEmployee } from '../services/attendanceService';
+import { clockInEmployee, fetchAttendanceQrToken } from '../services/attendanceService';
 import { notifyLateClockIn } from '../lib/notifications';
 import { ATTENDANCE_QR_PAYLOAD } from '../config/attendance';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -32,6 +32,15 @@ export default function ScannerScreen() {
   const [scanned, setScanned] = useState(false);
   const [wrongCode, setWrongCode] = useState(false);
   const wrongCodeRef = useRef(false);
+  // Admins can rotate the QR from the dashboard — ask the server which token
+  // is current. Falls back to cache/seed offline; ref so the scan callback
+  // (fired from the camera thread many times a second) reads the latest.
+  const expectedQrRef = useRef(ATTENDANCE_QR_PAYLOAD);
+  useEffect(() => {
+    fetchAttendanceQrToken().then((token) => {
+      expectedQrRef.current = token;
+    });
+  }, []);
   const { hasPermission, canRequestPermission, requestPermission } = useCameraPermission();
   const isFocused = useIsFocused();
   const scannedRef = useRef(false);
@@ -94,7 +103,7 @@ export default function ScannerScreen() {
     onObjectsScanned: (objects) => {
       const code = objects.find(isScannedCode);
       if (!code?.value) return;
-      if (code.value === ATTENDANCE_QR_PAYLOAD) {
+      if (code.value === expectedQrRef.current) {
         setWrongCode(false);
         doClockIn();
       } else if (!wrongCodeRef.current) {

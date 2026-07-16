@@ -43,6 +43,12 @@ export interface AttendanceRecord {
 
 export type Role = "super_admin" | "it" | "hr" | "front_desk" | "employee"
 
+export interface AttendanceQrToken {
+  token: string
+  created_at: string | null
+  rotated_by: string | null
+}
+
 export interface Profile {
   id: string
   email: string

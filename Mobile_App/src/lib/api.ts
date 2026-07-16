@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // in prod, or http://<your-laptop-LAN-IP>:8010 for local testing on the phone).
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? '';
 const TOKEN_KEY = '@attendance:token';
+const REFRESH_KEY = '@attendance:refresh_token';
 
 export class ApiError extends Error {
   status: number;
@@ -21,11 +22,37 @@ export async function setToken(token: string) {
 export async function getToken() {
   return AsyncStorage.getItem(TOKEN_KEY);
 }
+export async function setRefreshToken(token: string) {
+  await AsyncStorage.setItem(REFRESH_KEY, token);
+}
 export async function clearToken() {
-  await AsyncStorage.removeItem(TOKEN_KEY);
+  await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_KEY]);
 }
 
-async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+// Access tokens expire after 12h; the refresh token (30 days) silently mints
+// a new one on the first 401 so users don't get logged out mid-week. Shared
+// promise so concurrent 401s trigger a single refresh.
+let refreshInFlight: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  const refresh = await AsyncStorage.getItem(REFRESH_KEY);
+  if (!refresh) return null;
+  try {
+    const res = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refresh }),
+    });
+    if (!res.ok) return null;
+    const { access_token } = await res.json();
+    await setToken(access_token);
+    return access_token;
+  } catch {
+    return null;
+  }
+}
+
+async function apiFetch<T>(path: string, options: RequestInit = {}, isRetry = false): Promise<T> {
   if (!API_URL) {
     throw new ApiError('EXPO_PUBLIC_API_URL is not set — point it at the backend.', 0);
   }
@@ -38,6 +65,13 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
       ...(options.headers ?? {}),
     },
   });
+
+  if (res.status === 401 && !isRetry && token) {
+    refreshInFlight = refreshInFlight ?? refreshAccessToken();
+    const renewed = await refreshInFlight;
+    refreshInFlight = null;
+    if (renewed) return apiFetch<T>(path, options, true);
+  }
 
   if (!res.ok) {
     let detail = res.statusText;
@@ -94,22 +128,32 @@ export interface ApiAttendance {
 
 export const api = {
   async devLoginEmployee(email: string, name?: string) {
-    const { access_token } = await apiFetch<{ access_token: string }>('/auth/dev-login', {
+    const { access_token, refresh_token } = await apiFetch<{
+      access_token: string;
+      refresh_token?: string;
+    }>('/auth/dev-login', {
       method: 'POST',
       body: JSON.stringify({ email, name, as_type: 'employee' }),
     });
     await setToken(access_token);
+    if (refresh_token) await setRefreshToken(refresh_token);
     return access_token;
   },
   /** Exchange a Google ID token (from native Google Sign-In) for our JWT. */
   async googleLoginEmployee(idToken: string) {
-    const { access_token } = await apiFetch<{ access_token: string }>('/auth/google/employee', {
+    const { access_token, refresh_token } = await apiFetch<{
+      access_token: string;
+      refresh_token?: string;
+    }>('/auth/google/employee', {
       method: 'POST',
       body: JSON.stringify({ id_token: idToken }),
     });
     await setToken(access_token);
+    if (refresh_token) await setRefreshToken(refresh_token);
     return access_token;
   },
+  /** Active attendance QR token — the scanner validates scans against this. */
+  getAttendanceQr: () => apiFetch<{ token: string }>('/attendance/qr/current'),
   getMyEmployee: () => apiFetch<ApiEmployee>('/employees/me'),
   updateMyName: (name: string) =>
     apiFetch<ApiEmployee>('/employees/me', {
