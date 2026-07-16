@@ -10,7 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
-import { findOrCreateEmployee } from '../services/attendanceService';
+import { completeOnboarding } from '../services/attendanceService';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { COLORS } from '../constants/colors';
 
@@ -40,13 +40,16 @@ export default function SignUpScreen() {
     if (!canSubmit || saving) return;
     setSaving(true);
     try {
-      const employee = await findOrCreateEmployee(name.trim(), route.params.googleEmail);
+      // Already signed in (Google or dev) when this screen shows — just
+      // persist the profile. Saving the department is what marks the account
+      // as onboarded so future sign-ins skip this screen.
+      const employee = await completeOnboarding(name.trim(), department);
       await signUp({
         id: employee.id,
         agencyId: employee.agency_id,
         name: name.trim(),
-        email: route.params.googleEmail,
-        department,
+        email: employee.email ?? route.params.googleEmail,
+        department: employee.job_title ?? department,
         initials: getInitials(name.trim()),
       });
     } catch (err: any) {

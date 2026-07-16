@@ -155,10 +155,10 @@ export const api = {
   /** Active attendance QR token — the scanner validates scans against this. */
   getAttendanceQr: () => apiFetch<{ token: string }>('/attendance/qr/current'),
   getMyEmployee: () => apiFetch<ApiEmployee>('/employees/me'),
-  updateMyName: (name: string) =>
+  updateMe: (fields: { name?: string; job_title?: string }) =>
     apiFetch<ApiEmployee>('/employees/me', {
       method: 'PATCH',
-      body: JSON.stringify({ name }),
+      body: JSON.stringify(fields),
     }),
   getMyAgency: () => apiFetch<ApiAgency>('/agencies/me'),
   todayAttendance: () => apiFetch<ApiAttendance | null>('/attendance/me/today'),

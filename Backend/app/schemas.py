@@ -122,6 +122,7 @@ class EmployeeSelfUpdate(BaseModel):
     """What an employee may change about themselves (mobile onboarding)."""
 
     name: str | None = None
+    job_title: str | None = None
 
 
 class EmployeeOut(ORMModel, EmployeeBase):

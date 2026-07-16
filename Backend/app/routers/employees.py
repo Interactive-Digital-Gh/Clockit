@@ -28,10 +28,14 @@ def update_my_employee(
     db: Session = Depends(get_db),
     emp: Employee = Depends(get_current_employee),
 ):
-    """Self-service: set your display name during mobile onboarding."""
+    """Self-service: set your name/department during mobile onboarding.
+    A non-empty job_title also marks the account as onboarded — sign-ins
+    with it skip the onboarding screen."""
     if body.name and body.name.strip():
         emp.name = body.name.strip()
-        db.commit()
+    if body.job_title and body.job_title.strip():
+        emp.job_title = body.job_title.strip()
+    db.commit()
     return db.scalar(
         select(Employee).options(joinedload(Employee.agency)).where(Employee.id == emp.id)
     )

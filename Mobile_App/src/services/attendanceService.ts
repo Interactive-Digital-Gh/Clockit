@@ -80,8 +80,28 @@ export async function findOrCreateEmployee(
   await api.devLoginEmployee(email, name);
   let e = await api.getMyEmployee();
   if (name.trim() && e.name !== name.trim()) {
-    e = await api.updateMyName(name.trim());
+    e = await api.updateMe({ name: name.trim() });
   }
+  return {
+    id: e.id,
+    name: e.name,
+    email: e.email,
+    emp_id: e.emp_id,
+    job_title: e.job_title,
+    agency_id: e.agency_id,
+  };
+}
+
+/**
+ * Finish onboarding for the already-signed-in employee: persist name and
+ * department server-side. A saved job_title is what marks the account as
+ * established, so later sign-ins skip the onboarding screen.
+ */
+export async function completeOnboarding(
+  name: string,
+  department: string,
+): Promise<EmployeeRecord> {
+  const e = await api.updateMe({ name: name.trim(), job_title: department });
   return {
     id: e.id,
     name: e.name,
