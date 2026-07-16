@@ -3,7 +3,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -74,3 +74,29 @@ def update_agency(
     db.commit()
     db.refresh(agency)
     return agency
+
+
+@router.delete("/{agency_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_agency(
+    agency_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    _=Depends(require_roles(*ADMIN_ROLES)),
+):
+    """Delete an agency. Refused while employees are assigned to it — the FK
+    would silently unassign them (SET NULL), stranding their verification."""
+    agency = db.get(Agency, agency_id)
+    if not agency:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Agency not found")
+
+    assigned = db.scalar(
+        select(func.count()).select_from(Employee).where(Employee.agency_id == agency_id)
+    )
+    if assigned:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            f"{assigned} employee{'s are' if assigned != 1 else ' is'} still assigned to "
+            f"{agency.name} — reassign them before deleting it.",
+        )
+
+    db.delete(agency)
+    db.commit()

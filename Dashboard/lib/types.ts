@@ -10,7 +10,6 @@ export interface Agency {
   network_config: {
     allowed_public_ips?: string[]
     allowed_subnets?: string[]
-    allowed_ssids?: string[]
     description?: string
   } | null
 }

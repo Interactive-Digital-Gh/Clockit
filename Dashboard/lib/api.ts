@@ -127,6 +127,17 @@ export const api = {
     return apiFetch<AttendanceRecord[]>(`/attendance?${params.toString()}`)
   },
 
+  createAgency: (body: { name: string; agency_code?: string; address?: string }) =>
+    apiFetch<Agency>("/agencies", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateAgency: (id: string, body: { name?: string; agency_code?: string | null; address?: string | null }) =>
+    apiFetch<Agency>(`/agencies/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  deleteAgency: (id: string) => apiFetch<undefined>(`/agencies/${id}`, { method: "DELETE" }),
   updateAgencyNetworkConfig: (id: string, network_config: Agency["network_config"]) =>
     apiFetch<Agency>(`/agencies/${id}`, {
       method: "PATCH",

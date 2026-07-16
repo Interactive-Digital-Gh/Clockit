@@ -47,7 +47,7 @@ class Agency(Base):
     agency_code: Mapped[str | None] = mapped_column(String)
     address: Mapped[str | None] = mapped_column(String)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("true"))
-    # { allowed_subnets: [...], allowed_ssids: [...], description: "..." }
+    # { allowed_public_ips: [...], allowed_subnets: [...], description: "..." }
     network_config: Mapped[dict | None] = mapped_column(JSONB)
     # Email domains that map to this agency, e.g. ["interactivedigital.com"]
     email_domains: Mapped[list | None] = mapped_column(JSONB)

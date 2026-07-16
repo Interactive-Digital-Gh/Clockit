@@ -56,7 +56,6 @@ class NetworkConfig(BaseModel):
     allowed_public_ips: list[str] = Field(default_factory=list)
     # Device-reported LAN prefixes — secondary hint (e.g. "192.168.10.").
     allowed_subnets: list[str] = Field(default_factory=list)
-    allowed_ssids: list[str] = Field(default_factory=list)
     description: str | None = None
 
 

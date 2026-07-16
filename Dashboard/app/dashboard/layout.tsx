@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { DashboardBreadcrumb } from "@/components/dashboard-breadcrumb"
+import { NetworkSetupBanner } from "@/components/network-setup-banner"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -16,6 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <DashboardBreadcrumb />
           </div>
         </header>
+        <NetworkSetupBanner />
         <div className="flex-1 space-y-4 p-4 pt-4">{children}</div>
       </SidebarInset>
     </SidebarProvider>
