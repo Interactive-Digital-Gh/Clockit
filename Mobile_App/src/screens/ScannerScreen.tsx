@@ -10,6 +10,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../context/AppContext';
 import { clockInEmployee } from '../services/attendanceService';
 import { notifyLateClockIn } from '../lib/notifications';
+import { ATTENDANCE_QR_PAYLOAD } from '../config/attendance';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList>;
@@ -29,6 +30,8 @@ export default function ScannerScreen() {
   const { user, clockIn } = useApp();
   const [scanState, setScanState] = useState<ScanState>('checking');
   const [scanned, setScanned] = useState(false);
+  const [wrongCode, setWrongCode] = useState(false);
+  const wrongCodeRef = useRef(false);
   const { hasPermission, canRequestPermission, requestPermission } = useCameraPermission();
   const isFocused = useIsFocused();
   const scannedRef = useRef(false);
@@ -61,10 +64,10 @@ export default function ScannerScreen() {
     return () => loop.stop();
   }, [scanState]);
 
-  // The scanned QR value isn't used — clock-in is identified by the auth token
-  // and classified on-site/remote server-side from the IP. So scanning and the
-  // manual fallback below do the exact same thing. Guarded by a ref because
-  // the scan callback fires many times per second.
+  // Clock-in is identified by the auth token and classified on-site/remote
+  // server-side from the IP; the scanner only accepts the official attendance
+  // QR (ATTENDANCE_QR_PAYLOAD). Guarded by a ref because the scan callback
+  // fires many times per second.
   const doClockIn = async () => {
     if (scannedRef.current || !user) return;
     scannedRef.current = true;
@@ -89,7 +92,20 @@ export default function ScannerScreen() {
   const qrOutput = useObjectOutput({
     types: ['qr'],
     onObjectsScanned: (objects) => {
-      if (objects.some(isScannedCode)) doClockIn();
+      const code = objects.find(isScannedCode);
+      if (!code?.value) return;
+      if (code.value === ATTENDANCE_QR_PAYLOAD) {
+        setWrongCode(false);
+        doClockIn();
+      } else if (!wrongCodeRef.current) {
+        // Some other QR — tell the user, then let them keep scanning.
+        wrongCodeRef.current = true;
+        setWrongCode(true);
+        setTimeout(() => {
+          wrongCodeRef.current = false;
+          setWrongCode(false);
+        }, 2500);
+      }
     },
   });
 
@@ -182,9 +198,11 @@ export default function ScannerScreen() {
             <Animated.View style={[styles.corner, styles.cornerBR, { opacity: reticleOpacity }]} />
           </View>
           <View style={styles.instructions}>
-            <Text style={styles.instructTitle}>Hold steady…</Text>
+            <Text style={styles.instructTitle}>{wrongCode ? 'Not the attendance code' : 'Hold steady…'}</Text>
             <Text style={styles.instructBody}>
-              Point at the workplace QR code at your entrance
+              {wrongCode
+                ? "That QR code isn't the Clockit attendance code — find the one at your entrance."
+                : 'Point at the workplace QR code at your entrance'}
             </Text>
           </View>
         </View>
