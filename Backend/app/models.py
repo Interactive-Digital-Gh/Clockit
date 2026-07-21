@@ -149,6 +149,63 @@ class AttendanceQr(Base):
     rotated_by: Mapped[str | None] = mapped_column(String)  # profile email, for the audit trail
 
 
+class PushToken(Base):
+    """An Expo push token for one of an employee's devices. An employee may
+    have several (multiple devices); re-registering the same token updates
+    which employee it belongs to rather than duplicating the row."""
+
+    __tablename__ = "push_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    employee_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("employees.id", ondelete="CASCADE"), nullable=False
+    )
+    token: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    platform: Mapped[str | None] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("now()")
+    )
+
+
+NOTIF_STATUS_SCHEDULED = "scheduled"
+NOTIF_STATUS_SENT = "sent"
+NOTIF_STATUS_CANCELED = "canceled"
+
+
+class AdminNotification(Base):
+    """An admin-authored broadcast alert, sent immediately or at a future
+    time. Delivered to every employee's registered devices (no audience
+    targeting yet)."""
+
+    __tablename__ = "admin_notifications"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    body: Mapped[str] = mapped_column(String, nullable=False)
+    created_by: Mapped[str] = mapped_column(String, nullable=False)  # admin profile email
+    status: Mapped[str] = mapped_column(
+        String, nullable=False, server_default=text(f"'{NOTIF_STATUS_SCHEDULED}'")
+    )
+    # Null scheduled_for means it was sent immediately on creation.
+    scheduled_for: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    recipient_count: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("now()")
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            f"status in ('{NOTIF_STATUS_SCHEDULED}', '{NOTIF_STATUS_SENT}', '{NOTIF_STATUS_CANCELED}')",
+            name="admin_notifications_status_check",
+        ),
+    )
+
+
 class Profile(Base):
     """Dashboard admin user with a role. Distinct from Employee."""
 

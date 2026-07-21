@@ -176,5 +176,10 @@ export const api = {
       }),
     }),
   clockOut: () => apiFetch<ApiAttendance>('/attendance/clock-out', { method: 'POST' }),
+  registerPushToken: (token: string, platform: string) =>
+    apiFetch<void>('/notifications/push-token', {
+      method: 'POST',
+      body: JSON.stringify({ token, platform }),
+    }),
   clearToken,
 };

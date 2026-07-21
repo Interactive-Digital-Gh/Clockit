@@ -61,6 +61,20 @@ export interface Profile {
   created_at: string | null
 }
 
+export type NotificationStatus = "scheduled" | "sent" | "canceled"
+
+export interface AdminNotification {
+  id: string
+  title: string
+  body: string
+  created_by: string
+  status: NotificationStatus
+  scheduled_for: string | null
+  sent_at: string | null
+  recipient_count: number | null
+  created_at: string
+}
+
 export const ADMIN_ROLES: Role[] = ["super_admin", "it", "hr"]
 export const USER_MANAGER_ROLES: Role[] = ["super_admin", "it"]
 // Roles that may browse other people's attendance. "employee" gets only the

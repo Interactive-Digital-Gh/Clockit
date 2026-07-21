@@ -31,6 +31,7 @@
     },
     "plugins": [
       "./plugins/withoutPushEntitlement",
+      "./plugins/withModularHeaders",
       [
         "expo-splash-screen",
         {

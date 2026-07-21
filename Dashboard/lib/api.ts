@@ -2,7 +2,7 @@
 // access the dashboard used to do. Auth is a bearer JWT stored in a cookie so
 // both client fetches (below) and the proxy/middleware can read it.
 
-import type { Agency, AttendanceQrToken, AttendanceRecord, Employee, Profile, Role } from "@/lib/types"
+import type { AdminNotification, Agency, AttendanceQrToken, AttendanceRecord, Employee, Profile, Role } from "@/lib/types"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8010"
 
@@ -157,4 +157,13 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ role }),
     }),
+
+  notifications: () => apiFetch<AdminNotification[]>("/notifications"),
+  sendNotification: (body: { title: string; body: string; scheduled_for?: string | null }) =>
+    apiFetch<AdminNotification>("/notifications", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  cancelNotification: (id: string) =>
+    apiFetch<undefined>(`/notifications/${id}`, { method: "DELETE" }),
 }

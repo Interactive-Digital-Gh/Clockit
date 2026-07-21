@@ -4,7 +4,7 @@ import uuid
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 Role = Literal["super_admin", "it", "hr", "front_desk", "employee"]
 
@@ -180,6 +180,46 @@ class ProfileOut(ORMModel):
     full_name: str | None = None
     role: Role
     created_at: datetime | None = None
+
+
+# --- Push notifications ------------------------------------------------------
+class PushTokenRegister(BaseModel):
+    token: str
+    platform: str | None = None
+
+
+class AdminNotificationCreate(BaseModel):
+    title: str
+    body: str
+    # Null or in the past = send immediately. In the future = scheduled.
+    scheduled_for: datetime | None = None
+
+    @field_validator("title", "body")
+    @classmethod
+    def _not_blank(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("must not be blank")
+        return value
+
+    @field_validator("scheduled_for")
+    @classmethod
+    def _require_timezone(cls, value: datetime | None) -> datetime | None:
+        if value is not None and value.tzinfo is None:
+            raise ValueError("scheduled_for must include a UTC offset (e.g. end with 'Z')")
+        return value
+
+
+class AdminNotificationOut(ORMModel):
+    id: uuid.UUID
+    title: str
+    body: str
+    created_by: str
+    status: str
+    scheduled_for: datetime | None = None
+    sent_at: datetime | None = None
+    recipient_count: int | None = None
+    created_at: datetime
 
 
 class ProfileRoleUpdate(BaseModel):

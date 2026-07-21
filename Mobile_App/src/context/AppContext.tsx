@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchTodayAttendance } from '../services/attendanceService';
 import { runAutoClockOutCheck, clearAutoClockOutTimer } from '../tasks/autoClockOut';
+import { registerPushToken } from '../lib/pushToken';
 
 export interface UserProfile {
   id: string;
@@ -105,6 +106,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(USER_KEY, JSON.stringify(profile));
     setState((s) => ({ ...s, user: profile, locked: false }));
   };
+
+  // Register this device for admin broadcast alerts whenever a session
+  // becomes active — covers both app-restore and fresh sign-in/sign-up.
+  useEffect(() => {
+    if (state.user) registerPushToken();
+  }, [state.user?.id]);
 
   // Foreground auto clock-out: check every 2 minutes when clocked in
   const userRef = useRef(state.user);
