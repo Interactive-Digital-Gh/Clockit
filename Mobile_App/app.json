@@ -45,6 +45,12 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.427092086955-akkt2a16d2pn6isfin6e09972qpbbk6m"
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Clockit to check your location so office clock-ins can be verified as on-site."
+        }
       ]
     ],
     "extra": {

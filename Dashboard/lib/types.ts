@@ -12,6 +12,9 @@ export interface Agency {
     allowed_subnets?: string[]
     description?: string
   } | null
+  latitude: number | null
+  longitude: number | null
+  geofence_radius_m: number | null
 }
 
 export interface Employee {
@@ -34,9 +37,11 @@ export interface AttendanceRecord {
   total_hours: number | null
   employee_id: string
   location_verified?: boolean
-  verification_source?: "office_ip" | "office_subnet" | "off_site"
+  verification_source?: "office_ip" | "office_gps" | "office_subnet" | "off_site"
   clock_in_public_ip?: string | null
   clock_in_local_ip?: string | null
+  clock_in_latitude?: number | null
+  clock_in_longitude?: number | null
   employee?: Pick<Employee, "id" | "name" | "email" | "agency"> | null
 }
 

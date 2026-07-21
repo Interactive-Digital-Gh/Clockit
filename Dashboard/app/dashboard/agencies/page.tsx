@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Pencil, Loader2, Plus, Trash2, Wifi, TriangleAlert } from "lucide-react"
+import { Pencil, Loader2, Plus, Trash2, Wifi, MapPin, TriangleAlert } from "lucide-react"
 import { api, ApiError } from "@/lib/api"
 import { toast } from "sonner"
 import { RequireRole } from "@/components/require-role"
@@ -138,6 +138,173 @@ function EditNetworkConfigDialog({
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving…
+              </>
+            ) : confirming ? (
+              "Yes, save changes"
+            ) : (
+              "Save changes"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function EditLocationDialog({ agency, onSaved }: { agency: Agency; onSaved: (updated: Agency) => void }) {
+  const [open, setOpen] = useState(false)
+  const [latitude, setLatitude] = useState(agency.latitude?.toString() ?? "")
+  const [longitude, setLongitude] = useState(agency.longitude?.toString() ?? "")
+  const [radius, setRadius] = useState(agency.geofence_radius_m?.toString() ?? "150")
+  const [confirming, setConfirming] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [locating, setLocating] = useState(false)
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next)
+    setConfirming(false)
+    if (next) {
+      setLatitude(agency.latitude?.toString() ?? "")
+      setLongitude(agency.longitude?.toString() ?? "")
+      setRadius(agency.geofence_radius_m?.toString() ?? "150")
+    }
+  }
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("This browser doesn't support geolocation")
+      return
+    }
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLatitude(pos.coords.latitude.toFixed(6))
+        setLongitude(pos.coords.longitude.toFixed(6))
+        setLocating(false)
+      },
+      () => {
+        toast.error("Couldn't get your location — check the browser's location permission")
+        setLocating(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    )
+  }
+
+  const latTrimmed = latitude.trim()
+  const lngTrimmed = longitude.trim()
+  const bothOrNeither = (latTrimmed === "") === (lngTrimmed === "")
+  const latValid = latTrimmed === "" || !Number.isNaN(Number(latTrimmed))
+  const lngValid = lngTrimmed === "" || !Number.isNaN(Number(lngTrimmed))
+  const radiusValid = radius.trim() === "" || (!Number.isNaN(Number(radius)) && Number(radius) > 0)
+  const canSave = bothOrNeither && latValid && lngValid && radiusValid && !saving
+
+  const handleSave = async () => {
+    if (!canSave) return
+    if (!confirming) {
+      setConfirming(true)
+      return
+    }
+    setSaving(true)
+    try {
+      const updated = await api.updateAgencyLocation(agency.id, {
+        latitude: latTrimmed ? Number(latTrimmed) : null,
+        longitude: lngTrimmed ? Number(lngTrimmed) : null,
+        geofence_radius_m: radius.trim() ? Number(radius) : null,
+      })
+      toast.success(`Updated location for ${updated.name}`)
+      onSaved(updated)
+      notifyAgenciesChanged()
+      setOpen(false)
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : "Failed to update agency")
+    } finally {
+      setSaving(false)
+      setConfirming(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger render={<Button variant="outline" size="sm" className="gap-2" />}>
+        <MapPin className="h-3.5 w-3.5" />
+        Edit location
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit GPS geofence — {agency.name}</DialogTitle>
+          <DialogDescription>
+            The office&apos;s coordinates and how close (in meters) a clock-in must be to count as on-site.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={useCurrentLocation}
+            disabled={locating}
+            className="w-fit gap-2"
+          >
+            {locating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <MapPin className="h-3.5 w-3.5" />
+            )}
+            Use my current location
+          </Button>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="agency-lat">Latitude</Label>
+              <Input
+                id="agency-lat"
+                value={latitude}
+                onChange={(e) => setLatitude(e.target.value)}
+                placeholder="5.603700"
+                inputMode="decimal"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="agency-lng">Longitude</Label>
+              <Input
+                id="agency-lng"
+                value={longitude}
+                onChange={(e) => setLongitude(e.target.value)}
+                placeholder="-0.186900"
+                inputMode="decimal"
+              />
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="agency-radius">Radius (meters)</Label>
+            <Input
+              id="agency-radius"
+              value={radius}
+              onChange={(e) => setRadius(e.target.value)}
+              placeholder="150"
+              inputMode="numeric"
+            />
+            <p className="text-xs text-muted-foreground">
+              How far a clock-in may be from these coordinates and still verify as on-site. 150m
+              accounts for typical GPS drift — tighten it for a small office, loosen it for a large
+              campus.
+            </p>
+          </div>
+        </div>
+        {confirming && (
+          <p className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            <TriangleAlert className="h-4 w-4 shrink-0 text-amber-600" />
+            Are you sure? This changes whether clock-ins verify as on-site via GPS.
+          </p>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={saving}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={!canSave}>
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -470,6 +637,16 @@ function AgenciesPageContent() {
       },
     },
     {
+      key: "location",
+      header: "GPS geofence",
+      render: (row) =>
+        row.latitude != null && row.longitude != null ? (
+          <span className="text-xs">Configured ({row.geofence_radius_m ?? 150}m)</span>
+        ) : (
+          <span className="text-muted-foreground italic">Not configured</span>
+        ),
+    },
+    {
       key: "actions",
       header: "",
       align: "right",
@@ -480,6 +657,7 @@ function AgenciesPageContent() {
             onSaved={updateAgencyInList}
             defaultOpen={row.id === configureId}
           />
+          <EditLocationDialog agency={row} onSaved={updateAgencyInList} />
           <EditAgencyDialog agency={row} onSaved={updateAgencyInList} />
           <DeleteAgencyDialog
             agency={row}

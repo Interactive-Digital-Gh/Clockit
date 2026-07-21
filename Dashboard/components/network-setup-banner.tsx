@@ -15,13 +15,15 @@ export const AGENCIES_CHANGED_EVENT = "clockit:agencies-changed"
 function isUnconfigured(a: Agency): boolean {
   if (a.is_active === false) return false
   const cfg = a.network_config
-  return !(cfg?.allowed_public_ips?.length || cfg?.allowed_subnets?.length)
+  const hasNetwork = !!(cfg?.allowed_public_ips?.length || cfg?.allowed_subnets?.length)
+  const hasLocation = a.latitude != null && a.longitude != null
+  return !(hasNetwork || hasLocation)
 }
 
 /**
- * Persistent admin banner: on-site verification (the office-network check) is
- * the main trust signal for clock-ins, so unconfigured agencies get a
- * standing nudge with a link straight to the setup dialog.
+ * Persistent admin banner: on-site verification (office network or GPS
+ * geofence) is the main trust signal for clock-ins, so agencies with neither
+ * configured get a standing nudge with a link straight to the setup dialog.
  */
 export function NetworkSetupBanner() {
   const { profile } = useProfile()
@@ -61,8 +63,8 @@ export function NetworkSetupBanner() {
     <div className="mx-4 mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
       <TriangleAlert className="h-4 w-4 shrink-0 text-amber-600" />
       <span className="flex-1 min-w-[16rem]">
-        <b>{label}</b> {unconfigured.length === 1 ? "has" : "have"} no office network configured —
-        on-site verification is off and every clock-in there shows as Remote.
+        <b>{label}</b> {unconfigured.length === 1 ? "has" : "have"} no office network or GPS location
+        configured — on-site verification is off and every clock-in there shows as Remote.
       </span>
       <Link
         href={`/dashboard/agencies?configure=${unconfigured[0].id}`}

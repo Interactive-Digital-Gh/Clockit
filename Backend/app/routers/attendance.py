@@ -55,8 +55,18 @@ def clock_in(
 ):
     # Never blocks — classify where the clock-in happened for the admins.
     public_ip = get_client_ip(request)
-    network_config = emp.agency.network_config if emp.agency else None
-    verified, source = classify_location(public_ip, body.local_ip, network_config)
+    agency = emp.agency
+    network_config = agency.network_config if agency else None
+    verified, source = classify_location(
+        public_ip,
+        body.local_ip,
+        network_config,
+        agency_latitude=float(agency.latitude) if agency and agency.latitude is not None else None,
+        agency_longitude=float(agency.longitude) if agency and agency.longitude is not None else None,
+        agency_radius_m=agency.geofence_radius_m if agency else None,
+        device_latitude=body.latitude,
+        device_longitude=body.longitude,
+    )
     return svc.clock_in(
         db,
         emp.id,
@@ -64,6 +74,8 @@ def clock_in(
         verification_source=source,
         public_ip=public_ip,
         local_ip=body.local_ip,
+        latitude=body.latitude,
+        longitude=body.longitude,
     )
 
 

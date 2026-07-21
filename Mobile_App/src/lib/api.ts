@@ -162,10 +162,18 @@ export const api = {
   getMyAgency: () => apiFetch<ApiAgency>('/agencies/me'),
   todayAttendance: () => apiFetch<ApiAttendance | null>('/attendance/me/today'),
   history: (limit = 30) => apiFetch<ApiAttendance[]>(`/attendance/me/history?limit=${limit}`),
-  clockIn: (localIp: string | null) =>
+  clockIn: (
+    localIp: string | null,
+    location?: { latitude: number; longitude: number; accuracyM: number | null } | null,
+  ) =>
     apiFetch<ApiAttendance>('/attendance/clock-in', {
       method: 'POST',
-      body: JSON.stringify({ local_ip: localIp }),
+      body: JSON.stringify({
+        local_ip: localIp,
+        latitude: location?.latitude ?? null,
+        longitude: location?.longitude ?? null,
+        location_accuracy_m: location?.accuracyM ?? null,
+      }),
     }),
   clockOut: () => apiFetch<ApiAttendance>('/attendance/clock-out', { method: 'POST' }),
   clearToken,

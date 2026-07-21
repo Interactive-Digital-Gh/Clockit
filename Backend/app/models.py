@@ -13,6 +13,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Integer,
     Numeric,
     String,
     text,
@@ -51,6 +52,11 @@ class Agency(Base):
     network_config: Mapped[dict | None] = mapped_column(JSONB)
     # Email domains that map to this agency, e.g. ["interactivedigital.com"]
     email_domains: Mapped[list | None] = mapped_column(JSONB)
+    # GPS geofence: the office's coordinates + how far (meters) a clock-in may
+    # be from them and still count as on-site.
+    latitude: Mapped[float | None] = mapped_column(Numeric(9, 6))
+    longitude: Mapped[float | None] = mapped_column(Numeric(9, 6))
+    geofence_radius_m: Mapped[int | None] = mapped_column(Integer, server_default=text("150"))
 
     employees: Mapped[list["Employee"]] = relationship(back_populates="agency")
 
@@ -105,14 +111,15 @@ class AttendanceRecord(Base):
     location_verified: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default=text("false")
     )
-    # Which signal matched: 'office_ip' | 'office_subnet' | 'off_site'
-    # (leaves room for a future 'office_qr' factor without a schema change).
+    # Which signal matched: 'office_ip' | 'office_gps' | 'office_subnet' | 'off_site'
     verification_source: Mapped[str] = mapped_column(
         String, nullable=False, server_default=text("'off_site'")
     )
     # Audit: what the server observed vs what the device reported.
     clock_in_public_ip: Mapped[str | None] = mapped_column(String)
     clock_in_local_ip: Mapped[str | None] = mapped_column(String)
+    clock_in_latitude: Mapped[float | None] = mapped_column(Numeric(9, 6))
+    clock_in_longitude: Mapped[float | None] = mapped_column(Numeric(9, 6))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()")
     )

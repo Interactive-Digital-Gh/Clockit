@@ -52,6 +52,8 @@ def clock_in(
     verification_source: str = "off_site",
     public_ip: str | None = None,
     local_ip: str | None = None,
+    latitude: float | None = None,
+    longitude: float | None = None,
     verification_method: str = "manual",
 ) -> AttendanceRecord:
     """Idempotent: returns the existing open record if already clocked in today.
@@ -71,6 +73,8 @@ def clock_in(
         verification_source=verification_source,
         clock_in_public_ip=public_ip,
         clock_in_local_ip=local_ip,
+        clock_in_latitude=latitude,
+        clock_in_longitude=longitude,
     )
     db.add(record)
     db.commit()

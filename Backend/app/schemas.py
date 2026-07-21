@@ -66,6 +66,9 @@ class AgencyBase(BaseModel):
     is_active: bool = True
     network_config: NetworkConfig | None = None
     email_domains: list[str] | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    geofence_radius_m: int | None = None
 
 
 class AgencyCreate(AgencyBase):
@@ -79,6 +82,9 @@ class AgencyUpdate(BaseModel):
     is_active: bool | None = None
     network_config: NetworkConfig | None = None
     email_domains: list[str] | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    geofence_radius_m: int | None = None
 
 
 class AgencyOut(ORMModel, AgencyBase):
@@ -133,6 +139,10 @@ class EmployeeOut(ORMModel, EmployeeBase):
 class ClockInRequest(BaseModel):
     # Device-reported LAN IP, validated against the agency's allowed subnets.
     local_ip: str | None = None
+    # Device-reported GPS coordinates, checked against the agency's geofence.
+    latitude: float | None = None
+    longitude: float | None = None
+    location_accuracy_m: float | None = None
 
 
 class AttendanceOut(ORMModel):
@@ -148,6 +158,8 @@ class AttendanceOut(ORMModel):
     verification_source: str
     clock_in_public_ip: str | None = None
     clock_in_local_ip: str | None = None
+    clock_in_latitude: float | None = None
+    clock_in_longitude: float | None = None
 
 
 class EmployeeRef(ORMModel):

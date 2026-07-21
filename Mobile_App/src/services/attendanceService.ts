@@ -9,6 +9,7 @@ import { api } from '../lib/api';
 import { googleSignIn } from '../lib/googleAuth';
 import { ATTENDANCE_QR_PAYLOAD } from '../config/attendance';
 import { getLocalIpAddress } from '../utils/networkCheck';
+import { getDeviceLocation } from '../utils/locationCheck';
 
 const QR_CACHE_KEY = '@attendance:qr_token';
 
@@ -120,14 +121,15 @@ export async function fetchTodayAttendance(
 }
 
 /**
- * Clock in. Never blocked by the server — the reported LAN IP (plus the
- * server-observed public IP) is used to tag the record on-site vs remote.
+ * Clock in. Never blocked by the server — the reported LAN IP, GPS position
+ * (plus the server-observed public IP) are used to tag the record on-site vs
+ * remote.
  */
 export async function clockInEmployee(
   _employeeId: string,
 ): Promise<AttendanceRecord> {
-  const localIp = await getLocalIpAddress();
-  return api.clockIn(localIp);
+  const [localIp, location] = await Promise.all([getLocalIpAddress(), getDeviceLocation()]);
+  return api.clockIn(localIp, location);
 }
 
 /** Close today's open clock-in. */

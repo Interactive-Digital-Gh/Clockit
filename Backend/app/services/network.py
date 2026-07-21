@@ -7,9 +7,13 @@ clock-ins really are on-site:
   office_ip      the request reached the server FROM the office's public/WAN IP.
                  Strong signal — the client cannot fake the source of the
                  connection. This is the trusted one.
+  office_gps     the device's REPORTED GPS coordinates fall within the agency's
+                 configured geofence radius. Spoofable via mock-location tools,
+                 but requires more than editing a request field, so it ranks
+                 above the subnet hint.
   office_subnet  the device REPORTED a LAN IP matching the agency's subnet.
                  Weak/secondary hint — spoofable and 192.168.x is common at home.
-  off_site       neither matched (remote / unverified).
+  off_site       none matched (remote / unverified).
 
 The public-IP signal only works when the API is reachable over the real network
 (i.e. hosted), and requires the reverse proxy to forward the real client IP (see
@@ -17,12 +21,18 @@ get_client_ip). Bind the app to localhost behind the proxy so X-Forwarded-For
 cannot be spoofed by a client talking to it directly.
 """
 
+import math
+
 from fastapi import Request
 
 # Precedence: strongest signal wins.
 SOURCE_OFFICE_IP = "office_ip"
+SOURCE_OFFICE_GPS = "office_gps"
 SOURCE_OFFICE_SUBNET = "office_subnet"
 SOURCE_OFF_SITE = "off_site"
+
+EARTH_RADIUS_M = 6_371_000
+DEFAULT_GEOFENCE_RADIUS_M = 150
 
 
 def get_client_ip(request: Request) -> str | None:
@@ -41,10 +51,25 @@ def _matches(value: str | None, patterns: list[str]) -> bool:
     return any(value == p or value.startswith(p) for p in patterns)
 
 
+def _distance_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance via the haversine formula."""
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    return 2 * EARTH_RADIUS_M * math.asin(math.sqrt(a))
+
+
 def classify_location(
     public_ip: str | None,
     local_ip: str | None,
     network_config: dict | None,
+    *,
+    agency_latitude: float | None = None,
+    agency_longitude: float | None = None,
+    agency_radius_m: int | None = None,
+    device_latitude: float | None = None,
+    device_longitude: float | None = None,
 ) -> tuple[bool, str]:
     """Returns (location_verified, verification_source)."""
     cfg = network_config or {}
@@ -53,6 +78,18 @@ def classify_location(
 
     if _matches(public_ip, allowed_public):
         return True, SOURCE_OFFICE_IP
+
+    if (
+        agency_latitude is not None
+        and agency_longitude is not None
+        and device_latitude is not None
+        and device_longitude is not None
+    ):
+        radius = agency_radius_m or DEFAULT_GEOFENCE_RADIUS_M
+        distance = _distance_meters(agency_latitude, agency_longitude, device_latitude, device_longitude)
+        if distance <= radius:
+            return True, SOURCE_OFFICE_GPS
+
     if _matches(local_ip, allowed_subnets):
         return True, SOURCE_OFFICE_SUBNET
     return False, SOURCE_OFF_SITE

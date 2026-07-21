@@ -143,6 +143,14 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ network_config }),
     }),
+  updateAgencyLocation: (
+    id: string,
+    body: { latitude: number | null; longitude: number | null; geofence_radius_m: number | null },
+  ) =>
+    apiFetch<Agency>(`/agencies/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
 
   updateProfileRole: (id: string, role: Role) =>
     apiFetch<Profile>(`/profiles/${id}/role`, {
