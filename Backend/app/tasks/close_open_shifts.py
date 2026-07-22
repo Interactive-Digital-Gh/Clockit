@@ -19,8 +19,7 @@ from datetime import date, datetime, time, timezone
 from sqlalchemy import select
 
 from ..database import SessionLocal
-from ..models import AttendanceRecord
-from ..services.attendance import compute_total_hours
+from ..models import AttendanceRecord, AttendanceSession
 
 # Wall-clock time we stamp auto clock-outs at (17:30, matching the old app).
 CLOSE_HOUR = 17
@@ -28,6 +27,9 @@ CLOSE_MINUTE = 30
 
 
 def close_open_shifts(target: date) -> int:
+    """Closes each open row's open SESSION (not just the day's summary row) —
+    a day can have multiple sessions if the employee left and came back, and
+    total_hours must sum only actual on-site time, not the gaps between."""
     db = SessionLocal()
     closed = 0
     try:
@@ -42,11 +44,30 @@ def close_open_shifts(target: date) -> int:
             close_at = datetime.combine(
                 target, time(CLOSE_HOUR, CLOSE_MINUTE), tzinfo=timezone.utc
             )
-            # Never stamp a clock-out before the clock-in.
-            if close_at < row.clock_in_time:
-                close_at = row.clock_in_time
+            sessions = db.scalars(
+                select(AttendanceSession)
+                .where(AttendanceSession.attendance_record_id == row.id)
+                .order_by(AttendanceSession.clock_in_time)
+            ).all()
+            open_session = next((s for s in sessions if s.clock_out_time is None), None)
+            if open_session is None:
+                continue  # record shows open but has no session — nothing to close
+
+            # Never stamp a clock-out before the session's clock-in.
+            if close_at < open_session.clock_in_time:
+                close_at = open_session.clock_in_time
+            open_session.clock_out_time = close_at
+
             row.clock_out_time = close_at
-            row.total_hours = compute_total_hours(row.clock_in_time, close_at)
+            row.total_hours = round(
+                sum(
+                    (s.clock_out_time - s.clock_in_time).total_seconds()
+                    for s in sessions
+                    if s.clock_out_time is not None
+                )
+                / 3600,
+                2,
+            )
             closed += 1
 
         db.commit()

@@ -14,6 +14,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.interactivedigital.clockit",
+      "appleTeamId": "GW3CW8P35Q",
       "infoPlist": {
         "NSCameraUsageDescription": "Allow Clockit to access your camera to scan the workplace QR code."
       }
@@ -32,6 +33,7 @@
     "plugins": [
       "./plugins/withoutPushEntitlement",
       "./plugins/withModularHeaders",
+      "./plugins/withoutPrecompiledExpoModules",
       [
         "expo-splash-screen",
         {
@@ -50,7 +52,9 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow Clockit to check your location so office clock-ins can be verified as on-site."
+          "locationWhenInUsePermission": "Allow Clockit to check your location so office clock-ins can be verified as on-site.",
+          "locationAlwaysAndWhenInUsePermission": "Allow Clockit to check your location in the background so it can automatically clock you in when you arrive at the office and out when you leave. Optional — this only supplements the office WiFi check.",
+          "isAndroidBackgroundLocationEnabled": true
         }
       ]
     ],

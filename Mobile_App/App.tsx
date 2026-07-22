@@ -21,17 +21,24 @@ import * as Notifications from 'expo-notifications';
 import { AppProvider } from './src/context/AppContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { runAutoClockOutCheck, loadUserFromStorage } from './src/tasks/autoClockOut';
+import { runAutoClockInCheck } from './src/tasks/autoClockIn';
 import { loadPrefs, syncScheduledNotifications } from './src/lib/notifications';
 
 const AUTO_CLOCK_OUT_TASK = 'auto-clock-out';
 
-// Define the background task outside the component so it registers at module load
+// Define the background task outside the component so it registers at module
+// load. Runs both checks every firing — they're mutually exclusive (one
+// fires only when off-network past shift end, the other only when on-site
+// within work hours), so there's no conflict in checking both each cycle.
 TaskManager.defineTask(AUTO_CLOCK_OUT_TASK, async () => {
   const user = await loadUserFromStorage();
   if (!user) return BackgroundFetch.BackgroundFetchResult.NoData;
 
-  const didClockOut = await runAutoClockOutCheck(user).catch(() => false);
-  return didClockOut
+  const [didClockOut, clockedInRecord] = await Promise.all([
+    runAutoClockOutCheck(user).catch(() => false),
+    runAutoClockInCheck(user).catch(() => null),
+  ]);
+  return didClockOut || clockedInRecord
     ? BackgroundFetch.BackgroundFetchResult.NewData
     : BackgroundFetch.BackgroundFetchResult.NoData;
 });

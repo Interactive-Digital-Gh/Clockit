@@ -9,6 +9,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useApp } from '../context/AppContext';
 import { clockOutEmployee, fetchAttendanceHistory, AttendanceRecord } from '../services/attendanceService';
+import { suppressAutoClockInForToday } from '../tasks/autoClockIn';
 import { RootStackParamList, MainTabParamList } from '../navigation/AppNavigator';
 import { COLORS } from '../constants/colors';
 import { toDisplayRecord, startOfWeek, isOnOrAfter, sumHours, onTimeRate } from '../utils/attendanceStats';
@@ -51,6 +52,9 @@ export default function HomeScreen() {
     try {
       await clockOutEmployee(user.id);
       clockOut();
+      // A deliberate clock-out means "I'm done for today" — don't let auto
+      // clock-in undo it just because the phone is still on office WiFi.
+      await suppressAutoClockInForToday();
     } catch (err: any) {
       Alert.alert('Clock-out failed', err?.message ?? 'Could not record your departure. Try again.');
     }

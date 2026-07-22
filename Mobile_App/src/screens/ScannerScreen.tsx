@@ -83,11 +83,17 @@ export default function ScannerScreen() {
     setScanned(true);
     try {
       const record = await clockInEmployee(user.id);
-      const time = new Date(record.clock_in_time).toLocaleTimeString([], {
-        hour: 'numeric', minute: '2-digit',
-      });
+      // record.clock_in_time is always the day's FIRST arrival (used for the
+      // late cutoff) — accurate only for that first session. A re-entry
+      // scan later in the day returns the same day record with total_hours
+      // already set from the earlier session(s), so use "now" for display
+      // and skip the late check, which only makes sense for the morning.
+      const isFirstSessionToday = record.total_hours == null;
+      const time = isFirstSessionToday
+        ? new Date(record.clock_in_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+        : new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
       clockIn(time);
-      if (record.status?.toLowerCase() === 'late') {
+      if (isFirstSessionToday && record.status?.toLowerCase() === 'late') {
         notifyLateClockIn(record.clock_in_time).catch(() => {});
       }
       nav.replace('Success', { clockInTime: time });

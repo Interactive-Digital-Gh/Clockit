@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchTodayAttendance } from '../services/attendanceService';
 import { runAutoClockOutCheck, clearAutoClockOutTimer } from '../tasks/autoClockOut';
+import { runAutoClockInCheck } from '../tasks/autoClockIn';
 import { registerPushToken } from '../lib/pushToken';
 
 export interface UserProfile {
@@ -125,6 +126,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (didClockOut) {
         setState((s) => ({ ...s, clockedIn: false, clockInTime: null }));
         saveClockState(false, null);
+      }
+    };
+
+    check();
+    const interval = setInterval(check, 2 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [state.clockedIn, state.user?.id]);
+
+  // Foreground auto clock-in: check every 2 minutes when NOT clocked in —
+  // the return half of "leave the office, get auto clocked out; come back,
+  // get auto clocked back in."
+  useEffect(() => {
+    if (state.clockedIn || !state.user) return;
+
+    const check = async () => {
+      const record = await runAutoClockInCheck(userRef.current!).catch(() => null);
+      if (record) {
+        const time = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        setState((s) => ({ ...s, clockedIn: true, clockInTime: time }));
+        saveClockState(true, time);
       }
     };
 

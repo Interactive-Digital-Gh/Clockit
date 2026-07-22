@@ -9,7 +9,7 @@ import { api } from '../lib/api';
 import { googleSignIn } from '../lib/googleAuth';
 import { ATTENDANCE_QR_PAYLOAD } from '../config/attendance';
 import { getLocalIpAddress } from '../utils/networkCheck';
-import { getDeviceLocation } from '../utils/locationCheck';
+import { getDeviceLocation, getBackgroundLocationIfAvailable } from '../utils/locationCheck';
 
 const QR_CACHE_KEY = '@attendance:qr_token';
 
@@ -124,11 +124,21 @@ export async function fetchTodayAttendance(
  * Clock in. Never blocked by the server — the reported LAN IP, GPS position
  * (plus the server-observed public IP) are used to tag the record on-site vs
  * remote.
+ *
+ * `background: true` (used by the auto clock-in task) reads GPS only if the
+ * app already has "Always" permission, without ever prompting — a
+ * foreground permission prompt firing from a headless background task would
+ * be confusing UX at best. Manual clock-in (the default) still prompts as
+ * normal, since that's an explicit foreground action.
  */
 export async function clockInEmployee(
   _employeeId: string,
+  background = false,
 ): Promise<AttendanceRecord> {
-  const [localIp, location] = await Promise.all([getLocalIpAddress(), getDeviceLocation()]);
+  const [localIp, location] = await Promise.all([
+    getLocalIpAddress(),
+    background ? getBackgroundLocationIfAvailable() : getDeviceLocation(),
+  ]);
   return api.clockIn(localIp, location);
 }
 
@@ -154,6 +164,27 @@ export async function fetchAgencyAllowedSubnets(_agencyId: string): Promise<stri
     return agency.network_config?.allowed_subnets ?? [];
   } catch {
     return [];
+  }
+}
+
+export interface AgencyGeofence {
+  latitude: number;
+  longitude: number;
+  radiusM: number;
+}
+
+/** The employee's agency GPS geofence, if the admin has configured one. */
+export async function fetchAgencyGeofence(_agencyId: string): Promise<AgencyGeofence | null> {
+  try {
+    const agency = await api.getMyAgency();
+    if (agency.latitude == null || agency.longitude == null) return null;
+    return {
+      latitude: agency.latitude,
+      longitude: agency.longitude,
+      radiusM: agency.geofence_radius_m ?? 150,
+    };
+  } catch {
+    return null;
   }
 }
 

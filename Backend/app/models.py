@@ -125,11 +125,56 @@ class AttendanceRecord(Base):
     )
 
     employee: Mapped["Employee"] = relationship(back_populates="attendance")
+    sessions: Mapped[list["AttendanceSession"]] = relationship(
+        back_populates="attendance_record", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         # One attendance row per employee per day.
         CheckConstraint("clock_out_time IS NULL OR clock_out_time >= clock_in_time",
                         name="attendance_clockout_after_clockin"),
+    )
+
+
+class AttendanceSession(Base):
+    """One continuous on-site visit within a day. AttendanceRecord stays the
+    one-row-per-employee-per-day summary (first clock-in, total hours, status);
+    this table is what makes multiple clock-in/out cycles per day possible —
+    leaving and returning opens a new session under the same day's record."""
+
+    __tablename__ = "attendance_sessions"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    attendance_record_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("attendance_records.id", ondelete="CASCADE"), nullable=False
+    )
+    clock_in_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Null while this specific session is still open (employee currently on-site).
+    clock_out_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    verification_method: Mapped[str] = mapped_column(
+        String, nullable=False, server_default=text("'manual'")
+    )
+    location_verified: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
+    verification_source: Mapped[str] = mapped_column(
+        String, nullable=False, server_default=text("'off_site'")
+    )
+    clock_in_public_ip: Mapped[str | None] = mapped_column(String)
+    clock_in_local_ip: Mapped[str | None] = mapped_column(String)
+    clock_in_latitude: Mapped[float | None] = mapped_column(Numeric(9, 6))
+    clock_in_longitude: Mapped[float | None] = mapped_column(Numeric(9, 6))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("now()")
+    )
+
+    attendance_record: Mapped["AttendanceRecord"] = relationship(back_populates="sessions")
+
+    __table_args__ = (
+        CheckConstraint("clock_out_time IS NULL OR clock_out_time >= clock_in_time",
+                        name="attendance_session_clockout_after_clockin"),
     )
 
 

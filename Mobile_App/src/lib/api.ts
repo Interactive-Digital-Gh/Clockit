@@ -112,6 +112,9 @@ export interface ApiAgency {
     allowed_subnets?: string[];
     description?: string;
   } | null;
+  latitude: number | null;
+  longitude: number | null;
+  geofence_radius_m: number | null;
 }
 
 export interface ApiAttendance {
