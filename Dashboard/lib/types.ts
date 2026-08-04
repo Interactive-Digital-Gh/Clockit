@@ -59,6 +59,8 @@ export interface Profile {
   full_name: string | null
   role: Role
   created_at: string | null
+  has_google: boolean
+  has_password: boolean
 }
 
 export type NotificationStatus = "scheduled" | "sent" | "canceled"

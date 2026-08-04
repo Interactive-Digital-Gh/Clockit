@@ -16,7 +16,7 @@ import secrets
 from sqlalchemy import func
 
 from ..database import get_db
-from ..deps import get_current_admin, get_current_employee, require_roles
+from ..deps import get_current_admin, get_current_employee, get_principal, require_roles
 from ..models import ADMIN_ROLES, VIEW_ALL_ROLES, AttendanceQr, AttendanceRecord, Employee, Profile
 from ..schemas import AttendanceOut, AttendanceQrOut, AttendanceWithEmployee, ClockInRequest
 from ..services import attendance as svc
@@ -116,8 +116,10 @@ def rotate_qr(db: Session = Depends(get_db), admin: Profile = Depends(require_ro
 
 
 @router.get("/qr/current", response_model=AttendanceQrOut)
-def get_qr_as_employee(db: Session = Depends(get_db), _=Depends(get_current_employee)):
-    """The active QR token, for the mobile scanner to validate scans against."""
+def get_qr_current(db: Session = Depends(get_db), _=Depends(get_principal)):
+    """The active QR token, for the mobile/web scanner to validate scans
+    against. Any signed-in Employee or Profile — this isn't a security
+    control, just the value the client compares a scan to before clocking in."""
     return _current_qr(db)
 
 

@@ -1,7 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { CalendarCheck, Clock, Loader2, MapPin, TrendingUp } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { CalendarCheck, Clock, Loader2, MapPin, QrCode, TrendingUp } from "lucide-react"
 import { startOfMonth, format } from "date-fns"
 
 import { PageHeader } from "@/components/ui/page-header"
@@ -10,6 +10,14 @@ import { DataTable, type ColumnDef } from "@/components/ui/data-table"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { QrScanner } from "@/components/qr-scanner"
 import { api, ApiError } from "@/lib/api"
 import { formatDate, formatTime, formatHours } from "@/lib/utils"
 import { useProfile } from "@/hooks/use-profile"
@@ -49,6 +57,10 @@ export default function MyAttendancePage() {
   const [today, setToday] = useState<AttendanceRecord | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [working, setWorking] = useState(false)
+  const [scanOpen, setScanOpen] = useState(false)
+  const [scanMismatch, setScanMismatch] = useState(false)
+  const expectedQrRef = useRef<string | null>(null)
+  const scanHandledRef = useRef(false)
 
   const refresh = useCallback(() => {
     return Promise.all([api.myToday(), api.myAttendance(90)]).then(([todayRecord, history]) => {
@@ -75,7 +87,23 @@ export default function MyAttendancePage() {
 
   const isClockedIn = !!today && !today.clock_out_time
 
-  const handleClockIn = async () => {
+  // Resets (scanHandledRef, scanMismatch, expectedQrRef) happen at the click
+  // site that opens the dialog, not here — this effect only does the async
+  // fetch itself.
+  useEffect(() => {
+    if (!scanOpen) return
+    api
+      .qrCurrent()
+      .then((qr) => {
+        expectedQrRef.current = qr.token
+      })
+      .catch(() => {
+        // Leave expectedQrRef null — a scan just won't match until this loads;
+        // the manual button below is always available regardless.
+      })
+  }, [scanOpen])
+
+  const handleClockIn = useCallback(async () => {
     setWorking(true)
     try {
       const location = await getLocation()
@@ -87,7 +115,31 @@ export default function MyAttendancePage() {
     } finally {
       setWorking(false)
     }
+  }, [refresh])
+
+  const openScanner = () => {
+    scanHandledRef.current = false
+    setScanMismatch(false)
+    expectedQrRef.current = null
+    setScanOpen(true)
   }
+
+  const handleScan = useCallback(
+    (value: string) => {
+      if (scanHandledRef.current) return
+      if (expectedQrRef.current && value === expectedQrRef.current) {
+        scanHandledRef.current = true
+        setScanOpen(false)
+        handleClockIn()
+      } else if (expectedQrRef.current) {
+        // Only flash "not the code" once we actually know the real token —
+        // avoids a false mismatch while it's still loading.
+        setScanMismatch(true)
+        setTimeout(() => setScanMismatch(false), 2500)
+      }
+    },
+    [handleClockIn],
+  )
 
   const handleClockOut = async () => {
     setWorking(true)
@@ -175,21 +227,43 @@ export default function MyAttendancePage() {
               "You haven't clocked in yet today."
             )}
           </div>
-          <Button
-            size="lg"
-            className="sm:w-40"
-            variant={isClockedIn ? "destructive" : "default"}
-            disabled={isLoading || working}
-            onClick={isClockedIn ? handleClockOut : handleClockIn}
-          >
-            {working ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : isClockedIn ? (
-              "Clock Out"
-            ) : (
-              "Clock In"
-            )}
-          </Button>
+          {isClockedIn ? (
+            <Button
+              size="lg"
+              className="sm:w-40"
+              variant="destructive"
+              disabled={isLoading || working}
+              onClick={handleClockOut}
+            >
+              {working ? <Loader2 className="h-4 w-4 animate-spin" /> : "Clock Out"}
+            </Button>
+          ) : (
+            <div className="flex flex-col items-stretch gap-2 sm:items-end">
+              <Button
+                size="lg"
+                className="sm:w-52"
+                disabled={isLoading || working}
+                onClick={openScanner}
+              >
+                {working ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <QrCode className="mr-2 h-4 w-4" />
+                    Scan QR to clock in
+                  </>
+                )}
+              </Button>
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline-offset-4 hover:underline disabled:opacity-50"
+                disabled={isLoading || working}
+                onClick={handleClockIn}
+              >
+                Clock in without scanning
+              </button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -200,6 +274,33 @@ export default function MyAttendancePage() {
         columns={columns}
         emptyMessage="No attendance on record for your account yet. Clock in above and it will show up here."
       />
+
+      <Dialog open={scanOpen} onOpenChange={setScanOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Scan to clock in</DialogTitle>
+            <DialogDescription>
+              Point your camera at the attendance QR code at your entrance.
+            </DialogDescription>
+          </DialogHeader>
+          <QrScanner active={scanOpen} onScan={handleScan} />
+          {scanMismatch && (
+            <p className="text-center text-sm text-destructive">
+              That&apos;s not the attendance code — try again.
+            </p>
+          )}
+          <button
+            type="button"
+            className="text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
+            onClick={() => {
+              setScanOpen(false)
+              handleClockIn()
+            }}
+          >
+            Camera not working? Clock in without scanning
+          </button>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

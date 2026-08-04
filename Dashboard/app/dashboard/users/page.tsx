@@ -7,6 +7,7 @@ import { DataTable, type ColumnDef } from "@/components/ui/data-table"
 import { RequireRole } from "@/components/require-role"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -141,6 +142,19 @@ function UsersPageContent() {
       ),
     },
     { key: "created_at", header: "Joined", render: (row) => formatDate(row.created_at) },
+    {
+      key: "sign_in",
+      header: "Signs in via",
+      render: (row) =>
+        row.has_google || row.has_password ? (
+          <div className="flex flex-wrap gap-1.5">
+            {row.has_google && <Badge variant="outline">Google</Badge>}
+            {row.has_password && <Badge variant="outline">Password</Badge>}
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground">Not yet signed in</span>
+        ),
+    },
     {
       key: "role",
       header: "Role",

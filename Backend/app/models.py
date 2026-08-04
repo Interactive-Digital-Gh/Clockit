@@ -270,6 +270,14 @@ class Profile(Base):
         DateTime(timezone=True), server_default=text("now()")
     )
 
+    @property
+    def has_google(self) -> bool:
+        return self.google_sub is not None
+
+    @property
+    def has_password(self) -> bool:
+        return self.password_hash is not None
+
     __table_args__ = (
         CheckConstraint(
             "role in ('super_admin', 'it', 'hr', 'front_desk', 'employee')",

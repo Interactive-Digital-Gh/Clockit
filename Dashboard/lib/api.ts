@@ -117,6 +117,8 @@ export const api = {
       body: JSON.stringify(body),
     }),
   myClockOut: () => apiFetch<AttendanceRecord>("/attendance/my/clock-out", { method: "POST" }),
+  /** The currently-valid attendance QR token, to check a scan against before clocking in. */
+  qrCurrent: () => apiFetch<AttendanceQrToken>("/attendance/qr/current"),
 
   // Attendance QR management (admin roles)
   attendanceQr: () => apiFetch<AttendanceQrToken>("/attendance/qr"),

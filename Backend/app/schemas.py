@@ -188,6 +188,8 @@ class ProfileOut(ORMModel):
     full_name: str | None = None
     role: Role
     created_at: datetime | None = None
+    has_google: bool
+    has_password: bool
 
 
 # --- Push notifications ------------------------------------------------------
