@@ -36,11 +36,6 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed origins for the dashboard. "*" for any.
     cors_origins: str = "*"
 
-    # --- Local development --------------------------------------------------
-    # When true, enables POST /auth/dev-login (mints tokens without Google).
-    # MUST stay false in production — it is an auth bypass.
-    dev_mode: bool = False
-
     @property
     def allowed_google_client_ids(self) -> list[str]:
         ids = [self.google_web_client_id, self.google_ios_client_id]

@@ -1,10 +1,23 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { KeyRound, Loader2 } from "lucide-react"
 import { PageHeader } from "@/components/ui/page-header"
 import { DataTable, type ColumnDef } from "@/components/ui/data-table"
 import { RequireRole } from "@/components/require-role"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { api, ApiError } from "@/lib/api"
 import { formatDate, getInitials } from "@/lib/utils"
 import { toast } from "sonner"
@@ -16,6 +29,66 @@ const ROLE_LABELS: Record<Role, string> = {
   hr: "HR Manager",
   front_desk: "Front Desk",
   employee: "Employee",
+}
+
+function SetPasswordButton({ profile }: { profile: Profile }) {
+  const [open, setOpen] = useState(false)
+  const [password, setPassword] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSaving(true)
+    try {
+      await api.setProfilePassword(profile.id, password)
+      toast.success(`Password set for ${profile.email}`)
+      setPassword("")
+      setOpen(false)
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : "Failed to set password")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={<Button variant="ghost" size="icon-sm" aria-label={`Set password for ${profile.email}`} />}>
+        <KeyRound className="h-4 w-4" />
+      </DialogTrigger>
+      <DialogContent>
+        <form onSubmit={handleSave}>
+          <DialogHeader>
+            <DialogTitle>Set password</DialogTitle>
+            <DialogDescription>
+              Sets a password sign-in for <b>{profile.email}</b>, independent of Google. They can
+              use it at /login instead of (or alongside) Google sign-in.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2 py-2">
+            <Label htmlFor={`password-${profile.id}`}>New password</Label>
+            <Input
+              id={`password-${profile.id}`}
+              type="password"
+              minLength={8}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSaving}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSaving || password.length < 8}>
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save password"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 function UsersPageContent() {
@@ -90,6 +163,12 @@ function UsersPageContent() {
           </SelectContent>
         </Select>
       ),
+    },
+    {
+      key: "password",
+      header: "",
+      align: "right",
+      render: (row) => <SetPasswordButton profile={row} />,
     },
   ]
 

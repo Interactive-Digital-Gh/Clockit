@@ -4,11 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ..config import get_settings
 from ..database import get_db
 from ..deps import Principal, get_principal
 from ..models import Employee, Profile
-from ..schemas import AccessToken, DevLogin, GoogleLogin, Me, RefreshRequest, TokenPair
+from ..schemas import AccessToken, GoogleLogin, Me, PasswordLogin, RefreshRequest, TokenPair
 from ..security import (
     TYPE_ADMIN,
     TYPE_EMPLOYEE,
@@ -16,10 +15,10 @@ from ..security import (
     create_refresh_token,
     decode_refresh_token,
     verify_google_id_token,
+    verify_password,
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-settings = get_settings()
 
 
 def _tokens(subject: str, token_type: str, extra: dict) -> TokenPair:
@@ -93,20 +92,14 @@ def login_admin(body: GoogleLogin, db: Session = Depends(get_db)) -> TokenPair:
     return _login_admin(db, verify_google_id_token(body.id_token))
 
 
-@router.post("/dev-login", response_model=TokenPair)
-def dev_login(body: DevLogin, db: Session = Depends(get_db)) -> TokenPair:
-    """LOCAL DEV ONLY — mint tokens without Google. Enabled only when
-    DEV_MODE=true; returns 404 otherwise so it is invisible in production."""
-    if not settings.dev_mode:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
-    identity = {
-        "sub": f"dev:{body.as_type}:{body.email.lower()}",
-        "email": body.email.lower(),
-        "name": body.name or body.email.split("@")[0],
-    }
-    if body.as_type == "employee":
-        return _login_employee(db, identity)
-    return _login_admin(db, identity)
+@router.post("/login/password", response_model=TokenPair)
+def login_password(body: PasswordLogin, db: Session = Depends(get_db)) -> TokenPair:
+    """Dashboard sign-in with an email/password — for profiles that have a
+    password set via PATCH /profiles/{id}/password, independent of Google."""
+    prof = db.scalar(select(Profile).where(func.lower(Profile.email) == body.email.lower()))
+    if prof is None or not prof.password_hash or not verify_password(body.password, prof.password_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
+    return _tokens(str(prof.id), TYPE_ADMIN, {"role": prof.role})
 
 
 @router.post("/refresh", response_model=AccessToken)

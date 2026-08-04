@@ -82,14 +82,6 @@ export interface AttendanceQuery {
 // --- API -----------------------------------------------------------------
 export const api = {
   // Auth
-  async devLogin(email: string, asType: "admin" | "employee" = "admin") {
-    const { access_token } = await apiFetch<{ access_token: string }>("/auth/dev-login", {
-      method: "POST",
-      body: JSON.stringify({ email, as_type: asType }),
-    })
-    setToken(access_token)
-    return access_token
-  },
   /** Exchange a Google ID token (from Google Identity Services) for our JWT. */
   async googleLogin(idToken: string) {
     const { access_token } = await apiFetch<{ access_token: string }>("/auth/google/admin", {
@@ -99,12 +91,32 @@ export const api = {
     setToken(access_token)
     return access_token
   },
+  async passwordLogin(email: string, password: string) {
+    const { access_token } = await apiFetch<{ access_token: string }>("/auth/login/password", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    })
+    setToken(access_token)
+    return access_token
+  },
+  setProfilePassword: (id: string, password: string) =>
+    apiFetch<undefined>(`/profiles/${id}/password`, {
+      method: "PATCH",
+      body: JSON.stringify({ password }),
+    }),
   logout() {
     clearToken()
   },
   me: () => apiFetch<Profile>("/profiles/me"),
   /** The signed-in user's own attendance (any role). */
   myAttendance: (limit = 60) => apiFetch<AttendanceRecord[]>(`/attendance/my?limit=${limit}`),
+  myToday: () => apiFetch<AttendanceRecord | null>("/attendance/my/today"),
+  myClockIn: (body: { latitude?: number | null; longitude?: number | null; location_accuracy_m?: number | null } = {}) =>
+    apiFetch<AttendanceRecord>("/attendance/my/clock-in", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  myClockOut: () => apiFetch<AttendanceRecord>("/attendance/my/clock-out", { method: "POST" }),
 
   // Attendance QR management (admin roles)
   attendanceQr: () => apiFetch<AttendanceQrToken>("/attendance/qr"),

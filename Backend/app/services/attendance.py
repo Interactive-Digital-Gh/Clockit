@@ -7,11 +7,11 @@ server-side.
 
 from datetime import date, datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
-from ..models import AttendanceRecord, AttendanceSession
+from ..models import AttendanceRecord, AttendanceSession, Employee, Profile
 
 settings = get_settings()
 
@@ -29,6 +29,31 @@ def is_late(clock_in: datetime) -> bool:
         microsecond=0,
     )
     return clock_in > cutoff
+
+
+def get_or_create_employee_for_profile(db: Session, profile: Profile) -> Employee:
+    """Resolve a dashboard Profile to its linked Employee row (same match
+    order as the read-only /attendance/my lookup), self-registering one if
+    this is the profile's first time clocking in — mirrors _login_employee's
+    self-registration in routers/auth.py."""
+    emp = None
+    if profile.google_sub:
+        emp = db.scalar(select(Employee).where(Employee.google_sub == profile.google_sub))
+    if emp is None:
+        emp = db.scalar(select(Employee).where(func.lower(Employee.email) == profile.email.lower()))
+        if emp is not None and profile.google_sub:
+            emp.google_sub = profile.google_sub
+    if emp is None:
+        emp = Employee(
+            name=profile.full_name or profile.email.split("@")[0],
+            email=profile.email,
+            google_sub=profile.google_sub,
+            is_active=True,
+        )
+        db.add(emp)
+    db.commit()
+    db.refresh(emp)
+    return emp
 
 
 def get_today_record(db: Session, employee_id) -> AttendanceRecord | None:

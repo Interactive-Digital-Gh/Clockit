@@ -1,29 +1,69 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { CalendarCheck, Clock, MapPin, TrendingUp } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { CalendarCheck, Clock, Loader2, MapPin, TrendingUp } from "lucide-react"
 import { startOfMonth, format } from "date-fns"
 
 import { PageHeader } from "@/components/ui/page-header"
 import { MetricsGrid } from "@/components/ui/metric-card"
 import { DataTable, type ColumnDef } from "@/components/ui/data-table"
 import { StatusBadge } from "@/components/ui/status-badge"
-import { api } from "@/lib/api"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { api, ApiError } from "@/lib/api"
 import { formatDate, formatTime, formatHours } from "@/lib/utils"
 import { useProfile } from "@/hooks/use-profile"
 import type { AttendanceRecord } from "@/lib/types"
+import { toast } from "sonner"
+
+interface ClockLocation {
+  latitude?: number | null
+  longitude?: number | null
+  location_accuracy_m?: number | null
+}
+
+// Best-effort GPS read — never blocks clock-in. Resolves to nulls on denial,
+// timeout, or an unsupported browser.
+function getLocation(): Promise<ClockLocation> {
+  return new Promise((resolve) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      resolve({})
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        resolve({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          location_accuracy_m: pos.coords.accuracy,
+        }),
+      () => resolve({}),
+      { timeout: 5000, maximumAge: 60_000 },
+    )
+  })
+}
 
 export default function MyAttendancePage() {
   const { profile } = useProfile()
   const [records, setRecords] = useState<AttendanceRecord[]>([])
+  const [today, setToday] = useState<AttendanceRecord | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [working, setWorking] = useState(false)
+
+  const refresh = useCallback(() => {
+    return Promise.all([api.myToday(), api.myAttendance(90)]).then(([todayRecord, history]) => {
+      setToday(todayRecord)
+      setRecords(history)
+    })
+  }, [])
 
   useEffect(() => {
     let cancelled = false
-    api
-      .myAttendance(90)
-      .then((data) => {
-        if (!cancelled) setRecords(data)
+    Promise.all([api.myToday(), api.myAttendance(90)])
+      .then(([todayRecord, history]) => {
+        if (cancelled) return
+        setToday(todayRecord)
+        setRecords(history)
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)
@@ -32,6 +72,40 @@ export default function MyAttendancePage() {
       cancelled = true
     }
   }, [])
+
+  const isClockedIn = !!today && !today.clock_out_time
+
+  const handleClockIn = async () => {
+    setWorking(true)
+    try {
+      const location = await getLocation()
+      await api.myClockIn(location)
+      await refresh()
+      toast.success("Clocked in")
+    } catch (error: unknown) {
+      toast.error(error instanceof ApiError ? error.message : "Could not clock in — try again.")
+    } finally {
+      setWorking(false)
+    }
+  }
+
+  const handleClockOut = async () => {
+    setWorking(true)
+    try {
+      await api.myClockOut()
+      await refresh()
+      toast.success("Clocked out")
+    } catch (error: unknown) {
+      if (error instanceof ApiError && error.status === 409) {
+        toast.info("Already clocked out — refreshing.")
+        await refresh()
+      } else {
+        toast.error(error instanceof ApiError ? error.message : "Could not clock out — try again.")
+      }
+    } finally {
+      setWorking(false)
+    }
+  }
 
   const metrics = useMemo(() => {
     const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd")
@@ -86,12 +160,45 @@ export default function MyAttendancePage() {
         }
       />
 
+      <Card>
+        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-muted-foreground">
+            {isLoading ? (
+              "Loading today's status…"
+            ) : today ? (
+              <>
+                Clocked in at {formatTime(today.clock_in_time)}
+                {today.clock_out_time && <> · out at {formatTime(today.clock_out_time)}</>}
+                {today.total_hours != null && <> · {formatHours(today.total_hours)} today</>}
+              </>
+            ) : (
+              "You haven't clocked in yet today."
+            )}
+          </div>
+          <Button
+            size="lg"
+            className="sm:w-40"
+            variant={isClockedIn ? "destructive" : "default"}
+            disabled={isLoading || working}
+            onClick={isClockedIn ? handleClockOut : handleClockIn}
+          >
+            {working ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isClockedIn ? (
+              "Clock Out"
+            ) : (
+              "Clock In"
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
       <MetricsGrid metrics={metrics} isLoading={isLoading} />
 
       <DataTable
         data={records}
         columns={columns}
-        emptyMessage="No attendance on record for your account yet. Clock in from the Clockit mobile app and it will show up here."
+        emptyMessage="No attendance on record for your account yet. Clock in above and it will show up here."
       />
     </div>
   )

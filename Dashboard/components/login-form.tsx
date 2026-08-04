@@ -32,11 +32,12 @@ declare global {
 
 // Sign-in options:
 // - Google (production path): GIS button → ID token → POST /auth/google/admin.
-// - Email dev-login: only works while the API runs with DEV_MODE=true; kept
-//   below the Google button until OAuth is confirmed, then can be removed.
+// - Password: for profiles that had a password set via /dashboard/users →
+//   POST /auth/login/password. Independent of Google.
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form">) {
   const router = useRouter()
   const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const googleButtonRef = useRef<HTMLDivElement>(null)
 
@@ -76,17 +77,17 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     })
   }, [finishLogin])
 
-  const handleDevLogin = async (e: React.FormEvent) => {
+  const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email) return
+    if (!email || !password) return
     setIsLoading(true)
     try {
-      await api.devLogin(email, "admin")
+      await api.passwordLogin(email, password)
       finishLogin()
     } catch (error: unknown) {
       const message =
-        error instanceof ApiError && error.status === 404
-          ? "Dev login is disabled on the API — sign in with Google instead."
+        error instanceof ApiError && error.status === 401
+          ? "Incorrect email or password."
           : error instanceof Error
             ? error.message
             : "Could not sign in"
@@ -96,7 +97,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
   }
 
   return (
-    <form onSubmit={handleDevLogin} className={cn("flex flex-col gap-6", className)} {...props}>
+    <form onSubmit={handlePasswordLogin} className={cn("flex flex-col gap-6", className)} {...props}>
       {GOOGLE_CLIENT_ID && (
         <Script src="https://accounts.google.com/gsi/client" onReady={initGoogle} />
       )}
@@ -123,7 +124,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">Or dev sign-in</span>
+            <span className="bg-background px-2 text-muted-foreground">Or sign in with a password</span>
           </div>
         </div>
         <div className="grid gap-2">
@@ -136,6 +137,15 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
+        <div className="grid gap-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
         <Button type="submit" variant="outline" className="w-full" disabled={isLoading}>
           {isLoading ? (
             <>
@@ -143,7 +153,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
               Signing in...
             </>
           ) : (
-            "Sign in with email (dev)"
+            "Sign in with password"
           )}
         </Button>
       </div>

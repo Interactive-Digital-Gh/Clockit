@@ -146,6 +146,57 @@ def my_attendance_as_profile(
     return db.scalars(stmt).all()
 
 
+@router.get("/my/today", response_model=AttendanceOut | None)
+def my_today_as_profile(db: Session = Depends(get_db), prof: Profile = Depends(get_current_admin)):
+    emp = svc.get_or_create_employee_for_profile(db, prof)
+    return svc.get_today_record(db, emp.id)
+
+
+@router.post("/my/clock-in", response_model=AttendanceOut)
+def my_clock_in_as_profile(
+    body: ClockInRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    prof: Profile = Depends(get_current_admin),
+):
+    """Dashboard-side clock-in for any signed-in Profile — same rules and
+    verification as the mobile endpoint, just resolved from a Profile
+    instead of an Employee token."""
+    emp = svc.get_or_create_employee_for_profile(db, prof)
+    public_ip = get_client_ip(request)
+    agency = emp.agency
+    network_config = agency.network_config if agency else None
+    verified, source = classify_location(
+        public_ip,
+        body.local_ip,
+        network_config,
+        agency_latitude=float(agency.latitude) if agency and agency.latitude is not None else None,
+        agency_longitude=float(agency.longitude) if agency and agency.longitude is not None else None,
+        agency_radius_m=agency.geofence_radius_m if agency else None,
+        device_latitude=body.latitude,
+        device_longitude=body.longitude,
+    )
+    return svc.clock_in(
+        db,
+        emp.id,
+        location_verified=verified,
+        verification_source=source,
+        public_ip=public_ip,
+        local_ip=body.local_ip,
+        latitude=body.latitude,
+        longitude=body.longitude,
+    )
+
+
+@router.post("/my/clock-out", response_model=AttendanceOut)
+def my_clock_out_as_profile(db: Session = Depends(get_db), prof: Profile = Depends(get_current_admin)):
+    emp = svc.get_or_create_employee_for_profile(db, prof)
+    try:
+        return svc.clock_out(db, emp.id)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc))
+
+
 # --- Admin (dashboard) ------------------------------------------------------
 @router.get("", response_model=list[AttendanceWithEmployee])
 def list_attendance(

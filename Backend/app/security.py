@@ -1,5 +1,7 @@
-"""JWT issuance/verification and Google ID-token verification."""
+"""JWT issuance/verification, password hashing, and Google ID-token verification."""
 
+import hashlib
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
@@ -15,6 +17,25 @@ TYPE_EMPLOYEE = "employee"
 TYPE_ADMIN = "admin"
 _ACCESS = "access"
 _REFRESH = "refresh"
+
+_PBKDF2_ITERATIONS = 320_000
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), _PBKDF2_ITERATIONS)
+    return f"pbkdf2_sha256${_PBKDF2_ITERATIONS}${salt}${digest.hex()}"
+
+
+def verify_password(password: str, encoded: str) -> bool:
+    try:
+        algo, iterations, salt, hash_hex = encoded.split("$")
+    except (ValueError, AttributeError):
+        return False
+    if algo != "pbkdf2_sha256":
+        return False
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), int(iterations))
+    return secrets.compare_digest(digest.hex(), hash_hex)
 
 
 def _create_token(subject: str, token_type: str, scope: str, extra: dict, expires: timedelta) -> str:

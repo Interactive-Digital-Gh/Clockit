@@ -22,12 +22,20 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
-class DevLogin(BaseModel):
-    """Local-dev token request (only honored when DEV_MODE=true)."""
-
+class PasswordLogin(BaseModel):
     email: EmailStr
-    name: str | None = None
-    as_type: Literal["employee", "admin"] = "admin"
+    password: str
+
+
+class SetPasswordRequest(BaseModel):
+    password: str
+
+    @field_validator("password")
+    @classmethod
+    def _min_length(cls, value: str) -> str:
+        if len(value) < 8:
+            raise ValueError("password must be at least 8 characters")
+        return value
 
 
 class TokenPair(BaseModel):

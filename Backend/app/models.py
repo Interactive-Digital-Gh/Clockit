@@ -263,6 +263,9 @@ class Profile(Base):
     full_name: Mapped[str | None] = mapped_column(String)
     role: Mapped[str] = mapped_column(String, nullable=False, server_default=text("'employee'"))
     google_sub: Mapped[str | None] = mapped_column(String, unique=True)
+    # Optional password sign-in, independent of Google. Null = password login
+    # disabled for this profile (the common case — most profiles are Google-only).
+    password_hash: Mapped[str | None] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()")
     )

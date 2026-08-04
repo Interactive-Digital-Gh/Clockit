@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..deps import get_current_admin, require_roles
 from ..models import USER_MANAGER_ROLES, Profile
-from ..schemas import ProfileOut, ProfileRoleUpdate
+from ..schemas import ProfileOut, ProfileRoleUpdate, SetPasswordRequest
+from ..security import hash_password
 
 router = APIRouter(prefix="/profiles", tags=["profiles"])
 
@@ -35,6 +36,22 @@ def update_role(
     db.commit()
     db.refresh(prof)
     return prof
+
+
+@router.patch("/{profile_id}/password", status_code=status.HTTP_204_NO_CONTENT)
+def set_password(
+    profile_id: uuid.UUID,
+    body: SetPasswordRequest,
+    db: Session = Depends(get_db),
+    _admin: Profile = Depends(require_roles(*USER_MANAGER_ROLES)),
+):
+    """Set or reset a profile's password login — independent of Google.
+    Unlike role changes, setting your own password is allowed."""
+    prof = db.get(Profile, profile_id)
+    if not prof:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Profile not found")
+    prof.password_hash = hash_password(body.password)
+    db.commit()
 
 
 @router.get("/me", response_model=ProfileOut)
