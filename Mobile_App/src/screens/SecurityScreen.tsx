@@ -115,7 +115,7 @@ export default function SecurityScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.rowLabel}>Network verification</Text>
-              <Text style={styles.rowSub}>Always active — you must be on your company WiFi to clock in</Text>
+              <Text style={styles.rowSub}>Records whether you clocked in on-site or remote — doesn't block clock-in</Text>
             </View>
             <View style={styles.activeBadge}>
               <Text style={styles.activeBadgeText}>Active</Text>
@@ -138,7 +138,7 @@ export default function SecurityScreen() {
         <View style={styles.notice}>
           <HugeiconsIcon icon={InformationCircleIcon} size={16} color={COLORS.muted} />
           <Text style={styles.noticeText}>
-            Biometric lock will be fully enabled in a future update. Network and QR verification are always enforced.
+            Biometric lock will be fully enabled in a future update.
           </Text>
         </View>
       </ScrollView>

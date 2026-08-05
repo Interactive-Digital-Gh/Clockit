@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp, CommonActions } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { useApp } from '../context/AppContext';
 
 type SuccessRoute = RouteProp<RootStackParamList, 'Success'>;
 
@@ -14,7 +15,9 @@ export default function SuccessScreen() {
   const navigation = useNavigation();
   const route = useRoute<SuccessRoute>();
   const insets = useSafeAreaInsets();
+  const { user } = useApp();
   const { clockInTime } = route.params;
+  const firstName = user?.name.split(' ')[0];
 
   const checkScale = useRef(new Animated.Value(0.4)).current;
   const checkOpacity = useRef(new Animated.Value(0)).current;
@@ -80,7 +83,7 @@ export default function SuccessScreen() {
           You're clocked in
         </Animated.Text>
         <Animated.Text style={[styles.subtitle, { transform: [{ translateY: text2Y }], opacity: text2Op }]}>
-          Have a great day at work, Alex.
+          {firstName ? `Have a great day at work, ${firstName}.` : 'Have a great day at work.'}
         </Animated.Text>
 
         <Animated.View style={[styles.detailCard, { transform: [{ translateY: cardY }], opacity: cardOp }]}>

@@ -118,7 +118,7 @@ export default function WorkplaceScreen() {
                   <Text style={styles.rowLabel}>Company WiFi</Text>
                   <Text style={styles.rowSub}>
                     {agency.network_config?.allowed_subnets?.length
-                      ? `Allowed subnets: ${agency.network_config.allowed_subnets.join(', ')}x.x`
+                      ? 'Restricted to your office network'
                       : 'Any WiFi accepted (no subnet restriction set)'}
                   </Text>
                 </View>
@@ -132,7 +132,7 @@ export default function WorkplaceScreen() {
             <View style={styles.notice}>
               <HugeiconsIcon icon={Shield01Icon} size={16} color={COLORS.primary} />
               <Text style={styles.noticeText}>
-                Clock-in is only allowed on your company's whitelisted network. Network rules are managed by your administrator.
+                Your network is used to tag attendance as on-site or remote — it doesn't block clock-in. Network rules are managed by your administrator.
               </Text>
             </View>
           </>

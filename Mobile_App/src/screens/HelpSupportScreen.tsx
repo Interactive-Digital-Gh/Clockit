@@ -13,19 +13,19 @@ const HR_EMAIL = 'hr@interactivedigital.com';
 const FAQ = [
   {
     q: 'How do I clock in?',
-    a: "Tap the QR button at the bottom of the home screen. Make sure you're connected to the office WiFi first. The app will open the camera — just point it at the QR code at the entrance.",
+    a: 'Tap the QR button at the bottom of the home screen, then point the camera at the QR code at the entrance.',
   },
   {
     q: 'What if I forget to clock out?',
-    a: 'Contact HR or your manager to manually adjust your attendance record. In the full system, administrators will be able to update records directly.',
+    a: 'Contact HR or your manager to correct your attendance record.',
   },
   {
     q: 'My clock-in failed. What should I do?',
-    a: "First check that you're connected to the company WiFi, not mobile data or a guest network. If the network is correct and it still fails, try closing and reopening the app, then scan again.",
+    a: 'Try closing and reopening the app, then scan again. If it still fails, check your internet connection.',
   },
   {
     q: 'How are my total hours calculated?',
-    a: 'Total hours are the difference between your clock-in and clock-out time, rounded to 2 decimal places. The system calculates this automatically when you clock out.',
+    a: 'Total hours are the difference between your clock-in and clock-out time. The system calculates this automatically when you clock out.',
   },
   {
     q: 'Why does the app need camera access?',
@@ -33,7 +33,7 @@ const FAQ = [
   },
   {
     q: 'Can I use the app on mobile data?',
-    a: 'No. Clock-in requires you to be on the company WiFi network. This is a security measure to confirm physical presence at the office.',
+    a: 'Yes. Clock-in works on any connection — the app just records whether you were on-site or remote.',
   },
 ];
 
