@@ -34,6 +34,14 @@ def find_agency_by_email_domain(db: Session, email: str) -> Agency | None:
     return None
 
 
+def get_default_agency(db: Session) -> Agency | None:
+    """Fallback agency for self-registration when no email domain matches
+    (e.g. a non-standard company email variant) — every employee is
+    Interactive Digital, so default to HQ rather than leaving them
+    unassigned and silently disabling clock-in location verification."""
+    return db.scalar(select(Agency).where(Agency.agency_code == "ID-HQ"))
+
+
 def is_late(clock_in: datetime) -> bool:
     """True if clock-in is past shift start + grace (local wall-clock of the ts)."""
     cutoff = clock_in.replace(
@@ -58,7 +66,7 @@ def get_or_create_employee_for_profile(db: Session, profile: Profile) -> Employe
         if emp is not None and profile.google_sub:
             emp.google_sub = profile.google_sub
     if emp is None:
-        agency = find_agency_by_email_domain(db, profile.email)
+        agency = find_agency_by_email_domain(db, profile.email) or get_default_agency(db)
         emp = Employee(
             name=profile.full_name or profile.email.split("@")[0],
             email=profile.email,
