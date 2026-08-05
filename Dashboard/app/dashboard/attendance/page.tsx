@@ -7,12 +7,12 @@ import { PageHeader } from "@/components/ui/page-header"
 import { SearchInput } from "@/components/ui/search-input"
 import { DataTable, useTableSort, type ColumnDef } from "@/components/ui/data-table"
 import { StatusBadge } from "@/components/ui/status-badge"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ExportMenu } from "@/components/export-menu"
+import { LocationBadge, SessionDetails } from "@/components/session-details"
 import { api } from "@/lib/api"
 import { formatDate, formatTime, formatHours, cn } from "@/lib/utils"
 import { VIEW_ALL_ROLES, type AttendanceRecord, type Agency } from "@/lib/types"
@@ -25,29 +25,6 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
   all: "All statuses",
   present: "On time",
   late: "Late",
-}
-
-const LOCATION_TITLE: Record<string, string> = {
-  office_ip: "Verified — request came from the office network",
-  office_subnet: "Verified — device reported an office WiFi subnet",
-  off_site: "Remote — clocked in off the office network",
-}
-
-function LocationBadge({ record }: { record: AttendanceRecord }) {
-  const source = record.verification_source ?? "off_site"
-  return (
-    <Badge
-      variant="outline"
-      title={LOCATION_TITLE[source]}
-      className={cn(
-        record.location_verified
-          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-          : "bg-amber-50 text-amber-700 border-amber-200"
-      )}
-    >
-      {record.location_verified ? "On-site" : "Remote"}
-    </Badge>
-  )
 }
 
 function rangeStartDefault(): Date {
@@ -90,7 +67,6 @@ function AttendancePageContent() {
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
     api
       .attendance({
         date_from: format(dateRange.start, "yyyy-MM-dd"),
@@ -150,7 +126,13 @@ function AttendancePageContent() {
     { key: "agency", header: "Agency", render: (row) => row.employee?.agency?.name ?? "—" },
     { key: "clockInTime", header: "Clock in", sortable: true, render: (row) => formatTime(row.clock_in_time) },
     { key: "clock_out", header: "Clock out", render: (row) => formatTime(row.clock_out_time) },
-    { key: "location", header: "Location", render: (row) => <LocationBadge record={row} /> },
+    {
+      key: "location",
+      header: "Location",
+      render: (row) => (
+        <LocationBadge locationVerified={row.location_verified} verificationSource={row.verification_source} />
+      ),
+    },
     { key: "totalHours", header: "Hours", sortable: true, align: "right", render: (row) => formatHours(row.total_hours) },
     { key: "status", header: "Status", sortable: true, align: "right", render: (row) => <StatusBadge status={row.status} variant="pill" /> },
   ]
@@ -247,6 +229,8 @@ function AttendancePageContent() {
         emptyMessage="No attendance records matching your criteria."
         pagination
         pageSize={20}
+        expandable={(row) => (row.sessions?.length ?? 0) > 1}
+        renderExpanded={(row) => <SessionDetails sessions={row.sessions ?? []} />}
       />
     </div>
   )

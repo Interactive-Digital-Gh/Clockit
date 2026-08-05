@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { QrScanner } from "@/components/qr-scanner"
+import { LocationBadge, SessionDetails } from "@/components/session-details"
 import { api, ApiError } from "@/lib/api"
 import { formatDate, formatTime, formatHours } from "@/lib/utils"
 import { useProfile } from "@/hooks/use-profile"
@@ -186,15 +187,7 @@ export default function MyAttendancePage() {
       key: "location",
       header: "Location",
       render: (row) => (
-        <span
-          className={
-            row.location_verified
-              ? "px-2.5 py-0.5 rounded-full text-xs font-semibold border shadow-xs bg-emerald-50 text-emerald-700 border-emerald-200"
-              : "px-2.5 py-0.5 rounded-full text-xs font-semibold border shadow-xs bg-amber-50 text-amber-700 border-amber-200"
-          }
-        >
-          {row.location_verified ? "On-site" : "Remote"}
-        </span>
+        <LocationBadge locationVerified={row.location_verified} verificationSource={row.verification_source} />
       ),
     },
     { key: "hours", header: "Hours", align: "right", render: (row) => formatHours(row.total_hours) },
@@ -273,6 +266,8 @@ export default function MyAttendancePage() {
         data={records}
         columns={columns}
         emptyMessage="No attendance on record yet. Clock in above and it will show up here."
+        expandable={(row) => (row.sessions?.length ?? 0) > 1}
+        renderExpanded={(row) => <SessionDetails sessions={row.sessions ?? []} />}
       />
 
       <Dialog open={scanOpen} onOpenChange={setScanOpen}>

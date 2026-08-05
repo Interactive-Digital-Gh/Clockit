@@ -28,6 +28,19 @@ export interface Employee {
   agency?: Pick<Agency, "id" | "name"> | null
 }
 
+export interface AttendanceSession {
+  id: string
+  clock_in_time: string
+  clock_out_time: string | null
+  verification_method: string
+  location_verified: boolean
+  verification_source: "office_ip" | "office_gps" | "office_subnet" | "off_site"
+  clock_in_public_ip: string | null
+  clock_in_local_ip: string | null
+  clock_in_latitude: number | null
+  clock_in_longitude: number | null
+}
+
 export interface AttendanceRecord {
   id: string
   date: string
@@ -43,6 +56,7 @@ export interface AttendanceRecord {
   clock_in_latitude?: number | null
   clock_in_longitude?: number | null
   employee?: Pick<Employee, "id" | "name" | "email" | "agency"> | null
+  sessions?: AttendanceSession[]
 }
 
 export type Role = "super_admin" | "it" | "hr" | "front_desk" | "employee"

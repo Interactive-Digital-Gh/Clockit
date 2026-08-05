@@ -153,6 +153,19 @@ class ClockInRequest(BaseModel):
     location_accuracy_m: float | None = None
 
 
+class AttendanceSessionOut(ORMModel):
+    id: uuid.UUID
+    clock_in_time: datetime
+    clock_out_time: datetime | None = None
+    verification_method: str
+    location_verified: bool
+    verification_source: str
+    clock_in_public_ip: str | None = None
+    clock_in_local_ip: str | None = None
+    clock_in_latitude: float | None = None
+    clock_in_longitude: float | None = None
+
+
 class AttendanceOut(ORMModel):
     id: uuid.UUID
     employee_id: uuid.UUID
@@ -168,6 +181,7 @@ class AttendanceOut(ORMModel):
     clock_in_local_ip: str | None = None
     clock_in_latitude: float | None = None
     clock_in_longitude: float | None = None
+    sessions: list[AttendanceSessionOut] = []
 
 
 class EmployeeRef(ORMModel):

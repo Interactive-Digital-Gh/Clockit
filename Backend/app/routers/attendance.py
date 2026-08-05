@@ -9,7 +9,7 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 import secrets
 
@@ -39,6 +39,7 @@ def my_history(
 ):
     stmt = (
         select(AttendanceRecord)
+        .options(selectinload(AttendanceRecord.sessions))
         .where(AttendanceRecord.employee_id == emp.id)
         .order_by(AttendanceRecord.date.desc())
         .limit(limit)
@@ -141,6 +142,7 @@ def my_attendance_as_profile(
         return []
     stmt = (
         select(AttendanceRecord)
+        .options(selectinload(AttendanceRecord.sessions))
         .where(AttendanceRecord.employee_id == emp.id)
         .order_by(AttendanceRecord.date.desc())
         .limit(limit)
@@ -214,7 +216,10 @@ def list_attendance(
 ):
     stmt = (
         select(AttendanceRecord)
-        .options(joinedload(AttendanceRecord.employee).joinedload(Employee.agency))
+        .options(
+            joinedload(AttendanceRecord.employee).joinedload(Employee.agency),
+            selectinload(AttendanceRecord.sessions),
+        )
         .order_by(AttendanceRecord.clock_in_time.desc())
     )
     if on_date is not None:
