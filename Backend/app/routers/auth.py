@@ -17,6 +17,7 @@ from ..security import (
     verify_google_id_token,
     verify_password,
 )
+from ..services.attendance import find_agency_by_email_domain
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -42,10 +43,12 @@ def _login_employee(db: Session, identity: dict) -> TokenPair:
         if emp is not None:
             emp.google_sub = identity["sub"]
         else:
+            agency = find_agency_by_email_domain(db, identity["email"])
             emp = Employee(
                 name=identity["name"],
                 email=identity["email"],
                 google_sub=identity["sub"],
+                agency_id=agency.id if agency else None,
                 is_active=True,
             )
             db.add(emp)

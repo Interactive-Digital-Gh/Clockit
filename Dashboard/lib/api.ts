@@ -127,6 +127,11 @@ export const api = {
   // Data
   overview: () => apiFetch<OverviewMetrics>("/reports/overview"),
   employees: () => apiFetch<Employee[]>("/employees"),
+  updateEmployee: (id: string, body: { agency_id?: string | null }) =>
+    apiFetch<Employee>(`/employees/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
   agencies: () => apiFetch<Agency[]>("/agencies"),
   profiles: () => apiFetch<Profile[]>("/profiles"),
 

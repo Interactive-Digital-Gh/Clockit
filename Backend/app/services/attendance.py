@@ -11,13 +11,27 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
-from ..models import AttendanceRecord, AttendanceSession, Employee, Profile
+from ..models import Agency, AttendanceRecord, AttendanceSession, Employee, Profile
 
 settings = get_settings()
 
 
 def today() -> date:
     return datetime.now(timezone.utc).date()
+
+
+def find_agency_by_email_domain(db: Session, email: str) -> Agency | None:
+    """Match a new sign-up's email domain against each active agency's
+    configured `email_domains` (e.g. HQ -> ["interactivedigital.com"]) so
+    self-registration can default to the right office instead of leaving
+    the employee unassigned — which silently disables GPS/subnet clock-in
+    verification for them (classify_location never runs without an agency)."""
+    domain = email.split("@")[-1].lower()
+    agencies = db.scalars(select(Agency).where(Agency.is_active.is_(True))).all()
+    for agency in agencies:
+        if domain in [d.lower() for d in (agency.email_domains or [])]:
+            return agency
+    return None
 
 
 def is_late(clock_in: datetime) -> bool:
@@ -44,10 +58,12 @@ def get_or_create_employee_for_profile(db: Session, profile: Profile) -> Employe
         if emp is not None and profile.google_sub:
             emp.google_sub = profile.google_sub
     if emp is None:
+        agency = find_agency_by_email_domain(db, profile.email)
         emp = Employee(
             name=profile.full_name or profile.email.split("@")[0],
             email=profile.email,
             google_sub=profile.google_sub,
+            agency_id=agency.id if agency else None,
             is_active=True,
         )
         db.add(emp)
