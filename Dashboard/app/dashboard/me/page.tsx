@@ -207,8 +207,8 @@ export default function MyAttendancePage() {
         title="My attendance"
         description={
           profile?.full_name
-            ? `Your own clock-ins and hours, ${profile.full_name.split(" ")[0]} — nobody else's.`
-            : "Your own clock-ins and hours."
+            ? `Your clock-ins and hours, ${profile.full_name.split(" ")[0]}.`
+            : "Your clock-ins and hours."
         }
       />
 
@@ -272,7 +272,7 @@ export default function MyAttendancePage() {
       <DataTable
         data={records}
         columns={columns}
-        emptyMessage="No attendance on record for your account yet. Clock in above and it will show up here."
+        emptyMessage="No attendance on record yet. Clock in above and it will show up here."
       />
 
       <Dialog open={scanOpen} onOpenChange={setScanOpen}>

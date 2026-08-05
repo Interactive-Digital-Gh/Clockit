@@ -62,8 +62,7 @@ function SetPasswordButton({ profile }: { profile: Profile }) {
           <DialogHeader>
             <DialogTitle>Set password</DialogTitle>
             <DialogDescription>
-              Sets a password sign-in for <b>{profile.email}</b>, independent of Google. They can
-              use it at /login instead of (or alongside) Google sign-in.
+              Sets a password so <b>{profile.email}</b> can sign in at /login without Google.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-2 py-2">
@@ -190,7 +189,7 @@ function UsersPageContent() {
     <div className="space-y-6">
       <PageHeader
         title="Users"
-        description="Dashboard admin accounts and their access level. New sign-ups start as Front Desk until promoted here."
+        description="Dashboard admin accounts and their access level. New sign-ups start as Employee until promoted here."
       />
       <DataTable data={profiles} columns={columns} isLoading={isLoading} emptyMessage="No users found." />
     </div>

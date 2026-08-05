@@ -121,9 +121,9 @@ function EditNetworkConfigDialog({
               placeholder="192.168.1., 192.168.2."
             />
             <p className="text-xs text-muted-foreground">
-              Comma-separated IP prefixes, each ending in a dot — e.g. <code>192.168.1.</code>. The app matches
-              a device&apos;s IP with <code>startsWith()</code>, so ranges like &quot;192.168.0.0 to 192.168.0.255&quot;
-              won&apos;t work — use one prefix entry per subnet instead.
+              Comma-separated IP prefixes, each ending in a dot — e.g. <code>192.168.1.</code>. This
+              matches by prefix, not by numeric range, so use one entry per subnet rather than a
+              range like &quot;192.168.0.0 to 192.168.0.255&quot;.
             </p>
           </div>
         </div>
@@ -375,7 +375,7 @@ function EditAgencyDialog({ agency, onSaved }: { agency: Agency; onSaved: (updat
         <DialogHeader>
           <DialogTitle>Edit agency — {agency.name}</DialogTitle>
           <DialogDescription>
-            Name, code, and address. WiFi verification rules have their own dialog.
+            Name, code, and address. Edit WiFi verification rules separately with &quot;Edit WiFi&quot;.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-2">
@@ -461,8 +461,8 @@ function DeleteAgencyDialog({ agency, onDeleted }: { agency: Agency; onDeleted: 
             Delete {agency.name}?
           </DialogTitle>
           <DialogDescription className="pt-2">
-            Are you sure? This cannot be undone — the agency and its WiFi verification rules are
-            removed permanently. Deleting is blocked while employees are still assigned to it.
+            This cannot be undone — the agency and its WiFi verification rules are removed
+            permanently. Deleting is blocked while employees are still assigned to it.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

@@ -104,8 +104,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Sign in</h1>
         <p className="text-balance text-sm text-muted-foreground">
-          Ninani Group employees: sign in with your official work email using the
-          Google button below.
+          Ninani Group employees: sign in with your work Google account.
         </p>
         <p className="text-xs text-muted-foreground/70">
           Interactive Digital · Rezultz · BrandAlert · InnovaDDB · P2P
@@ -115,7 +114,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         <div className="flex min-h-11 justify-center" ref={googleButtonRef}>
           {!GOOGLE_CLIENT_ID && (
             <p className="text-sm text-muted-foreground">
-              Google sign-in isn&apos;t configured (NEXT_PUBLIC_GOOGLE_CLIENT_ID is unset).
+              Google sign-in isn&apos;t configured yet.
             </p>
           )}
         </div>

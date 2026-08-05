@@ -73,7 +73,7 @@ export function AttendanceFeed() {
       <CardContent>
         {events.length === 0 ? (
           <p className="text-sm text-muted-foreground italic py-6 text-center">
-            No clock-in/clock-out events today yet…
+            No clock-ins yet today…
           </p>
         ) : (
           <ul className="space-y-1">

@@ -83,7 +83,7 @@ function QrCodePageContent() {
     <div className="space-y-6">
       <PageHeader
         title="Attendance QR code"
-        description="The code employees scan to clock in. Print it and post it at the entrance."
+        description="Print it and post it at the entrance so employees can scan it to clock in."
       />
 
       <Card className="max-w-2xl">
@@ -140,10 +140,9 @@ function QrCodePageContent() {
                       Rotate the attendance QR code?
                     </DialogTitle>
                     <DialogDescription className="space-y-2 pt-2">
-                      This cannot be undone. The current code stops working <b>immediately</b> —
-                      any printed copies at the office become invalid, and employees can&apos;t
-                      clock in by scanning until you print and post the new code. Employee phones
-                      pick up the new code automatically.
+                      This cannot be undone. The current code stops working <b>immediately</b>, so
+                      printed copies become invalid until you print and post the new one — no
+                      update needed on employees&apos; end, their phones pick it up automatically.
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter>
