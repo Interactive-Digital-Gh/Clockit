@@ -87,13 +87,9 @@ export default function SuccessScreen() {
         </Animated.Text>
 
         <Animated.View style={[styles.detailCard, { transform: [{ translateY: cardY }], opacity: cardOp }]}>
-          <View style={styles.detailRow}>
+          <View style={[styles.detailRow, styles.detailRowBottom]}>
             <Text style={styles.detailLabel}>Time in</Text>
             <Text style={styles.detailValue}>{clockInTime}</Text>
-          </View>
-          <View style={[styles.detailRow, styles.detailRowBottom]}>
-            <Text style={styles.detailLabel}>Location</Text>
-            <Text style={[styles.detailValue, styles.locationValue]}>HQ · Level 4</Text>
           </View>
         </Animated.View>
       </View>

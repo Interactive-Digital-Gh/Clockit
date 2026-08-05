@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, TextInput,
+  View, Text, TouchableOpacity, StyleSheet,
   ScrollView, KeyboardAvoidingView, Platform, Dimensions,
   ActivityIndicator, Alert,
 } from 'react-native';
@@ -13,7 +13,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useApp } from '../context/AppContext';
-import { findOrCreateEmployee, googleSignInEmployee } from '../services/attendanceService';
+import { googleSignInEmployee } from '../services/attendanceService';
 import { googleConfigured } from '../lib/googleAuth';
 import { EmployeeRecord } from '../services/attendanceService';
 
@@ -40,7 +40,6 @@ export default function LoginScreen() {
   const nav = useNavigation<NavProp>();
   const insets = useSafeAreaInsets();
   const { signUp } = useApp();
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Shared post-login routing: established accounts go straight in,
@@ -75,21 +74,6 @@ export default function LoginScreen() {
     }
   };
 
-  // Dev sign-in (email only) — works while the API runs with DEV_MODE=true.
-  const handleContinue = async () => {
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed || loading) return;
-    setLoading(true);
-    try {
-      const emp = await findOrCreateEmployee('', trimmed);
-      await enterApp(emp, trimmed);
-    } catch (err: any) {
-      Alert.alert('Sign in failed', err?.message ?? 'Could not reach the server. Try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -116,7 +100,7 @@ export default function LoginScreen() {
         <View style={styles.cardTop}>
           <Text style={styles.headline}>Attendance,{'\n'}made effortless</Text>
           <Text style={styles.sub}>
-            Enter your work email to clock in and track your attendance.
+            Sign in with your work Google account to clock in and track your attendance.
           </Text>
         </View>
 
@@ -140,34 +124,6 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
           )}
-
-          {/* Dev sign-in — only functions while the API has DEV_MODE=true.
-              Remove this block once Google login is confirmed in production. */}
-          <View style={styles.devDividerRow}>
-            <View style={styles.devDividerLine} />
-            <Text style={styles.devDividerText}>or dev sign-in</Text>
-            <View style={styles.devDividerLine} />
-          </View>
-          <TextInput
-            style={styles.emailInput}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="you@interactivedigital.com"
-            placeholderTextColor="#9AA3B8"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoCorrect={false}
-            onSubmitEditing={handleContinue}
-            returnKeyType="go"
-          />
-          <TouchableOpacity
-            style={[styles.devBtn, (!email.trim() || loading) && { opacity: 0.4 }]}
-            onPress={handleContinue}
-            activeOpacity={0.9}
-            disabled={!email.trim() || loading}
-          >
-            <Text style={styles.devBtnText}>Continue with email (dev)</Text>
-          </TouchableOpacity>
 
           <Text style={styles.legal}>
             By continuing you agree to Interactive Digital's attendance &amp; data policy.
@@ -219,11 +175,6 @@ const styles = StyleSheet.create({
 
   /* Bottom */
   cardBottom: { gap: 16, marginTop: 52 },
-  emailInput: {
-    height: 56, borderRadius: 16, backgroundColor: '#F8F9FC',
-    borderWidth: 1.5, borderColor: '#E4E8F0', paddingHorizontal: 18,
-    fontSize: 15, fontFamily: 'PlusJakartaSans_500Medium', color: '#1A1D2E',
-  },
   googleBtn: {
     height: 56, borderRadius: 16, backgroundColor: '#4338CA',
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, gap: 0,
@@ -240,20 +191,5 @@ const styles = StyleSheet.create({
   legal: {
     textAlign: 'center', fontSize: 12, color: '#9AA3B8',
     lineHeight: 18, fontFamily: 'PlusJakartaSans_400Regular',
-  },
-
-  /* Dev sign-in (temporary, DEV_MODE only) */
-  devDividerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
-  devDividerLine: { flex: 1, height: 1, backgroundColor: '#E4E8F0' },
-  devDividerText: {
-    fontSize: 11, color: '#9AA3B8', fontFamily: 'PlusJakartaSans_600SemiBold',
-    textTransform: 'uppercase', letterSpacing: 0.5,
-  },
-  devBtn: {
-    height: 50, borderRadius: 16, borderWidth: 1.5, borderColor: '#E4E8F0',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  devBtnText: {
-    fontSize: 14, fontFamily: 'PlusJakartaSans_600SemiBold', color: '#707A91',
   },
 });

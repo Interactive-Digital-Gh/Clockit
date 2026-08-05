@@ -69,31 +69,6 @@ export async function googleSignInEmployee(): Promise<EmployeeRecord | null> {
 }
 
 /**
- * Dev sign-in (email only — works while the API runs with DEV_MODE=true) and
- * returns the employee record. The backend creates/claims the employee row on
- * login. If a name is given and differs from the server's (e.g. the row was
- * auto-created at the login step before onboarding), it is written back.
- */
-export async function findOrCreateEmployee(
-  name: string,
-  email: string,
-): Promise<EmployeeRecord> {
-  await api.devLoginEmployee(email, name);
-  let e = await api.getMyEmployee();
-  if (name.trim() && e.name !== name.trim()) {
-    e = await api.updateMe({ name: name.trim() });
-  }
-  return {
-    id: e.id,
-    name: e.name,
-    email: e.email,
-    emp_id: e.emp_id,
-    job_title: e.job_title,
-    agency_id: e.agency_id,
-  };
-}
-
-/**
  * Finish onboarding for the already-signed-in employee: persist name and
  * department server-side. A saved job_title is what marks the account as
  * established, so later sign-ins skip the onboarding screen.

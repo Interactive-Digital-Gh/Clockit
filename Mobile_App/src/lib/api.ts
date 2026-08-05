@@ -129,18 +129,6 @@ export interface ApiAttendance {
 }
 
 export const api = {
-  async devLoginEmployee(email: string, name?: string) {
-    const { access_token, refresh_token } = await apiFetch<{
-      access_token: string;
-      refresh_token?: string;
-    }>('/auth/dev-login', {
-      method: 'POST',
-      body: JSON.stringify({ email, name, as_type: 'employee' }),
-    });
-    await setToken(access_token);
-    if (refresh_token) await setRefreshToken(refresh_token);
-    return access_token;
-  },
   /** Exchange a Google ID token (from native Google Sign-In) for our JWT. */
   async googleLoginEmployee(idToken: string) {
     const { access_token, refresh_token } = await apiFetch<{
