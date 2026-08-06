@@ -102,15 +102,17 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         <Script src="https://accounts.google.com/gsi/client" onReady={initGoogle} />
       )}
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold">Sign in</h1>
+        <h1 className="text-[26px] leading-[1.15] font-bold tracking-tight text-foreground">
+          Welcome back,
+          <br />
+          let&apos;s clock in.
+        </h1>
         <p className="text-balance text-sm text-muted-foreground">
-          Ninani Group employees: sign in with your work Google account.
-        </p>
-        <p className="text-xs text-muted-foreground/70">
-          Interactive Digital · Rezultz · BrandAlert · InnovaDDB · P2P
+          Sign in with your work Google account — Interactive Digital, Rezultz, BrandAlert,
+          InnovaDDB, P2P.
         </p>
       </div>
-      <div className="grid gap-6">
+      <div className="grid gap-5">
         <div className="flex min-h-11 justify-center" ref={googleButtonRef}>
           {!GOOGLE_CLIENT_ID && (
             <p className="text-sm text-muted-foreground">
@@ -122,8 +124,8 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">Or sign in with a password</span>
+          <div className="relative flex justify-center text-[11px] font-medium tracking-wide uppercase">
+            <span className="bg-card px-2 text-muted-foreground">Or sign in with a password</span>
           </div>
         </div>
         <div className="grid gap-2">
@@ -131,7 +133,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
           <Input
             id="email"
             type="email"
-            placeholder="admin@interactivedigital.com"
+            placeholder="you@interactivedigital.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -145,14 +147,14 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <Button type="submit" variant="outline" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="h-11 w-full" disabled={isLoading}>
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Signing in...
             </>
           ) : (
-            "Sign in with password"
+            "Sign in"
           )}
         </Button>
       </div>

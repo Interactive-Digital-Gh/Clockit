@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { LayoutDashboardIcon, FileText, FileChartLine, UsersRound, Building2, UserCircle2, LogOut, UserCircle, MoreVertical, CalendarClock, QrCode, BellRing } from "lucide-react"
+import { LayoutDashboardIcon, FileText, FileChartLine, UsersRound, Building2, UserCircle2, LogOut, MoreVertical, CalendarClock, QrCode, BellRing } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import { api } from "@/lib/api"
-import { cn } from "@/lib/utils"
+import { cn, getInitials } from "@/lib/utils"
 import { useProfile } from "@/hooks/use-profile"
 import { ADMIN_ROLES, USER_MANAGER_ROLES, VIEW_ALL_ROLES, type Role } from "@/lib/types"
 
@@ -90,32 +90,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   return (
-    <Sidebar collapsible="icon" {...props} variant="sidebar" className="border-r bg-sidebar">
-      <SidebarHeader className="p-0">
+    <Sidebar
+      collapsible="icon"
+      {...props}
+      variant="sidebar"
+      className="surface-ink-sidebar relative overflow-hidden border-r border-white/10 text-white"
+    >
+      <div className="bg-grid-ink pointer-events-none absolute inset-0" />
+
+      <SidebarHeader className="relative z-10 p-0">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className={cn("flex items-center gap-3 px-5 py-6", isCollapsed && "px-0 justify-center")}>
-              <div
-                className={cn(
-                  "flex items-center justify-center rounded-lg bg-primary/10 shrink-0",
-                  isCollapsed ? "size-7" : "size-8"
-                )}
-              >
-                <Image
-                  src="/logo.png"
-                  alt="Clockit logo"
-                  width={22}
-                  height={22}
-                  className={cn(isCollapsed ? "size-4.5" : "size-5.5")}
-                />
+            <div className={cn("flex items-center gap-2.5 px-5 py-6", isCollapsed && "px-0 justify-center")}>
+              <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white">
+                <Image src="/logo.png" alt="Clockit logo" width={18} height={18} className="size-4.5" />
               </div>
               {!isCollapsed && (
                 <div className="flex flex-col overflow-hidden">
-                  <span className="text-sm font-semibold tracking-tight text-foreground leading-tight text-primary">
-                    Clockit
-                  </span>
-                  <span className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground mt-1">
-                    Interactive Digital
+                  <span className="text-[15px] font-bold tracking-tight text-white">
+                    Clock<span className="text-[#FF3B54]">it</span>
                   </span>
                 </div>
               )}
@@ -124,11 +117,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 gap-0 overflow-x-hidden">
+      <SidebarContent className="relative z-10 gap-0 overflow-x-hidden px-2">
         {navGroups.map((group) => (
           <SidebarGroup key={group.label} className={cn("py-2", isCollapsed && "px-0")}>
             {!isCollapsed && (
-              <SidebarGroupLabel className="px-3 text-[11px] font-medium text-muted-foreground/60 mb-1">
+              <SidebarGroupLabel className="mb-1 px-3 font-mono text-[10px] tracking-wider text-white/40 uppercase">
                 {group.label}
               </SidebarGroupLabel>
             )}
@@ -139,17 +132,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   return (
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton
-                        render={<Link href={item.href} className={cn("flex items-center", isCollapsed ? "justify-center" : "gap-3")} />}
+                        render={<Link href={item.href} className={cn("flex items-center", isCollapsed ? "justify-center" : "gap-2.5")} />}
                         isActive={isActive}
                         tooltip={item.label}
                         className={cn(
-                          "h-9",
-                          isCollapsed ? "px-0 justify-center" : "px-3",
-                          !isActive && "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                          "h-9.5 rounded-xl bg-transparent text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white/80",
+                          "data-active:bg-white data-active:text-[#141210] data-active:font-semibold data-active:hover:bg-white data-active:hover:text-[#141210]",
+                          isCollapsed ? "justify-center px-0" : "px-3"
                         )}
                       >
+                        <span
+                          className={cn(
+                            "size-1.5 shrink-0 rounded-full",
+                            isActive ? "bg-primary" : "bg-transparent"
+                          )}
+                        />
                         <item.icon className="size-4 shrink-0" />
-                        {!isCollapsed && <span className="text-sm">{item.label}</span>}
+                        {!isCollapsed && (
+                          <span className={cn("text-[13px]", isActive ? "font-semibold" : "font-medium")}>
+                            {item.label}
+                          </span>
+                        )}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )
@@ -160,7 +163,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="p-2 mt-auto border-t">
+      <SidebarFooter className="relative z-10 mt-auto border-t border-white/10 p-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
@@ -168,31 +171,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 render={
                   <SidebarMenuButton
                     size="lg"
-                    className={cn("h-12 w-full transition-colors rounded-md", isCollapsed ? "px-0 justify-center" : "px-2 hover:bg-muted/50")}
+                    className={cn(
+                      "h-12 w-full rounded-md transition-colors hover:bg-white/[0.06]",
+                      isCollapsed ? "justify-center px-0" : "px-2"
+                    )}
                   />
                 }
               >
                 {
-                  <div className={cn("flex items-center w-full", isCollapsed ? "justify-center" : "gap-2.5")}>
+                  <div className={cn("flex w-full items-center", isCollapsed ? "justify-center" : "gap-2.5")}>
                     <div
                       className={cn(
-                        "flex items-center justify-center rounded-full border border-border bg-muted shrink-0",
-                        isCollapsed ? "size-7" : "size-8"
+                        "flex shrink-0 items-center justify-center rounded-full bg-primary font-bold text-white",
+                        isCollapsed ? "size-7 text-[10px]" : "size-8 text-[11px]"
                       )}
                     >
-                      <UserCircle className={cn("text-muted-foreground", isCollapsed ? "size-4" : "size-5")} />
+                      {getInitials(profile?.full_name || profile?.email || "?")}
                     </div>
                     {!isCollapsed && (
-                      <div className="flex flex-col text-left overflow-hidden">
-                        <span className="text-sm font-semibold text-foreground truncate leading-tight">
+                      <div className="flex flex-col overflow-hidden text-left">
+                        <span className="truncate text-sm leading-tight font-semibold text-white">
                           {profile?.full_name || "Admin"}
                         </span>
-                        <span className="text-xs text-muted-foreground truncate -mt-0.5">
-                          {profile?.email || "admin@company.com"}
+                        <span className="-mt-0.5 truncate font-mono text-[10px] tracking-wider text-white/40 uppercase">
+                          {ROLE_LABELS[profile?.role ?? "front_desk"]}
                         </span>
                       </div>
                     )}
-                    {!isCollapsed && <MoreVertical className="ml-auto size-3.5 text-muted-foreground/50 shrink-0" />}
+                    {!isCollapsed && <MoreVertical className="ml-auto size-3.5 shrink-0 text-white/40" />}
                   </div>
                 }
               </DropdownMenuTrigger>
@@ -203,14 +209,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 sideOffset={8}
               >
                 <DropdownMenuGroup>
-                  <DropdownMenuLabel className="font-normal text-xs text-muted-foreground px-2 py-1.5">
+                  <DropdownMenuLabel className="px-2 py-1.5 text-xs font-normal text-muted-foreground">
                     Account · {ROLE_LABELS[profile?.role ?? "front_desk"]}
                   </DropdownMenuLabel>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={handleLogout}
-                  className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 space-x-2"
+                  className="cursor-pointer space-x-2 text-destructive focus:bg-destructive/10 focus:text-destructive"
                 >
                   <LogOut className="size-4" />
                   <span>Log out</span>

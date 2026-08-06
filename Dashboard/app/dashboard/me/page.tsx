@@ -205,39 +205,49 @@ export default function MyAttendancePage() {
         }
       />
 
-      <Card>
-        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-muted-foreground">
+      <Card className="surface-ink relative overflow-hidden border-none py-6 text-white">
+        <div className="bg-grid-ink pointer-events-none absolute inset-0" />
+        <CardContent className="relative flex flex-col items-center gap-5 text-center sm:items-stretch sm:text-left">
+          <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 font-mono text-[10px] tracking-widest text-[#FF8B98] uppercase">
+              {isClockedIn && (
+                <span className="relative flex size-1.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-[#FF3B54] opacity-75" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-[#FF3B54]" />
+                </span>
+              )}
+              {isClockedIn ? "On the clock" : "Not clocked in"}
+            </div>
+          </div>
+
+          <div className="text-sm text-white/60">
             {isLoading ? (
               "Loading today's status…"
             ) : today ? (
-              <>
-                Clocked in at {formatTime(today.clock_in_time)}
-                {today.clock_out_time && <> · out at {formatTime(today.clock_out_time)}</>}
-                {today.total_hours != null && <> · {formatHours(today.total_hours)} today</>}
-              </>
+              <span className="font-mono text-base text-white">
+                {formatTime(today.clock_in_time)}
+                {today.clock_out_time && <> – {formatTime(today.clock_out_time)}</>}
+                {today.total_hours != null && (
+                  <span className="ml-2 text-sm text-white/50">· {formatHours(today.total_hours)} today</span>
+                )}
+              </span>
             ) : (
               "You haven't clocked in yet today."
             )}
           </div>
+
           {isClockedIn ? (
             <Button
               size="lg"
-              className="sm:w-40"
-              variant="destructive"
+              className="h-11 w-full border border-white/20 bg-white/10 text-white shadow-none hover:bg-white/15 sm:w-auto sm:self-start"
               disabled={isLoading || working}
               onClick={handleClockOut}
             >
               {working ? <Loader2 className="h-4 w-4 animate-spin" /> : "Clock Out"}
             </Button>
           ) : (
-            <div className="flex flex-col items-stretch gap-2 sm:items-end">
-              <Button
-                size="lg"
-                className="sm:w-52"
-                disabled={isLoading || working}
-                onClick={openScanner}
-              >
+            <div className="flex flex-col items-center gap-3 sm:items-start">
+              <Button size="lg" className="h-11 w-full sm:w-auto" disabled={isLoading || working} onClick={openScanner}>
                 {working ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -249,7 +259,7 @@ export default function MyAttendancePage() {
               </Button>
               <button
                 type="button"
-                className="text-xs text-muted-foreground underline-offset-4 hover:underline disabled:opacity-50"
+                className="text-xs text-white/50 underline-offset-4 hover:text-white/70 hover:underline disabled:opacity-50"
                 disabled={isLoading || working}
                 onClick={handleClockIn}
               >

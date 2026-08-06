@@ -129,7 +129,7 @@ export function DataTable<T>({
                 <th
                   key={column.key}
                   className={cn(
-                    "px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider",
+                    "px-6 py-3 font-mono text-[10px] font-normal tracking-widest text-muted-foreground uppercase",
                     getAlignClass(column.align),
                     column.headerClassName
                   )}

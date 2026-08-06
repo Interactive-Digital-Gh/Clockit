@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { QRCodeCanvas } from "qrcode.react"
+import { useEffect, useState } from "react"
+import Image from "next/image"
 import { Download, RefreshCw, TriangleAlert } from "lucide-react"
 import { toast } from "sonner"
 
@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { RequireRole } from "@/components/require-role"
+import { StyledQrCode, downloadQrCode } from "@/components/qr-code-display"
 import { api, ApiError } from "@/lib/api"
 import { formatDate } from "@/lib/utils"
 import { ADMIN_ROLES, type AttendanceQrToken } from "@/lib/types"
@@ -36,7 +37,6 @@ function QrCodePageContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [isRotating, setIsRotating] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const canvasWrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -71,12 +71,8 @@ function QrCodePageContent() {
   }
 
   const handleDownload = () => {
-    const canvas = canvasWrapRef.current?.querySelector("canvas")
-    if (!canvas) return
-    const link = document.createElement("a")
-    link.download = "attendance-qr-code.png"
-    link.href = canvas.toDataURL("image/png")
-    link.click()
+    if (!qr) return
+    downloadQrCode(qr.token)
   }
 
   return (
@@ -86,32 +82,52 @@ function QrCodePageContent() {
         description="Print it and post it at the entrance so employees can scan it to clock in."
       />
 
-      <Card className="max-w-2xl">
-        <CardContent className="flex flex-col items-center gap-6 py-10 sm:flex-row sm:items-start sm:gap-10">
-          <div className="rounded-xl border bg-white p-4 shadow-xs">
+      <div className="grid gap-5 lg:grid-cols-[340px_1fr]">
+        <div className="surface-ink relative mx-auto flex w-full max-w-[300px] flex-col items-center gap-3 overflow-hidden rounded-2xl p-5 text-white shadow-[0_14px_34px_rgba(20,18,16,.2)]">
+          <div className="bg-grid-ink pointer-events-none absolute inset-0" />
+          <div className="relative flex w-full items-center gap-2">
+            <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-white">
+              <Image src="/logo.png" alt="Clockit logo" width={15} height={15} className="size-3.5" />
+            </div>
+            <span className="text-[13px] font-bold tracking-tight text-white">
+              Clock<span className="text-[#FF3B54]">it</span>
+            </span>
+            <span className="ml-auto font-mono text-[10px] tracking-wider text-white/50 uppercase">HQ</span>
+          </div>
+
+          <p className="relative text-center text-[22px] leading-[1.1] font-bold tracking-tight text-white">
+            Scan to
+            <br />
+            clock in.
+          </p>
+
+          <div className="relative rounded-[22px] bg-white p-3 shadow-[0_12px_30px_rgba(0,0,0,.35)]">
             {isLoading || !qr ? (
-              <Skeleton className="h-[220px] w-[220px]" />
+              <Skeleton className="size-[180px] rounded-lg bg-black/10" />
             ) : (
-              <div ref={canvasWrapRef}>
-                {/* Rendered large for crisp PNG downloads, displayed at 220px */}
-                <QRCodeCanvas
-                  value={qr.token}
-                  size={1024}
-                  level="H"
-                  marginSize={2}
-                  fgColor="#312E81"
-                  style={{ width: 220, height: 220 }}
-                />
-              </div>
+              <StyledQrCode value={qr.token} size={180} />
             )}
           </div>
 
-          <div className="flex flex-1 flex-col gap-4 self-stretch">
+          <div className="relative flex flex-col items-center gap-2">
+            <p className="max-w-[200px] text-center text-[11.5px] leading-[1.45] text-white/60">
+              Open your camera, sign in, tap the red button. Five seconds.
+            </p>
+            <span className="btn-action rounded-full px-2.5 py-1 font-mono text-[9.5px] text-white">
+              NO APP NEEDED
+            </span>
+          </div>
+
+          <span className="relative mt-1 font-mono text-[9px] tracking-wide text-white/40">
+            CLOCKIT.INTERACTIVEDIGITAL.COM.GH
+          </span>
+        </div>
+
+        <Card>
+          <CardContent className="flex flex-col gap-5">
             <div>
               <p className="text-sm font-medium text-foreground">Current code</p>
-              <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
-                {qr?.token ?? "…"}
-              </p>
+              <p className="mt-1 font-mono text-xs break-all text-muted-foreground">{qr?.token ?? "…"}</p>
             </div>
             <div className="text-sm text-muted-foreground">
               {qr?.created_at && (
@@ -121,6 +137,10 @@ function QrCodePageContent() {
                 </p>
               )}
             </div>
+            <p className="rounded-xl bg-muted p-3 text-[13px] text-muted-foreground">
+              Level-H error correction — the centered logo covers well under the 30% tolerance, so the
+              code stays reliably scannable even printed small.
+            </p>
 
             <div className="mt-auto flex flex-wrap gap-3 pt-2">
               <Button variant="outline" onClick={handleDownload} disabled={!qr}>
@@ -156,9 +176,9 @@ function QrCodePageContent() {
                 </DialogContent>
               </Dialog>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

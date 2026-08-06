@@ -63,8 +63,8 @@ export function formatHours(hours: number | null | undefined, decimals = 1): str
 
 /** Attendance status vocabulary the mobile app actually writes — see Mobile_App/src/config/attendance.ts */
 export const ATTENDANCE_STATUS = {
-  present: { label: "On time", badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  late: { label: "Late", badgeClass: "bg-amber-50 text-amber-700 border-amber-200" },
+  present: { label: "On time", badgeClass: "bg-[#F3EDE4] text-[#5C5749] border-transparent" },
+  late: { label: "Late", badgeClass: "bg-[#FBE9EC] text-primary border-transparent" },
 } as const
 
 export type AttendanceStatusKey = keyof typeof ATTENDANCE_STATUS

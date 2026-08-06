@@ -61,10 +61,22 @@ function OverviewContent() {
       <MetricsGrid
         isLoading={isLoading}
         metrics={[
+          {
+            title: "On the clock",
+            value: clockedInToday,
+            subtitle: `of ${employeeCount} employees`,
+            icon: LogIn,
+            tone: "hero",
+          },
+          {
+            title: "Late today",
+            value: lateToday,
+            subtitle: "After the shift cutoff",
+            icon: Clock,
+            valueClassName: lateToday > 0 ? "text-primary" : undefined,
+          },
           { title: "Total employees", value: employeeCount, icon: UsersRound },
           { title: "Agencies", value: agencyCount, icon: Building2 },
-          { title: "Clocked in today", value: clockedInToday, subtitle: "Still on the clock", icon: LogIn },
-          { title: "Late today", value: lateToday, subtitle: "After the shift cutoff", icon: Clock },
         ]}
       />
       <AttendanceFeed />

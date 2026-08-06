@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   ScrollView, KeyboardAvoidingView, Platform, Dimensions,
-  ActivityIndicator, Alert,
+  ActivityIndicator, Alert, TextInput
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { HugeiconsIcon } from '@hugeicons/react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Line } from 'react-native-svg';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -18,17 +16,22 @@ import { googleConfigured } from '../lib/googleAuth';
 import { EmployeeRecord } from '../services/attendanceService';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList>;
-const { height: SCREEN_H } = Dimensions.get('window');
-const HERO_H = SCREEN_H * 0.57;
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
-function GoogleColorIcon({ size = 28 }: { size?: number }) {
+function GridBackground() {
+  const gridSize = SCREEN_W / 4;
+  const numHorizontalLines = Math.ceil(SCREEN_H / gridSize);
   return (
-    <Svg width={size} height={size} viewBox="0 0 48 48">
-      <Path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-      <Path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-      <Path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-      <Path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-    </Svg>
+    <View style={StyleSheet.absoluteFill}>
+      <Svg width="100%" height="100%">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Line key={`v-${i}`} x1={i * gridSize} y1={0} x2={i * gridSize} y2={SCREEN_H} stroke="#EBE9E0" strokeWidth="1" />
+        ))}
+        {Array.from({ length: numHorizontalLines }).map((_, i) => (
+          <Line key={`h-${i}`} x1={0} y1={i * gridSize} x2={SCREEN_W} y2={i * gridSize} stroke="#EBE9E0" strokeWidth="1" />
+        ))}
+      </Svg>
+    </View>
   );
 }
 
@@ -41,9 +44,11 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { signUp } = useApp();
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
-  // Shared post-login routing: established accounts go straight in,
-  // brand-new ones collect name/department first.
   const enterApp = async (emp: EmployeeRecord, fallbackEmail: string, googleName = '') => {
     const established = !!(emp.emp_id || emp.job_title || emp.agency_id);
     if (established) {
@@ -66,7 +71,6 @@ export default function LoginScreen() {
     try {
       const emp = await googleSignInEmployee();
       if (emp) await enterApp(emp, emp.email ?? '', emp.name);
-      // null = user dismissed the Google sheet; nothing to do.
     } catch (err: any) {
       Alert.alert('Sign in failed', err?.message ?? 'Could not reach the server. Try again.');
     } finally {
@@ -74,122 +78,248 @@ export default function LoginScreen() {
     }
   };
 
+  const handleSignIn = () => {
+    Alert.alert('Not implemented', 'Email sign in is not yet supported. Please continue with Google.');
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
+      <GridBackground />
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 20 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
-        {/* ── Hero — pure gradient, no text ── */}
-        <LinearGradient
-          colors={['#1E1B4B', '#312E81', '#4338CA']}
-          style={styles.hero}
-          start={{ x: 0.2, y: 0 }}
-          end={{ x: 0.9, y: 1 }}
-        />
-
-        {/* ── White card ── */}
-        <View style={[styles.card, { paddingBottom: insets.bottom + 28 }]}>
-        <View style={styles.cardTop}>
-          <Text style={styles.headline}>Attendance,{'\n'}made effortless</Text>
-          <Text style={styles.sub}>
-            Sign in with your work Google account to clock in and track your attendance.
-          </Text>
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoOuter}>
+              <View style={styles.logoInner} />
+            </View>
+          </View>
+          
+          <Text style={styles.headline}>Welcome back,{'\n'}let's clock in.</Text>
+          <Text style={styles.subtitle}>INTERACTIVE DIGITAL GROUP</Text>
         </View>
 
-        <View style={styles.cardBottom}>
+        <View style={styles.formContainer}>
+          <TextInput
+            style={[styles.input, focusedInput === 'email' && styles.inputFocused]}
+            placeholder="Work email"
+            placeholderTextColor="#8B8982"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            onFocus={() => setFocusedInput('email')}
+            onBlur={() => setFocusedInput(null)}
+          />
+
+          <View style={[styles.passwordContainer, focusedInput === 'password' && styles.inputFocused]}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Password"
+              placeholderTextColor="#8B8982"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              onFocus={() => setFocusedInput('password')}
+              onBlur={() => setFocusedInput(null)}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.showButton}>
+              <Text style={styles.showButtonText}>{showPassword ? 'Hide' : 'Show'}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.signInBtn} onPress={handleSignIn} activeOpacity={0.8}>
+            <Text style={styles.signInBtnText}>Sign in</Text>
+          </TouchableOpacity>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
           {googleConfigured && (
             <TouchableOpacity
-              style={[styles.googleBtn, loading && { opacity: 0.4 }]}
+              style={[styles.googleBtn, loading && { opacity: 0.6 }]}
               onPress={handleGoogleSignIn}
-              activeOpacity={0.9}
+              activeOpacity={0.8}
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" style={{ flex: 1 }} />
+                <ActivityIndicator color="#1A1A1A" />
               ) : (
-                <>
-                  <View style={styles.googleIconWrap}>
-                    <GoogleColorIcon size={22} />
-                  </View>
-                  <Text style={styles.googleBtnText}>Continue with Google</Text>
-                </>
+                <Text style={styles.googleBtnText}>Continue with Google</Text>
               )}
             </TouchableOpacity>
           )}
 
-          <Text style={styles.legal}>
-            By continuing you agree to Interactive Digital's attendance &amp; data policy.
-          </Text>
+          <View style={styles.footer}>
+            <TouchableOpacity>
+              <Text style={styles.footerText}>Forgot password?</Text>
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <Text style={styles.footerTextRed}>Scan QR instead</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  scrollContent: { flexGrow: 1 },
-
-  /* Hero */
-  hero: { height: HERO_H, overflow: 'hidden' },
-
-  /* Card */
-  card: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    marginTop: -32,
-    paddingTop: 90,
-    paddingHorizontal: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 10,
+  container: { flex: 1, backgroundColor: '#F6F5F2' },
+  scrollContent: { flexGrow: 1, paddingHorizontal: 32 },
+  
+  /* Header */
+  header: { marginBottom: 40 },
+  logoContainer: { marginBottom: 20 },
+  logoOuter: {
+    width: 44, height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: '#C71F3B',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  cardTop: { alignItems: 'center' },
-  org: {
-    fontSize: 13, fontFamily: 'PlusJakartaSans_600SemiBold',
-    color: '#9AA3B8', letterSpacing: 0.5, marginBottom: 10,
-    textAlign: 'center',
+  logoInner: {
+    width: 12, height: 12,
+    borderRadius: 6,
+    backgroundColor: '#C71F3B',
   },
   headline: {
-    fontSize: 40, fontFamily: 'PlusJakartaSans_800ExtraBold',
-    color: '#1A1D2E', lineHeight: 46, letterSpacing: -0.8, marginBottom: 24,
-    textAlign: 'center',
+    fontSize: 38,
+    fontFamily: 'PlusJakartaSans_800ExtraBold',
+    color: '#1A1A1A',
+    lineHeight: 42,
+    letterSpacing: -1.2,
+    marginBottom: 16,
   },
-  sub: {
-    fontSize: 15, fontFamily: 'PlusJakartaSans_400Regular',
-    color: '#707A91', lineHeight: 22, textAlign: 'center',
+  subtitle: {
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+    color: '#8B8982',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
 
-  /* Bottom */
-  cardBottom: { gap: 16, marginTop: 52 },
-  googleBtn: {
-    height: 56, borderRadius: 16, backgroundColor: '#4338CA',
-    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, gap: 0,
+  /* Form */
+  formContainer: { gap: 20 },
+  input: {
+    height: 60,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2E0D8',
+    paddingHorizontal: 24,
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans_400Regular',
+    color: '#1A1A1A',
   },
-  googleIconWrap: {
-    width: 44, height: 44, borderRadius: 12,
-    backgroundColor: '#fff',
-    alignItems: 'center', justifyContent: 'center',
+  inputFocused: {
+    borderWidth: 2,
+    borderColor: '#1A1A1A',
+  },
+  passwordContainer: {
+    height: 60,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2E0D8',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  passwordInput: {
+    flex: 1,
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans_400Regular',
+    color: '#1A1A1A',
+  },
+  showButton: {
+    paddingLeft: 12,
+  },
+  showButtonText: {
+    color: '#C71F3B',
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans_700Bold',
+  },
+  signInBtn: {
+    height: 60,
+    backgroundColor: '#C71F3B',
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#C71F3B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+    marginTop: 4,
+  },
+  signInBtnText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontFamily: 'PlusJakartaSans_700Bold',
+  },
+
+  /* Divider */
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E2E0D8',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    color: '#A09E96',
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+  },
+
+  /* Google Button */
+  googleBtn: {
+    height: 60,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#E2E0D8',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   googleBtnText: {
-    flex: 1, textAlign: 'center',
-    fontSize: 16, fontFamily: 'PlusJakartaSans_700Bold', color: '#fff',
+    color: '#1A1A1A',
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
-  legal: {
-    textAlign: 'center', fontSize: 12, color: '#9AA3B8',
-    lineHeight: 18, fontFamily: 'PlusJakartaSans_400Regular',
+
+  /* Footer */
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    paddingHorizontal: 8,
+  },
+  footerText: {
+    color: '#8B8982',
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+  },
+  footerTextRed: {
+    color: '#C71F3B',
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
 });

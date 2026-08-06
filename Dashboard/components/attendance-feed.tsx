@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { LogIn, LogOut, Radio } from "lucide-react"
+import { LogIn, LogOut } from "lucide-react"
 import { api } from "@/lib/api"
 import { formatTime, getInitials, cn } from "@/lib/utils"
 
@@ -62,36 +62,39 @@ export function AttendanceFeed() {
   }, [])
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-sm font-medium">Live attendance feed</CardTitle>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Radio className={cn("h-3 w-3", connected ? "text-emerald-500" : "text-muted-foreground")} />
-          {connected ? "Live" : "Connecting…"}
+    <Card className="py-0">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b py-3.5">
+        <CardTitle className="text-sm font-bold tracking-tight">Live feed</CardTitle>
+        <div
+          className={cn(
+            "flex items-center gap-1.5 font-mono text-[10px] tracking-widest uppercase",
+            connected ? "text-muted-foreground" : "text-muted-foreground/60"
+          )}
+        >
+          <span className={cn("size-1.5 rounded-full", connected ? "bg-primary" : "bg-muted-foreground/40")} />
+          {connected ? "Streaming" : "Connecting…"}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {events.length === 0 ? (
-          <p className="text-sm text-muted-foreground italic py-6 text-center">
-            No clock-ins yet today…
-          </p>
+          <p className="py-8 text-center text-sm text-muted-foreground italic">No clock-ins yet today…</p>
         ) : (
-          <ul className="space-y-1">
+          <ul>
             {events.map((event) => (
-              <li key={event.id} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
-                <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold shrink-0">
+              <li key={event.id} className="flex items-center gap-3 border-b border-border/70 px-4 py-2.5 last:border-0">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-foreground">
                   {getInitials(event.employeeName)}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{event.employeeName}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {event.kind === "in" ? "Clocked in" : "Clocked out"} at {formatTime(event.time)}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{event.employeeName}</p>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    {event.kind === "in" ? "In" : "Out"} · {formatTime(event.time)}
                   </p>
                 </div>
                 {event.kind === "in" ? (
-                  <LogIn className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <LogIn className="h-4 w-4 shrink-0 text-primary" />
                 ) : (
-                  <LogOut className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <LogOut className="h-4 w-4 shrink-0 text-muted-foreground" />
                 )}
               </li>
             ))}

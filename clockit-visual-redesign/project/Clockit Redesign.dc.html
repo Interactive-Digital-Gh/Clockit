@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300..800&family=Roboto+Mono:wght@400;500&family=Manrope:wght@400..800&family=Azeret+Mono:wght@400;500&family=Figtree:wght@300..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f0eee9;font-family:'Public Sans',system-ui,sans-serif}
+a{color:#2a78d6}a:hover{color:#1a5fb0}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#1a1a1a}
+.dv-opts{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.55)}
+.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}
+.dv-next{margin:24px 0 0;font:12px/1.6 system-ui,sans-serif;color:rgba(0,0,0,.5)}
+.dv-note{max-width:780px;font:13px/1.65 system-ui,sans-serif;color:rgba(0,0,0,.62);margin:0 0 26px}
+.dv-note b{color:#1a1a1a;font-weight:600}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t4">
+  <div class="dv-thd"><a class="dv-tid" href="#t4">4</a><span class="dv-tname"><a class="dv-oid" href="#3b">3b</a> extended — every page, desktop and mobile</span></div>
+  <p class="dv-note">The <a class="dv-oid" href="#3b">3b</a> system applied to the admin side at 1180px, plus the mobile fallbacks. Shell is fixed: ink sidebar with the grid, paper canvas, white cards at 18px radius, Space Mono for anything numeric, red only for the live state and the primary action. Agency accent appears only on the avatar ring and chart bars. "In the office now" is gone from <a class="dv-oid" href="#3b">3b</a>.</p>
+
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="4a">
+      <div class="dv-olabel"><a class="dv-oid" href="#4a">4a</a>/dashboard — admin overview</div>
+      <div class="dv-card" style="width:1180px;height:720px;box-sizing:border-box;border-radius:16px;display:flex;font-family:'Figtree',sans-serif;overflow:hidden">
+        <div style="width:218px;flex:none;position:relative;overflow:hidden;background:radial-gradient(120% 60% at 10% 0%, #3A1310 0%, #171412 45%, #100E0D 100%);display:flex;flex-direction:column;padding:20px 16px;gap:26px">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:48px 48px"></div>
+          <div style="position:relative;display:flex;align-items:center;gap:9px;padding:0 6px">
+            <div style="width:26px;height:26px;border-radius:50%;border:1.5px solid #C8102E;display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:#C8102E"></div></div>
+            <div style="font:700 15px 'Figtree',sans-serif;color:#fff;letter-spacing:-.02em">Clock<span style="color:#FF3B54">it</span></div>
+          </div>
+          <div style="position:relative;display:flex;flex-direction:column;gap:3px">
+            <sc-for list="{{ navOverview }}" as="n" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;background:{{ n.bg }}">
+                <div style="width:6px;height:6px;border-radius:50%;background:{{ n.dot }}"></div>
+                <div style="font:{{ n.weight }} 'Figtree',sans-serif;color:{{ n.color }}">{{ n.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="position:relative;margin-top:auto;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;display:flex;align-items:center;gap:10px">
+            <div style="width:30px;height:30px;border-radius:50%;background:#C8102E;display:flex;align-items:center;justify-content:center;font:700 11px 'Figtree',sans-serif;color:#fff">AN</div>
+            <div style="display:flex;flex-direction:column;gap:1px">
+              <div style="font:600 12px 'Figtree',sans-serif;color:#fff">Ama Nkrumah</div>
+              <div style="font:400 10px 'Space Mono',monospace;color:#8A8478">OWNER</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1;position:relative;background:#F7F4EF;display:flex;flex-direction:column;overflow:hidden">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(20,18,16,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(20,18,16,.04) 1px, transparent 1px);background-size:64px 64px"></div>
+          <div style="position:relative;padding:20px 26px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E9E2D7">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font:700 22px 'Figtree',sans-serif;color:#141210;letter-spacing:-.035em">Wednesday, 5 August</div>
+              <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.06em">ALL AGENCIES · UPDATED 14:22</div>
+            </div>
+            <div style="display:flex;gap:9px;align-items:center">
+              <div style="background:#fff;border:1px solid #E6DFD4;border-radius:999px;padding:9px 15px;font:500 12.5px 'Figtree',sans-serif;color:#6B6659">All agencies ▾</div>
+              <div style="background:#fff;border:1px solid #E6DFD4;border-radius:999px;padding:9px 15px;font:500 12.5px 'Figtree',sans-serif;color:#8A8478">Search people</div>
+              <div style="background:linear-gradient(180deg,#DE1D38,#A50D26);border-radius:999px;padding:10px 17px;font:700 12.5px 'Figtree',sans-serif;color:#fff;box-shadow:0 6px 16px rgba(200,16,46,.26)">Export CSV</div>
+            </div>
+          </div>
+
+          <div style="position:relative;flex:1;min-height:0;padding:22px 26px;display:flex;flex-direction:column;gap:18px">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+              <div style="background:radial-gradient(120% 100% at 85% 0%, #3A1310 0%, #171412 50%, #100E0D 100%);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden">
+                <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:44px 44px"></div>
+                <div style="position:relative;display:flex;align-items:center;gap:7px">
+                  <div style="width:7px;height:7px;border-radius:50%;background:#FF3B54;box-shadow:0 0 0 4px rgba(255,59,84,.2)"></div>
+                  <div style="font:400 10px 'Space Mono',monospace;color:#FF8B98;letter-spacing:.1em">ON THE CLOCK</div>
+                </div>
+                <div style="position:relative;font:400 38px/1 'Space Mono',monospace;color:#fff;letter-spacing:-.04em">130</div>
+                <div style="position:relative;font:400 11.5px 'Figtree',sans-serif;color:#9A9287">of 155 employees</div>
+              </div>
+              <div style="background:#fff;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px">
+                <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">LATE TODAY</div>
+                <div style="font:400 38px/1 'Space Mono',monospace;color:#C8102E;letter-spacing:-.04em">9</div>
+                <div style="font:400 11.5px 'Figtree',sans-serif;color:#6B6659">after 09:00 · 3 repeat</div>
+              </div>
+              <div style="background:#fff;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px">
+                <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">MISSING CLOCK-OUT</div>
+                <div style="font:400 38px/1 'Space Mono',monospace;color:#141210;letter-spacing:-.04em">4</div>
+                <div style="font:400 11.5px 'Figtree',sans-serif;color:#6B6659">from yesterday · needs review</div>
+              </div>
+              <div style="background:#fff;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px">
+                <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">AVG HOURS / DAY</div>
+                <div style="font:400 38px/1 'Space Mono',monospace;color:#141210;letter-spacing:-.04em">8:24</div>
+                <div style="font:400 11.5px 'Figtree',sans-serif;color:#6B6659">this week · +12m vs last</div>
+              </div>
+            </div>
+
+            <div style="flex:1;min-height:0;display:grid;grid-template-columns:1.55fr 1fr;gap:14px">
+              <div style="background:#fff;border-radius:18px;display:flex;flex-direction:column;overflow:hidden">
+                <div style="padding:15px 18px;border-bottom:1px solid #F1EBE1;display:flex;align-items:center;justify-content:space-between">
+                  <div style="font:700 14px 'Figtree',sans-serif;color:#141210;letter-spacing:-.02em">Live feed</div>
+                  <div style="display:flex;align-items:center;gap:6px;font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.08em"><div style="width:6px;height:6px;border-radius:50%;background:#C8102E"></div>STREAMING</div>
+                </div>
+                <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
+                  <sc-for list="{{ attRows }}" as="r" hint-placeholder-count="6">
+                    <div style="display:grid;grid-template-columns:30px 1.4fr .9fr 62px 62px 74px;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid #F7F2E9">
+                      <div style="width:30px;height:30px;border-radius:50%;background:#F3EDE4;display:flex;align-items:center;justify-content:center;font:700 10.5px 'Figtree',sans-serif;color:#141210">{{ r.initials }}</div>
+                      <div style="font:600 13px 'Figtree',sans-serif;color:#141210">{{ r.name }}</div>
+                      <div style="font:400 11.5px 'Figtree',sans-serif;color:#8A8478">{{ r.agency }}</div>
+                      <div style="font:400 12px 'Space Mono',monospace;color:#141210">{{ r.inT }}</div>
+                      <div style="font:400 12px 'Space Mono',monospace;color:#8A8478">{{ r.outT }}</div>
+                      <div style="justify-self:end;border-radius:999px;padding:4px 10px;font:600 10.5px 'Figtree',sans-serif;background:{{ r.badgeBg }};color:{{ r.badgeFg }}">{{ r.status }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:14px;min-height:0">
+                <div style="background:#fff;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:14px">
+                  <div style="font:700 14px 'Figtree',sans-serif;color:#141210;letter-spacing:-.02em">Present by agency</div>
+                  <sc-for list="{{ agencyRows }}" as="a" hint-placeholder-count="4">
+                    <div style="display:grid;grid-template-columns:78px 1fr 52px;align-items:center;gap:10px">
+                      <div style="font:500 11.5px 'Figtree',sans-serif;color:#6B6659">{{ a.name }}</div>
+                      <div style="height:8px;border-radius:999px;background:#F1EBE1;overflow:hidden">
+                        <div style="width:84%;height:8px;border-radius:999px;background:{{ a.accent }}"></div>
+                      </div>
+                      <div style="justify-self:end;font:400 11px 'Space Mono',monospace;color:#141210">{{ a.present }}/{{ a.people }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="background:#fff;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;flex:1;min-height:0">
+                  <div style="font:700 14px 'Figtree',sans-serif;color:#141210;letter-spacing:-.02em">Needs your attention</div>
+                  <div style="background:#FBE9EC;border-radius:14px;padding:12px 14px;display:flex;gap:10px">
+                    <div style="width:4px;border-radius:2px;background:#C8102E;flex:none"></div>
+                    <div style="display:flex;flex-direction:column;gap:3px">
+                      <div style="font:700 12.5px 'Figtree',sans-serif;color:#8E0B20">4 open sessions from Tuesday</div>
+                      <div style="font:400 11.5px/1.45 'Figtree',sans-serif;color:#A34355">Auto-closed at 18:00. <span style="text-decoration:underline">Review and adjust</span></div>
+                    </div>
+                  </div>
+                  <div style="background:#F7F4EF;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:3px">
+                    <div style="font:700 12.5px 'Figtree',sans-serif;color:#141210">QR code last rotated 34 days ago</div>
+                    <div style="font:400 11.5px 'Figtree',sans-serif;color:#6B6659">Rotate to invalidate old photos</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="4b">
+      <div class="dv-olabel"><a class="dv-oid" href="#4b">4b</a>/dashboard/attendance — filters, sort, expanded multi-session row</div>
+      <div class="dv-card" style="width:1180px;height:720px;box-sizing:border-box;border-radius:16px;display:flex;font-family:'Figtree',sans-serif;overflow:hidden">
+        <div style="width:218px;flex:none;position:relative;overflow:hidden;background:radial-gradient(120% 60% at 10% 0%, #3A1310 0%, #171412 45%, #100E0D 100%);display:flex;flex-direction:column;padding:20px 16px;gap:26px">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:48px 48px"></div>
+          <div style="position:relative;display:flex;align-items:center;gap:9px;padding:0 6px">
+            <div style="width:26px;height:26px;border-radius:50%;border:1.5px solid #C8102E;display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:#C8102E"></div></div>
+            <div style="font:700 15px 'Figtree',sans-serif;color:#fff;letter-spacing:-.02em">Clock<span style="color:#FF3B54">it</span></div>
+          </div>
+          <div style="position:relative;display:flex;flex-direction:column;gap:3px">
+            <sc-for list="{{ navAttendance }}" as="n" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;background:{{ n.bg }}">
+                <div style="width:6px;height:6px;border-radius:50%;background:{{ n.dot }}"></div>
+                <div style="font:{{ n.weight }} 'Figtree',sans-serif;color:{{ n.color }}">{{ n.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="position:relative;margin-top:auto;border-top:1px solid rgba(255,255,255,.1);padding-top:14px;font:400 10px/1.6 'Space Mono',monospace;color:#6B6659">155 EMPLOYEES<br>4 AGENCIES</div>
+        </div>
+
+        <div style="flex:1;position:relative;background:#F7F4EF;display:flex;flex-direction:column;overflow:hidden">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(20,18,16,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(20,18,16,.04) 1px, transparent 1px);background-size:64px 64px"></div>
+          <div style="position:relative;padding:20px 26px 16px;display:flex;flex-direction:column;gap:14px;border-bottom:1px solid #E9E2D7">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between">
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <div style="font:700 22px 'Figtree',sans-serif;color:#141210;letter-spacing:-.035em">Attendance</div>
+                <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.06em">1–7 OF 412 RECORDS · 1–5 AUG</div>
+              </div>
+              <div style="display:flex;gap:9px">
+                <div style="background:#fff;border:1px solid #E6DFD4;border-radius:999px;padding:9px 15px;font:500 12.5px 'Figtree',sans-serif;color:#6B6659">Columns</div>
+                <div style="background:linear-gradient(180deg,#DE1D38,#A50D26);border-radius:999px;padding:10px 17px;font:700 12.5px 'Figtree',sans-serif;color:#fff;box-shadow:0 6px 16px rgba(200,16,46,.26)">Export CSV</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <div style="background:#141210;border-radius:999px;padding:8px 14px;font:600 12px 'Figtree',sans-serif;color:#fff">This week ▾</div>
+              <div style="background:#fff;border:1px solid #E6DFD4;border-radius:999px;padding:8px 14px;font:500 12px 'Figtree',sans-serif;color:#6B6659">All agencies ▾</div>
+              <div style="background:#FBE9EC;border:1px solid #F4C9D1;border-radius:999px;padding:8px 14px;font:600 12px 'Figtree',sans-serif;color:#C8102E">Late only ✕</div>
+              <div style="background:#fff;border:1px solid #E6DFD4;border-radius:999px;padding:8px 14px;font:500 12px 'Figtree',sans-serif;color:#8A8478">Search name or email</div>
+              <div style="margin-left:auto;font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.06em">SORT: CLOCK-IN ↓</div>
+            </div>
+          </div>
+
+          <div style="position:relative;flex:1;min-height:0;padding:16px 26px 22px;display:flex;flex-direction:column">
+            <div style="background:#fff;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0">
+              <div style="display:grid;grid-template-columns:30px 1.3fr .85fr 74px 74px 82px 92px 26px;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #EFE8DD;background:#FCFAF6">
+                <div></div>
+                <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">EMPLOYEE</div>
+                <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">AGENCY</div>
+                <div style="font:400 10px 'Space Mono',monospace;color:#141210;letter-spacing:.1em">IN ↓</div>
+                <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">OUT</div>
+                <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">TOTAL</div>
+                <div style="justify-self:end;font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">STATUS</div>
+                <div></div>
+              </div>
+
+              <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
+              <div style="border-bottom:1px solid #F7F2E9;background:#FCFAF6;flex:none">
+                <div style="display:grid;grid-template-columns:30px 1.3fr .85fr 74px 74px 82px 92px 26px;align-items:center;gap:12px;padding:12px 18px">
+                  <div style="width:30px;height:30px;border-radius:50%;background:#141210;display:flex;align-items:center;justify-content:center;font:700 10.5px 'Figtree',sans-serif;color:#fff">AO</div>
+                  <div style="display:flex;flex-direction:column;gap:1px">
+                    <div style="font:600 13px 'Figtree',sans-serif;color:#141210">Ana Otoo</div>
+                    <div style="font:400 11px 'Figtree',sans-serif;color:#8A8478">2 sessions today</div>
+                  </div>
+                  <div style="font:400 11.5px 'Figtree',sans-serif;color:#8A8478">Rezultz</div>
+                  <div style="font:400 12px 'Space Mono',monospace;color:#141210">08:42</div>
+                  <div style="font:400 12px 'Space Mono',monospace;color:#8A8478">—</div>
+                  <div style="font:400 12px 'Space Mono',monospace;color:#141210">6h 02m</div>
+                  <div style="justify-self:end;background:#FBE9EC;border-radius:999px;padding:4px 10px;font:600 10.5px 'Figtree',sans-serif;color:#C8102E">In</div>
+                  <div style="justify-self:end;font:400 12px 'Figtree',sans-serif;color:#8A8478">▴</div>
+                </div>
+                <div style="padding:0 18px 14px 60px;display:flex;flex-direction:column;gap:7px">
+                  <div style="display:grid;grid-template-columns:18px 84px 1fr 66px 78px;align-items:center;gap:12px;background:#fff;border:1px solid #EFE8DD;border-radius:12px;padding:10px 13px">
+                    <div style="font:400 10px 'Space Mono',monospace;color:#8A8478">01</div>
+                    <div style="font:400 12px 'Space Mono',monospace;color:#141210">08:42→12:26</div>
+                    <div style="font:400 11.5px 'Figtree',sans-serif;color:#6B6659">QR · main entrance · GPS 40m</div>
+                    <div style="font:400 11.5px 'Space Mono',monospace;color:#141210">3h 44m</div>
+                    <div style="justify-self:end;font:600 11px 'Figtree',sans-serif;color:#C8102E">Edit time</div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:18px 84px 1fr 66px 78px;align-items:center;gap:12px;background:#fff;border:1.5px solid #141210;border-radius:12px;padding:10px 13px">
+                    <div style="font:400 10px 'Space Mono',monospace;color:#8A8478">02</div>
+                    <div style="font:400 12px 'Space Mono',monospace;color:#141210">13:04→····</div>
+                    <div style="font:400 11.5px 'Figtree',sans-serif;color:#6B6659">In app · GPS 18m · running</div>
+                    <div style="font:400 11.5px 'Space Mono',monospace;color:#141210">2h 18m</div>
+                    <div style="justify-self:end;font:600 11px 'Figtree',sans-serif;color:#C8102E">Force out</div>
+                  </div>
+                </div>
+              </div>
+
+              <sc-for list="{{ attRows }}" as="r" hint-placeholder-count="6">
+                <div style="display:grid;grid-template-columns:30px 1.3fr .85fr 74px 74px 82px 92px 26px;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #F7F2E9">
+                  <div style="width:30px;height:30px;border-radius:50%;background:#F3EDE4;display:flex;align-items:center;justify-content:center;font:700 10.5px 'Figtree',sans-serif;color:#141210">{{ r.initials }}</div>
+                  <div style="font:600 13px 'Figtree',sans-serif;color:#141210">{{ r.name }}</div>
+                  <div style="font:400 11.5px 'Figtree',sans-serif;color:#8A8478">{{ r.agency }}</div>
+                  <div style="font:400 12px 'Space Mono',monospace;color:#141210">{{ r.inT }}</div>
+                  <div style="font:400 12px 'Space Mono',monospace;color:#8A8478">{{ r.outT }}</div>
+                  <div style="font:400 12px 'Space Mono',monospace;color:#141210">{{ r.total }}</div>
+                  <div style="justify-self:end;border-radius:999px;padding:4px 10px;font:600 10.5px 'Figtree',sans-serif;background:{{ r.badgeBg }};color:{{ r.badgeFg }}">{{ r.status }}</div>
+                  <div style="justify-self:end;font:400 12px 'Figtree',sans-serif;color:#C3BCAD">▾</div>
+                </div>
+              </sc-for>
+
+              </div>
+              <div style="flex:none;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #EFE8DD;background:#FCFAF6">
+                <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.06em">ROWS 25 ▾</div>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <div style="width:28px;height:28px;border-radius:50%;border:1px solid #E6DFD4;display:flex;align-items:center;justify-content:center;font:400 12px 'Figtree',sans-serif;color:#8A8478">‹</div>
+                  <div style="width:28px;height:28px;border-radius:50%;background:#141210;display:flex;align-items:center;justify-content:center;font:600 11.5px 'Figtree',sans-serif;color:#fff">1</div>
+                  <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:500 11.5px 'Figtree',sans-serif;color:#6B6659">2</div>
+                  <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:500 11.5px 'Figtree',sans-serif;color:#6B6659">3</div>
+                  <div style="width:28px;height:28px;border-radius:50%;border:1px solid #E6DFD4;display:flex;align-items:center;justify-content:center;font:400 12px 'Figtree',sans-serif;color:#141210">›</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="4c">
+      <div class="dv-olabel"><a class="dv-oid" href="#4c">4c</a>/dashboard/employees — with the agencies and users panels in the same table pattern</div>
+      <div class="dv-card" style="width:1180px;height:720px;box-sizing:border-box;border-radius:16px;display:flex;font-family:'Figtree',sans-serif;overflow:hidden">
+        <div style="width:218px;flex:none;position:relative;overflow:hidden;background:radial-gradient(120% 60% at 10% 0%, #3A1310 0%, #171412 45%, #100E0D 100%);display:flex;flex-direction:column;padding:20px 16px;gap:26px">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:48px 48px"></div>
+          <div style="position:relative;display:flex;align-items:center;gap:9px;padding:0 6px">
+            <div style="width:26px;height:26px;border-radius:50%;border:1.5px solid #C8102E;display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:#C8102E"></div></div>
+            <div style="font:700 15px 'Figtree',sans-serif;color:#fff;letter-spacing:-.02em">Clock<span style="color:#FF3B54">it</span></div>
+          </div>
+          <div style="position:relative;display:flex;flex-direction:column;gap:3px">
+            <sc-for list="{{ navEmployees }}" as="n" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;background:{{ n.bg }}">
+                <div style="width:6px;height:6px;border-radius:50%;background:{{ n.dot }}"></div>
+                <div style="font:{{ n.weight }} 'Figtree',sans-serif;color:{{ n.color }}">{{ n.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="flex:1;position:relative;background:#F7F4EF;display:flex;flex-direction:column;overflow:hidden">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(20,18,16,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(20,18,16,.04) 1px, transparent 1px);background-size:64px 64px"></div>
+          <div style="position:relative;padding:20px 26px 16px;display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid #E9E2D7">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font:700 22px 'Figtree',sans-serif;color:#141210;letter-spacing:-.035em">Employees</div>
+              <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.06em">155 ACTIVE · 6 ARCHIVED</div>
+            </div>
+            <div style="display:flex;gap:9px">
+              <div style="background:#fff;border:1px solid #E6DFD4;border-radius:999px;padding:9px 15px;font:500 12.5px 'Figtree',sans-serif;color:#6B6659">Import list</div>
+              <div style="background:linear-gradient(180deg,#DE1D38,#A50D26);border-radius:999px;padding:10px 17px;font:700 12.5px 'Figtree',sans-serif;color:#fff;box-shadow:0 6px 16px rgba(200,16,46,.26)">Add employee</div>
+            </div>
+          </div>
+
+          <div style="position:relative;flex:1;min-height:0;padding:18px 26px 22px;display:grid;grid-template-columns:1.5fr 1fr;gap:14px">
+            <div style="background:#fff;border-radius:18px;overflow:hidden;display:flex;flex-direction:column">
+              <div style="display:grid;grid-template-columns:34px 1.25fr .8fr .75fr 58px;align-items:center;gap:12px;padding:12px 18px;background:#FCFAF6;border-bottom:1px solid #EFE8DD">
+                <div></div>
+                <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">NAME</div>
+                <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">AGENCY</div>
+                <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">ROLE</div>
+                <div style="justify-self:end;font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">RATE</div>
+              </div>
+              <sc-for list="{{ empRows }}" as="e" hint-placeholder-count="5">
+                <div style="display:grid;grid-template-columns:34px 1.25fr .8fr .75fr 58px;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #F7F2E9">
+                  <div style="width:34px;height:34px;border-radius:50%;padding:2px;box-sizing:border-box;background:{{ e.accent }}">
+                    <div style="width:100%;height:100%;border-radius:50%;background:#F3EDE4;display:flex;align-items:center;justify-content:center;font:700 10.5px 'Figtree',sans-serif;color:#141210">{{ e.initials }}</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:1px">
+                    <div style="font:600 13px 'Figtree',sans-serif;color:#141210">{{ e.name }}</div>
+                    <div style="font:400 11px 'Figtree',sans-serif;color:#8A8478">{{ e.email }}</div>
+                  </div>
+                  <div style="font:400 11.5px 'Figtree',sans-serif;color:#6B6659">{{ e.agency }}</div>
+                  <div style="font:400 11.5px 'Figtree',sans-serif;color:#6B6659">{{ e.role }}</div>
+                  <div style="justify-self:end;font:400 11.5px 'Space Mono',monospace;color:#141210">{{ e.rate }}</div>
+                </div>
+              </sc-for>
+              <div style="margin-top:auto;padding:12px 18px;border-top:1px solid #EFE8DD;background:#FCFAF6;font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.06em">SHOWING 5 OF 155</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:14px;min-height:0">
+              <div style="background:#fff;border-radius:18px;overflow:hidden">
+                <div style="padding:14px 18px;border-bottom:1px solid #F1EBE1;display:flex;align-items:center;justify-content:space-between">
+                  <div style="font:700 14px 'Figtree',sans-serif;color:#141210;letter-spacing:-.02em">Agencies</div>
+                  <div style="font:600 11.5px 'Figtree',sans-serif;color:#C8102E">Add</div>
+                </div>
+                <sc-for list="{{ agencyRows }}" as="a" hint-placeholder-count="4">
+                  <div style="display:grid;grid-template-columns:12px 1fr auto;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #F7F2E9">
+                    <div style="width:12px;height:12px;border-radius:50%;background:{{ a.accent }}"></div>
+                    <div style="font:600 13px 'Figtree',sans-serif;color:#141210">{{ a.name }}</div>
+                    <div style="font:400 11.5px 'Space Mono',monospace;color:#8A8478">{{ a.people }} PEOPLE</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:#fff;border-radius:18px;overflow:hidden;flex:1;min-height:0">
+                <div style="padding:14px 18px;border-bottom:1px solid #F1EBE1;display:flex;align-items:center;justify-content:space-between">
+                  <div style="font:700 14px 'Figtree',sans-serif;color:#141210;letter-spacing:-.02em">Users &amp; roles</div>
+                  <div style="font:600 11.5px 'Figtree',sans-serif;color:#C8102E">Invite</div>
+                </div>
+                <sc-for list="{{ userRows }}" as="u" hint-placeholder-count="3">
+                  <div style="display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #F7F2E9">
+                    <div style="width:30px;height:30px;border-radius:50%;background:#F3EDE4;display:flex;align-items:center;justify-content:center;font:700 10.5px 'Figtree',sans-serif;color:#141210">{{ u.initials }}</div>
+                    <div style="display:flex;flex-direction:column;gap:1px">
+                      <div style="font:600 12.5px 'Figtree',sans-serif;color:#141210">{{ u.name }}</div>
+                      <div style="font:400 10.5px 'Figtree',sans-serif;color:#8A8478">{{ u.email }}</div>
+                    </div>
+                    <div style="border-radius:999px;padding:4px 10px;font:600 10.5px 'Figtree',sans-serif;background:{{ u.badgeBg }};color:{{ u.badgeFg }}">{{ u.role }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="4d">
+      <div class="dv-olabel"><a class="dv-oid" href="#4d">4d</a>/dashboard/qr-code — admin page with A4 preview, rotation and print controls</div>
+      <div class="dv-card" style="width:1180px;height:720px;box-sizing:border-box;border-radius:16px;display:flex;font-family:'Figtree',sans-serif;overflow:hidden">
+        <div style="width:218px;flex:none;position:relative;overflow:hidden;background:radial-gradient(120% 60% at 10% 0%, #3A1310 0%, #171412 45%, #100E0D 100%);display:flex;flex-direction:column;padding:20px 16px;gap:26px">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:48px 48px"></div>
+          <div style="position:relative;display:flex;align-items:center;gap:9px;padding:0 6px">
+            <div style="width:26px;height:26px;border-radius:50%;border:1.5px solid #C8102E;display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:#C8102E"></div></div>
+            <div style="font:700 15px 'Figtree',sans-serif;color:#fff;letter-spacing:-.02em">Clock<span style="color:#FF3B54">it</span></div>
+          </div>
+          <div style="position:relative;display:flex;flex-direction:column;gap:3px">
+            <sc-for list="{{ navQr }}" as="n" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;background:{{ n.bg }}">
+                <div style="width:6px;height:6px;border-radius:50%;background:{{ n.dot }}"></div>
+                <div style="font:{{ n.weight }} 'Figtree',sans-serif;color:{{ n.color }}">{{ n.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="flex:1;position:relative;background:#F7F4EF;display:flex;flex-direction:column;overflow:hidden">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(20,18,16,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(20,18,16,.04) 1px, transparent 1px);background-size:64px 64px"></div>
+          <div style="position:relative;padding:20px 26px 16px;display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid #E9E2D7">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font:700 22px 'Figtree',sans-serif;color:#141210;letter-spacing:-.035em">Attendance QR code</div>
+              <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.06em">HQ OSU · ROTATED 2 JUL 2026 · LEVEL H</div>
+            </div>
+            <div style="display:flex;gap:9px">
+              <div style="background:#fff;border:1px solid #E6DFD4;border-radius:999px;padding:9px 15px;font:500 12.5px 'Figtree',sans-serif;color:#6B6659">Download PNG</div>
+              <div style="background:linear-gradient(180deg,#DE1D38,#A50D26);border-radius:999px;padding:10px 17px;font:700 12.5px 'Figtree',sans-serif;color:#fff;box-shadow:0 6px 16px rgba(200,16,46,.26)">Print A4 sign</div>
+            </div>
+          </div>
+
+          <div style="position:relative;flex:1;min-height:0;padding:22px 26px;display:grid;grid-template-columns:1fr 340px;gap:18px">
+            <div style="background:#fff;border-radius:18px;display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden">
+              <div style="width:298px;height:421px;border-radius:10px;display:flex;flex-direction:column;align-items:center;padding:20px;box-sizing:border-box;gap:11px;position:relative;overflow:hidden;background:radial-gradient(120% 80% at 80% 0%, #3A1310 0%, #171412 48%, #100E0D 100%);box-shadow:0 14px 34px rgba(20,18,16,.2)">
+                <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:46px 46px"></div>
+                <div style="position:relative;display:flex;align-items:center;gap:8px;width:100%">
+                  <div style="width:22px;height:22px;border-radius:50%;border:1.5px solid #C8102E;display:flex;align-items:center;justify-content:center"><div style="width:7px;height:7px;border-radius:50%;background:#C8102E"></div></div>
+                  <div style="font:700 13px 'Figtree',sans-serif;color:#fff;letter-spacing:-.02em">Clock<span style="color:#FF3B54">it</span></div>
+                  <div style="flex:1"></div>
+                  <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.08em">HQ OSU</div>
+                </div>
+                <div style="position:relative;text-align:center">
+                  <div style="font:700 27px/1.02 'Figtree',sans-serif;color:#fff;letter-spacing:-.045em">Scan to<br>clock in.</div>
+                </div>
+                <div style="position:relative;background:#fff;border-radius:22px;padding:13px;box-shadow:0 12px 30px rgba(0,0,0,.35)">{{ qrInk }}</div>
+                <div style="position:relative;display:flex;flex-direction:column;gap:7px;align-items:center;width:100%">
+                  <div style="font:400 11.5px/1.45 'Figtree',sans-serif;color:#B9B1A5;text-align:center;max-width:200px">Open your camera, sign in, tap the red button. Five seconds.</div>
+                  <div style="display:flex;gap:6px">
+                    <div style="background:linear-gradient(180deg,#DE1D38,#A50D26);border-radius:999px;padding:5px 11px;font:400 9.5px 'Space Mono',monospace;color:#fff">NO APP NEEDED</div>
+                    <div style="border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 11px;font:400 9.5px 'Space Mono',monospace;color:#B9B1A5">08:00–18:00</div>
+                  </div>
+                </div>
+                <div style="position:relative;margin-top:auto;font:400 9px 'Space Mono',monospace;color:#6B6659;letter-spacing:.04em">CLOCKIT.INTERACTIVEDIGITAL.COM.GH</div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:14px;min-height:0">
+              <div style="background:#fff;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:14px">
+                <div style="font:700 14px 'Figtree',sans-serif;color:#141210;letter-spacing:-.02em">Sign settings</div>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div style="font:500 12.5px 'Figtree',sans-serif;color:#6B6659">Theme</div>
+                    <div style="display:flex;gap:5px">
+                      <div style="width:26px;height:26px;border-radius:8px;background:#141210;border:2px solid #C8102E;box-sizing:border-box"></div>
+                      <div style="width:26px;height:26px;border-radius:8px;background:#F7F4EF;border:1px solid #E6DFD4;box-sizing:border-box"></div>
+                      <div style="width:26px;height:26px;border-radius:8px;background:#C8102E"></div>
+                    </div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div style="font:500 12.5px 'Figtree',sans-serif;color:#6B6659">Location label</div>
+                    <div style="background:#F7F4EF;border-radius:999px;padding:6px 12px;font:400 11.5px 'Space Mono',monospace;color:#141210">HQ OSU</div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div style="font:500 12.5px 'Figtree',sans-serif;color:#6B6659">Logo in centre</div>
+                    <div style="width:42px;height:24px;border-radius:999px;background:#C8102E;padding:3px;box-sizing:border-box;display:flex;justify-content:flex-end"><div style="width:18px;height:18px;border-radius:50%;background:#fff"></div></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div style="font:500 12.5px 'Figtree',sans-serif;color:#6B6659">Show office hours</div>
+                    <div style="width:42px;height:24px;border-radius:999px;background:#C8102E;padding:3px;box-sizing:border-box;display:flex;justify-content:flex-end"><div style="width:18px;height:18px;border-radius:50%;background:#fff"></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="background:#fff;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:11px">
+                <div style="font:700 14px 'Figtree',sans-serif;color:#141210;letter-spacing:-.02em">Scannability check</div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <div style="display:flex;align-items:center;gap:9px"><div style="width:7px;height:7px;border-radius:50%;background:#141210"></div><div style="font:400 12px 'Figtree',sans-serif;color:#6B6659">Contrast 8.4:1 — passes at 1.2m</div></div>
+                  <div style="display:flex;align-items:center;gap:9px"><div style="width:7px;height:7px;border-radius:50%;background:#141210"></div><div style="font:400 12px 'Figtree',sans-serif;color:#6B6659">Module 4.2mm at A4 — above 3mm floor</div></div>
+                  <div style="display:flex;align-items:center;gap:9px"><div style="width:7px;height:7px;border-radius:50%;background:#141210"></div><div style="font:400 12px 'Figtree',sans-serif;color:#6B6659">Logo covers 11% — level H tolerates 30%</div></div>
+                </div>
+                <div style="background:#F7F4EF;border-radius:12px;padding:11px 13px;font:400 11.5px/1.5 'Figtree',sans-serif;color:#6B6659">Rounded modules and the red finder squares are cosmetic only; the quiet zone stays pure white at 4 modules.</div>
+              </div>
+
+              <div style="background:radial-gradient(120% 100% at 85% 0%, #3A1310 0%, #171412 50%, #100E0D 100%);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:11px;position:relative;overflow:hidden">
+                <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:44px 44px"></div>
+                <div style="position:relative;font:700 14px 'Figtree',sans-serif;color:#fff;letter-spacing:-.02em">Rotate code</div>
+                <div style="position:relative;font:400 11.5px/1.5 'Figtree',sans-serif;color:#9A9287">Invalidates photos of the old sign. Everyone must scan the new print.</div>
+                <div style="position:relative;border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:10px;text-align:center;font:700 12.5px 'Figtree',sans-serif;color:#fff">Rotate and reprint</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="4e">
+      <div class="dv-olabel"><a class="dv-oid" href="#4e">4e</a>Mobile admin — the same pages under 430px</div>
+      <div style="display:flex;gap:14px;align-items:flex-start">
+
+        <div class="dv-card" style="width:280px;height:560px;box-sizing:border-box;border-radius:22px;background:#F7F4EF;font-family:'Figtree',sans-serif;position:relative;overflow:hidden;display:flex;flex-direction:column">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(20,18,16,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(20,18,16,.04) 1px, transparent 1px);background-size:56px 56px"></div>
+          <div style="position:relative;padding:16px 18px 12px;display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:22px;height:22px;border-radius:50%;border:1.5px solid #C8102E;display:flex;align-items:center;justify-content:center"><div style="width:7px;height:7px;border-radius:50%;background:#C8102E"></div></div>
+              <div style="font:700 14px 'Figtree',sans-serif;color:#141210;letter-spacing:-.02em">Overview</div>
+            </div>
+            <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.06em">14:22</div>
+          </div>
+          <div style="position:relative;flex:1;min-height:0;padding:0 18px 12px;display:flex;flex-direction:column;gap:11px;overflow:hidden">
+            <div style="background:radial-gradient(120% 100% at 85% 0%, #3A1310 0%, #171412 50%, #100E0D 100%);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:9px;position:relative;overflow:hidden">
+              <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:42px 42px"></div>
+              <div style="position:relative;display:flex;align-items:center;gap:7px">
+                <div style="width:6px;height:6px;border-radius:50%;background:#FF3B54;box-shadow:0 0 0 4px rgba(255,59,84,.2)"></div>
+                <div style="font:400 9.5px 'Space Mono',monospace;color:#FF8B98;letter-spacing:.1em">ON THE CLOCK</div>
+              </div>
+              <div style="position:relative;display:flex;align-items:baseline;gap:8px">
+                <div style="font:400 34px/1 'Space Mono',monospace;color:#fff;letter-spacing:-.04em">130</div>
+                <div style="font:400 12px 'Figtree',sans-serif;color:#9A9287">of 155</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+              <div style="background:#fff;border-radius:14px;padding:13px;display:flex;flex-direction:column;gap:5px">
+                <div style="font:400 9.5px 'Space Mono',monospace;color:#8A8478;letter-spacing:.08em">LATE</div>
+                <div style="font:400 22px/1 'Space Mono',monospace;color:#C8102E;letter-spacing:-.03em">9</div>
+              </div>
+              <div style="background:#fff;border-radius:14px;padding:13px;display:flex;flex-direction:column;gap:5px">
+                <div style="font:400 9.5px 'Space Mono',monospace;color:#8A8478;letter-spacing:.08em">NO CLOCK-OUT</div>
+                <div style="font:400 22px/1 'Space Mono',monospace;color:#141210;letter-spacing:-.03em">4</div>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:18px;overflow:hidden;flex:1;min-height:0">
+              <div style="padding:11px 14px;border-bottom:1px solid #F1EBE1;display:flex;justify-content:space-between;align-items:center">
+                <div style="font:700 12.5px 'Figtree',sans-serif;color:#141210">Live feed</div>
+                <div style="width:6px;height:6px;border-radius:50%;background:#C8102E"></div>
+              </div>
+              <sc-for list="{{ attRows }}" as="r" hint-placeholder-count="5">
+                <div style="display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid #F7F2E9">
+                  <div style="width:26px;height:26px;border-radius:50%;background:#F3EDE4;display:flex;align-items:center;justify-content:center;font:700 9.5px 'Figtree',sans-serif;color:#141210">{{ r.initials }}</div>
+                  <div style="display:flex;flex-direction:column;gap:1px">
+                    <div style="font:600 12px 'Figtree',sans-serif;color:#141210">{{ r.name }}</div>
+                    <div style="font:400 10px 'Space Mono',monospace;color:#8A8478">{{ r.inT }} · {{ r.agency }}</div>
+                  </div>
+                  <div style="border-radius:999px;padding:3px 8px;font:600 9.5px 'Figtree',sans-serif;background:{{ r.badgeBg }};color:{{ r.badgeFg }}">{{ r.status }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="position:relative;border-top:1px solid #E9E2D7;background:#fff;padding:10px 18px;display:flex;justify-content:space-between">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:50%;background:#C8102E"></div><div style="font:600 9.5px 'Figtree',sans-serif;color:#141210">Overview</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:50%;background:#D5CEC1"></div><div style="font:500 9.5px 'Figtree',sans-serif;color:#8A8478">Records</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:50%;background:#D5CEC1"></div><div style="font:500 9.5px 'Figtree',sans-serif;color:#8A8478">People</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:50%;background:#D5CEC1"></div><div style="font:500 9.5px 'Figtree',sans-serif;color:#8A8478">QR</div></div>
+          </div>
+        </div>
+
+        <div class="dv-card" style="width:280px;height:560px;box-sizing:border-box;border-radius:22px;background:#F7F4EF;font-family:'Figtree',sans-serif;position:relative;overflow:hidden;display:flex;flex-direction:column">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(20,18,16,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(20,18,16,.04) 1px, transparent 1px);background-size:56px 56px"></div>
+          <div style="position:relative;padding:16px 18px 10px;display:flex;flex-direction:column;gap:11px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font:700 17px 'Figtree',sans-serif;color:#141210;letter-spacing:-.03em">Attendance</div>
+              <div style="font:600 11.5px 'Figtree',sans-serif;color:#C8102E">Export</div>
+            </div>
+            <div style="display:flex;gap:6px;overflow:hidden">
+              <div style="background:#141210;border-radius:999px;padding:7px 12px;font:600 11px 'Figtree',sans-serif;color:#fff;white-space:nowrap">This week</div>
+              <div style="background:#FBE9EC;border-radius:999px;padding:7px 12px;font:600 11px 'Figtree',sans-serif;color:#C8102E;white-space:nowrap">Late ✕</div>
+              <div style="background:#fff;border:1px solid #E6DFD4;border-radius:999px;padding:7px 12px;font:500 11px 'Figtree',sans-serif;color:#6B6659;white-space:nowrap">Agency</div>
+            </div>
+          </div>
+          <div style="position:relative;flex:1;min-height:0;padding:0 18px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden">
+            <div style="background:#fff;border-radius:16px;border:1.5px solid #141210;padding:13px;display:flex;flex-direction:column;gap:11px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:30px;height:30px;border-radius:50%;background:#141210;display:flex;align-items:center;justify-content:center;font:700 10.5px 'Figtree',sans-serif;color:#fff">AO</div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:1px">
+                  <div style="font:600 13px 'Figtree',sans-serif;color:#141210">Ana Otoo</div>
+                  <div style="font:400 10.5px 'Space Mono',monospace;color:#8A8478">REZULTZ · 2 SESSIONS</div>
+                </div>
+                <div style="background:#FBE9EC;border-radius:999px;padding:3px 9px;font:600 10px 'Figtree',sans-serif;color:#C8102E">In</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="background:#F7F4EF;border-radius:11px;padding:9px 11px;display:flex;justify-content:space-between">
+                  <div style="font:400 11.5px 'Space Mono',monospace;color:#141210">08:42→12:26</div>
+                  <div style="font:400 11.5px 'Space Mono',monospace;color:#8A8478">3h44</div>
+                </div>
+                <div style="background:#F7F4EF;border-radius:11px;padding:9px 11px;display:flex;justify-content:space-between">
+                  <div style="font:400 11.5px 'Space Mono',monospace;color:#141210">13:04→····</div>
+                  <div style="font:400 11.5px 'Space Mono',monospace;color:#C8102E">2h18</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:7px">
+                <div style="flex:1;border:1px solid #E6DFD4;border-radius:999px;padding:9px;text-align:center;font:600 11.5px 'Figtree',sans-serif;color:#141210">Edit time</div>
+                <div style="flex:1;background:#141210;border-radius:999px;padding:9px;text-align:center;font:600 11.5px 'Figtree',sans-serif;color:#fff">Force out</div>
+              </div>
+            </div>
+            <sc-for list="{{ attRows }}" as="r" hint-placeholder-count="4">
+              <div style="background:#fff;border-radius:16px;padding:12px 13px;display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px">
+                <div style="width:28px;height:28px;border-radius:50%;background:#F3EDE4;display:flex;align-items:center;justify-content:center;font:700 10px 'Figtree',sans-serif;color:#141210">{{ r.initials }}</div>
+                <div style="display:flex;flex-direction:column;gap:1px">
+                  <div style="font:600 12.5px 'Figtree',sans-serif;color:#141210">{{ r.name }}</div>
+                  <div style="font:400 10px 'Space Mono',monospace;color:#8A8478">{{ r.inT }}→{{ r.outT }} · {{ r.total }}</div>
+                </div>
+                <div style="border-radius:999px;padding:3px 9px;font:600 10px 'Figtree',sans-serif;background:{{ r.badgeBg }};color:{{ r.badgeFg }}">{{ r.status }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div class="dv-card" style="width:280px;height:560px;box-sizing:border-box;border-radius:22px;background:#F7F4EF;font-family:'Figtree',sans-serif;position:relative;overflow:hidden;display:flex;flex-direction:column">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(20,18,16,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(20,18,16,.04) 1px, transparent 1px);background-size:56px 56px"></div>
+          <div style="position:relative;padding:16px 18px 10px;display:flex;align-items:center;justify-content:space-between">
+            <div style="font:700 17px 'Figtree',sans-serif;color:#141210;letter-spacing:-.03em">People</div>
+            <div style="font:600 11.5px 'Figtree',sans-serif;color:#C8102E">Add</div>
+          </div>
+          <div style="position:relative;flex:1;min-height:0;padding:0 18px 14px;display:flex;flex-direction:column;gap:12px;overflow:hidden">
+            <div style="background:#fff;border-radius:18px;overflow:hidden">
+              <div style="padding:11px 14px;border-bottom:1px solid #F1EBE1;font:400 9.5px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">AGENCIES</div>
+              <sc-for list="{{ agencyRows }}" as="a" hint-placeholder-count="4">
+                <div style="display:grid;grid-template-columns:10px 1fr auto;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #F7F2E9">
+                  <div style="width:10px;height:10px;border-radius:50%;background:{{ a.accent }}"></div>
+                  <div style="font:600 12.5px 'Figtree',sans-serif;color:#141210">{{ a.name }}</div>
+                  <div style="font:400 10.5px 'Space Mono',monospace;color:#8A8478">{{ a.present }}/{{ a.people }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background:#fff;border-radius:18px;overflow:hidden;flex:1;min-height:0">
+              <div style="padding:11px 14px;border-bottom:1px solid #F1EBE1;font:400 9.5px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">EMPLOYEES · 155</div>
+              <sc-for list="{{ empRows }}" as="e" hint-placeholder-count="5">
+                <div style="display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #F7F2E9">
+                  <div style="width:32px;height:32px;border-radius:50%;padding:2px;box-sizing:border-box;background:{{ e.accent }}">
+                    <div style="width:100%;height:100%;border-radius:50%;background:#F3EDE4;display:flex;align-items:center;justify-content:center;font:700 10px 'Figtree',sans-serif;color:#141210">{{ e.initials }}</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:1px">
+                    <div style="font:600 12.5px 'Figtree',sans-serif;color:#141210">{{ e.name }}</div>
+                    <div style="font:400 10.5px 'Figtree',sans-serif;color:#8A8478">{{ e.role }} · {{ e.agency }}</div>
+                  </div>
+                  <div style="font:400 10.5px 'Space Mono',monospace;color:#141210">{{ e.rate }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "add the six edge states" · "write the token + component spec" · "tighten the desktop table density"</p>
+</section>
+
+<section class="dv-turn" id="t3">
+  <div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname"><a class="dv-oid" href="#2b">2b</a> enhanced with the reference</span></div>
+  <p class="dv-note">Three things borrowed from the reference and translated into red / ink / paper: a <b>faint grid</b> on both light and dark surfaces, <b>depth</b> (gradient + inner glow) on the ink clock card and the pill CTA, and the <b>tilted activity pills</b> — here they carry real value, showing who else is already on the clock. Headlines get the reference's tighter tracking and heavier weight. Everything else stays 2b.</p>
+
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="3a">
+      <div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Onboarding + login — grid ground, tilted pills, gradient CTA.</div>
+      <div style="display:flex;gap:14px;align-items:flex-start">
+
+        <div class="dv-card" style="width:280px;height:560px;box-sizing:border-box;border-radius:22px;background:radial-gradient(120% 90% at 20% 0%, #33110F 0%, #141210 55%, #0C0B0A 100%);font-family:'Figtree',sans-serif;position:relative;overflow:hidden;display:flex;flex-direction:column">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);background-size:64px 64px"></div>
+          <div style="position:absolute;left:-60px;top:-40px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(200,16,46,.38),transparent 70%)"></div>
+          <div style="position:relative;padding:16px 22px;display:flex;justify-content:space-between;font:600 12px 'Figtree',sans-serif;color:#fff">
+            <div>9:41</div><div style="font:400 11px 'Space Mono',monospace;color:#8A8478">●●● ▰</div>
+          </div>
+          <div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:22px;gap:20px">
+            <div style="width:30px;height:30px;border-radius:50%;border:1.5px solid #C8102E;display:flex;align-items:center;justify-content:center">
+              <div style="width:9px;height:9px;border-radius:50%;background:#C8102E"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font:700 33px/1.04 'Figtree',sans-serif;color:#fff;letter-spacing:-.045em">Clock in.<br>Clock out.<br>Nothing else.</div>
+              <div style="font:400 13px/1.5 'Figtree',sans-serif;color:#9A9287;max-width:200px">Attendance for Interactive Digital and its agencies — in your browser, no app to install.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="background:linear-gradient(180deg,#DE1D38,#A50D26);border-radius:999px;padding:16px;text-align:center;font:700 15px 'Figtree',sans-serif;color:#fff;box-shadow:0 8px 24px rgba(200,16,46,.34)">Next</div>
+              <div style="text-align:center;font:600 13px 'Figtree',sans-serif;color:#9A9287">Skip</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dv-card" style="width:280px;height:560px;box-sizing:border-box;border-radius:22px;background:#fff;font-family:'Figtree',sans-serif;position:relative;overflow:hidden;display:flex;flex-direction:column">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(20,18,16,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(20,18,16,.05) 1px, transparent 1px);background-size:56px 56px"></div>
+          <div style="position:relative;padding:16px 22px 12px;display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:22px;height:22px;border-radius:50%;border:1.5px solid #C8102E;display:flex;align-items:center;justify-content:center"><div style="width:7px;height:7px;border-radius:50%;background:#C8102E"></div></div>
+              <div style="font:700 14px 'Figtree',sans-serif;color:#141210;letter-spacing:-.02em">Clock<span style="color:#C8102E">it</span></div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <div style="width:7px;height:7px;border-radius:50%;background:#C8102E"></div>
+              <div style="width:7px;height:7px;border-radius:50%;border:1px solid #D5CEC1"></div>
+              <div style="width:7px;height:7px;border-radius:50%;border:1px solid #D5CEC1"></div>
+            </div>
+          </div>
+
+          <div style="position:relative;height:250px;overflow:hidden">
+            <div style="position:absolute;left:-26px;top:26px;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:center;gap:9px;background:#F1B6BF;border-radius:999px;padding:8px 18px 8px 8px;transform:rotate(-16deg);width:max-content">
+                <div style="width:30px;height:30px;border-radius:50%;background:#141210;flex:none;display:flex;align-items:center;justify-content:center;font:700 11px 'Figtree',sans-serif;color:#fff">KA</div>
+                <div style="font:600 13px 'Figtree',sans-serif;color:#5C0B18;white-space:nowrap">Kwame clocked in · 8:02 AM</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;background:#141210;border-radius:999px;padding:8px 18px 8px 8px;transform:rotate(-9deg) translateX(34px);width:max-content">
+                <div style="width:30px;height:30px;border-radius:50%;background:#C8102E;flex:none;display:flex;align-items:center;justify-content:center;font:700 11px 'Figtree',sans-serif;color:#fff">AO</div>
+                <div style="font:600 13px 'Figtree',sans-serif;color:#fff;white-space:nowrap">Ama clocked in · 8:11 AM</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;background:#C8102E;border-radius:999px;padding:8px 18px 8px 8px;transform:rotate(-15deg) translateX(10px);width:max-content;box-shadow:0 10px 22px rgba(200,16,46,.22)">
+                <div style="width:30px;height:30px;border-radius:50%;background:#fff;flex:none;display:flex;align-items:center;justify-content:center;font:700 11px 'Figtree',sans-serif;color:#C8102E">JB</div>
+                <div style="font:600 13px 'Figtree',sans-serif;color:#fff;white-space:nowrap">James clocked out · 5:58 PM</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;background:#F3EDE4;border-radius:999px;padding:8px 18px 8px 8px;transform:rotate(-7deg) translateX(46px);width:max-content">
+                <div style="width:30px;height:30px;border-radius:50%;background:#8E8A82;flex:none;display:flex;align-items:center;justify-content:center;font:700 11px 'Figtree',sans-serif;color:#fff">NV</div>
+                <div style="font:600 13px 'Figtree',sans-serif;color:#141210;white-space:nowrap">Nana clocked in · 8:26 AM</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="position:relative;padding:0 22px 22px;display:flex;flex-direction:column;gap:18px;margin-top:auto">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font:700 26px/1.06 'Figtree',sans-serif;color:#141210;letter-spacing:-.04em">Scan once.<br>You're counted.</div>
+              <div style="font:400 12.5px/1.5 'Figtree',sans-serif;color:#6B6659">The QR at the entrance stamps your time and your location. Sessions add up on their own.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:11px">
+              <div style="background:linear-gradient(180deg,#DE1D38,#A50D26);border-radius:999px;padding:16px;text-align:center;font:700 15px 'Figtree',sans-serif;color:#fff;box-shadow:0 8px 22px rgba(200,16,46,.26)">Next</div>
+              <div style="text-align:center;font:600 13px 'Figtree',sans-serif;color:#8A8478">Skip</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dv-card" style="width:280px;height:560px;box-sizing:border-box;border-radius:22px;background:#F7F4EF;font-family:'Figtree',sans-serif;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:24px">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(20,18,16,.045) 1px, transparent 1px),linear-gradient(90deg, rgba(20,18,16,.045) 1px, transparent 1px);background-size:56px 56px"></div>
+          <div style="position:relative;display:flex;flex-direction:column;gap:22px">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="width:32px;height:32px;border-radius:50%;border:1.5px solid #C8102E;display:flex;align-items:center;justify-content:center"><div style="width:10px;height:10px;border-radius:50%;background:#C8102E"></div></div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="font:700 27px/1.06 'Figtree',sans-serif;color:#141210;letter-spacing:-.04em">Welcome back,<br>let's clock in.</div>
+                <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.04em">INTERACTIVE DIGITAL GROUP</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div style="background:#fff;border:1px solid #E6DFD4;border-radius:999px;padding:15px 18px;font:400 13px 'Figtree',sans-serif;color:#8A8478">Work email</div>
+              <div style="background:#fff;border:1.5px solid #141210;border-radius:999px;padding:15px 18px;font:400 13px 'Space Mono',monospace;color:#141210;display:flex;justify-content:space-between;align-items:center">
+                <span>••••••••</span><span style="font:600 11px 'Figtree',sans-serif;color:#C8102E">Show</span>
+              </div>
+              <div style="background:linear-gradient(180deg,#DE1D38,#A50D26);border-radius:999px;padding:16px;text-align:center;font:700 15px 'Figtree',sans-serif;color:#fff;box-shadow:0 8px 22px rgba(200,16,46,.24)">Sign in</div>
+              <div style="display:flex;align-items:center;gap:10px;padding:2px 0"><div style="flex:1;height:1px;background:#E2DBCF"></div><div style="font:400 10px 'Space Mono',monospace;color:#A39B8B">OR</div><div style="flex:1;height:1px;background:#E2DBCF"></div></div>
+              <div style="background:#fff;border:1px solid #E6DFD4;border-radius:999px;padding:15px;text-align:center;font:600 13px 'Figtree',sans-serif;color:#141210">Continue with Google</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font:400 11.5px 'Figtree',sans-serif;color:#8A8478">
+              <div>Forgot password?</div><div style="color:#C8102E;font-weight:600">Scan QR instead</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="dv-opt" id="3b">
+      <div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>/dashboard/me — same enhancements on the daily screen.</div>
+      <div style="display:flex;gap:14px;align-items:flex-start">
+
+        <div class="dv-card" style="width:390px;background:#F7F4EF;font-family:'Figtree',sans-serif;border-radius:14px;position:relative;overflow:hidden">
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(20,18,16,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(20,18,16,.04) 1px, transparent 1px);background-size:65px 65px"></div>
+          <div style="position:relative;padding:22px 22px 28px;display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:26px;height:26px;border-radius:50%;border:1.5px solid #C8102E;display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:#C8102E"></div></div>
+                <div style="font:700 15px 'Figtree',sans-serif;color:#141210;letter-spacing:-.02em">Clock<span style="color:#C8102E">it</span></div>
+              </div>
+              <div style="width:30px;height:30px;border-radius:50%;background:#141210;display:flex;align-items:center;justify-content:center;font:700 11px 'Figtree',sans-serif;color:#fff">AO</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font:700 30px/1.06 'Figtree',sans-serif;color:#141210;letter-spacing:-.045em">Good morning,<br>Ana.</div>
+              <div style="font:400 12px 'Space Mono',monospace;color:#8A8478;letter-spacing:.02em">WED 5 AUG · REZULTZ · SHIFT 08:30</div>
+            </div>
+
+            <div style="background:#FBE9EC;border-radius:16px;padding:14px 16px;display:flex;gap:11px">
+              <div style="width:4px;border-radius:2px;background:#C8102E;flex:none"></div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="font:700 13px 'Figtree',sans-serif;color:#8E0B20;letter-spacing:-.01em">Yesterday's session stayed open</div>
+                <div style="font:400 12.5px/1.5 'Figtree',sans-serif;color:#A34355">We closed it at 6:00 PM for you. <span style="color:#C8102E;font-weight:600;text-decoration:underline">Fix the time</span></div>
+              </div>
+            </div>
+
+            <div style="border-radius:26px;padding:26px 22px;display:flex;flex-direction:column;gap:20px;color:#fff;position:relative;overflow:hidden;background:radial-gradient(120% 100% at 85% 0%, #3A1310 0%, #171412 45%, #100E0D 100%);box-shadow:0 16px 34px rgba(20,18,16,.22)">
+              <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:52px 52px"></div>
+              <div style="position:absolute;right:-50px;top:-60px;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(200,16,46,.42),transparent 70%)"></div>
+              <div style="position:relative;display:flex;flex-direction:column;gap:18px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="display:flex;align-items:center;gap:7px">
+                    <div style="width:7px;height:7px;border-radius:50%;background:#FF3B54;box-shadow:0 0 0 4px rgba(255,59,84,.22)"></div>
+                    <div style="font:400 11px 'Space Mono',monospace;color:#FF8B98;letter-spacing:.1em">ON THE CLOCK</div>
+                  </div>
+                  <div style="border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:4px 10px;font:400 10.5px 'Space Mono',monospace;color:#B9B1A5">2ND SESSION</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="font:400 48px/1 'Space Mono',monospace;letter-spacing:-.05em">4:18:07</div>
+                  <div style="font:400 13px 'Figtree',sans-serif;color:#9A9287">Since 1:04 PM · 6h 02m today</div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center">
+                  <div style="flex:1;background:linear-gradient(180deg,#DE1D38,#A50D26);border-radius:999px;padding:18px;text-align:center;font:700 16px 'Figtree',sans-serif;color:#fff;box-shadow:0 10px 26px rgba(200,16,46,.4)">Clock out</div>
+                  <div style="width:58px;height:58px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center">
+                    <div style="width:20px;height:20px;border:2.5px solid #fff;border-radius:6px"></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:7px;font:400 11.5px 'Figtree',sans-serif;color:#9A9287">
+                  <div style="width:5px;height:5px;border-radius:50%;background:#9A9287"></div>At HQ Osu · location confirmed
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">TODAY</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="background:#fff;border-radius:18px;padding:15px 17px;display:flex;align-items:center;gap:14px">
+                  <div style="width:36px;height:36px;border-radius:50%;background:#F3EDE4;display:flex;align-items:center;justify-content:center;font:400 10px 'Space Mono',monospace;color:#141210">QR</div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                    <div style="font:600 14px 'Figtree',sans-serif;color:#141210">8:42 AM — 12:26 PM</div>
+                    <div style="font:400 12px 'Figtree',sans-serif;color:#8A8478">Main entrance</div>
+                  </div>
+                  <div style="font:400 12.5px 'Space Mono',monospace;color:#5C5749">3h44</div>
+                </div>
+                <div style="background:#fff;border-radius:18px;padding:15px 17px;display:flex;align-items:center;gap:14px;border:1.5px solid #141210">
+                  <div style="width:36px;height:36px;border-radius:50%;background:#141210;display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:#FF3B54"></div></div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                    <div style="font:600 14px 'Figtree',sans-serif;color:#141210">1:04 PM — now</div>
+                    <div style="font:400 12px 'Figtree',sans-serif;color:#C8102E">Running</div>
+                  </div>
+                  <div style="font:400 12.5px 'Space Mono',monospace;color:#5C5749">2h18</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:#fff;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">THIS WEEK</div>
+                <div style="font:700 14px 'Figtree',sans-serif;color:#141210;letter-spacing:-.02em">32h 10m</div>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:9px;height:60px">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:42px;background:#141210;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8478">M</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:50px;background:#141210;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8478">T</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:34px;background:linear-gradient(180deg,#DE1D38,#A50D26);border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#C8102E">W</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:46px;background:#141210;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8478">T</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:28px;background:#8E8A82;border-radius:999px"></div><div style="font:600 10px 'Space Mono',monospace;color:#141210">F</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:6px;background:#EFE9DF;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#C3BCAD">S</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:6px;background:#EFE9DF;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#C3BCAD">S</div></div>
+              </div>
+              <div style="display:flex;gap:14px;border-top:1px solid #F1EBE1;padding-top:12px">
+                <div style="display:flex;align-items:center;gap:6px;font:400 10.5px 'Space Mono',monospace;color:#8A8478"><div style="width:7px;height:7px;border-radius:50%;background:#141210"></div>ON TIME</div>
+                <div style="display:flex;align-items:center;gap:6px;font:400 10.5px 'Space Mono',monospace;color:#8A8478"><div style="width:7px;height:7px;border-radius:50%;background:#C8102E"></div>LATE</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div class="dv-olabel" style="padding-left:2px">A4 sign — grid + gradient</div>
+          <div class="dv-card" style="width:298px;height:421px;border-radius:14px;display:flex;flex-direction:column;align-items:center;padding:20px;box-sizing:border-box;gap:11px;position:relative;overflow:hidden;background:radial-gradient(120% 80% at 80% 0%, #3A1310 0%, #171412 48%, #100E0D 100%)">
+            <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:46px 46px"></div>
+            <div style="position:relative;display:flex;align-items:center;gap:8px;width:100%">
+              <div style="width:22px;height:22px;border-radius:50%;border:1.5px solid #C8102E;display:flex;align-items:center;justify-content:center"><div style="width:7px;height:7px;border-radius:50%;background:#C8102E"></div></div>
+              <div style="font:700 13px 'Figtree',sans-serif;color:#fff;letter-spacing:-.02em">Clock<span style="color:#FF3B54">it</span></div>
+              <div style="flex:1"></div>
+              <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.08em">HQ OSU</div>
+            </div>
+            <div style="position:relative;text-align:center">
+              <div style="font:700 27px/1.02 'Figtree',sans-serif;color:#fff;letter-spacing:-.045em">Scan to<br>clock in.</div>
+            </div>
+            <div style="position:relative;background:#fff;border-radius:22px;padding:13px;box-shadow:0 12px 30px rgba(0,0,0,.35)">{{ qrInk }}</div>
+            <div style="position:relative;display:flex;flex-direction:column;gap:7px;align-items:center;width:100%">
+              <div style="font:400 11.5px/1.45 'Figtree',sans-serif;color:#B9B1A5;text-align:center;max-width:200px">Open your camera, sign in, tap the red button. Five seconds.</div>
+              <div style="display:flex;gap:6px">
+                <div style="background:linear-gradient(180deg,#DE1D38,#A50D26);border-radius:999px;padding:5px 11px;font:400 9.5px 'Space Mono',monospace;color:#fff">NO APP NEEDED</div>
+                <div style="border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 11px;font:400 9.5px 'Space Mono',monospace;color:#B9B1A5">08:00–18:00</div>
+              </div>
+            </div>
+            <div style="position:relative;margin-top:auto;font:400 9px 'Space Mono',monospace;color:#6B6659;letter-spacing:.04em">CLOCKIT.INTERACTIVEDIGITAL.COM.GH</div>
+          </div>
+          <div class="dv-card" style="width:298px;border-radius:14px;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:9px">
+            <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">ADDED TOKENS</div>
+            <div style="font:400 10.5px/1.7 'Space Mono',monospace;color:#6B6659">--grad-action: linear-gradient(180deg,#DE1D38,#A50D26)<br>--grid: 1px rgba(20,18,16,.04) @ 56–65px<br>--grid-dark: 1px rgba(255,255,255,.05) @ 46–52px<br>--surface-ink: radial-gradient(120% 100% at 85% 0%, #3A1310, #171412 45%, #100E0D)<br>--shadow-action: 0 10px 26px rgba(200,16,46,.4)<br>--tilt: -3deg … -16deg (pills only)</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "build the admin tables + attendance table in <a class="dv-oid" href="#3b">3b</a>" · "less gradient, keep the grid" · "show the six edge states on <a class="dv-oid" href="#3b">3b</a>"</p>
+</section>
+
+<section class="dv-turn" id="t2">
+  <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Forest Paper (<a class="dv-oid" href="#1c">1c</a>) recolored to red / white / black</span></div>
+  <p class="dv-note">Same structure, type and roundness as <a class="dv-oid" href="#1c">1c</a> — new palette. Red is <b>#C8102E</b>, ink <b>#141210</b>, paper <b>#F7F4EF</b>, card white. Two ways to spend the red: <a class="dv-oid" href="#2a">2a</a> makes it the primary surface (the clock card is red), <a class="dv-oid" href="#2b">2b</a> keeps the big surface black and uses red only as the action + accent. 2b holds up better in dark mode and leaves red free to mean "attention" (late, missing clock-out) — 2a is louder and more branded.</p>
+
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="2a">
+      <div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Red primary — the clock card carries the brand.</div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+
+        <div class="dv-card" style="width:390px;background:#F7F4EF;font-family:'Figtree',sans-serif;border-radius:14px">
+          <div style="padding:22px 22px 28px;display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:26px;height:26px;border-radius:50%;background:#C8102E"></div>
+                <div style="font:700 15px 'Figtree',sans-serif;color:#141210;letter-spacing:-.01em">Clockit</div>
+              </div>
+              <div style="width:30px;height:30px;border-radius:50%;background:#E8E2D8;display:flex;align-items:center;justify-content:center;font:700 11px 'Figtree',sans-serif;color:#6B6659">AO</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font:300 30px/1.1 'Figtree',sans-serif;color:#141210;letter-spacing:-.03em">Good morning,<br><span style="font-weight:700">Ana</span></div>
+              <div style="font:400 12px 'Space Mono',monospace;color:#8A8478;letter-spacing:.02em">WED 5 AUG · REZULTZ</div>
+            </div>
+
+            <div style="background:#fff;border:1px solid #E6DFD4;border-left:4px solid #141210;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:5px">
+              <div style="font:600 13px 'Figtree',sans-serif;color:#141210">Yesterday's session stayed open</div>
+              <div style="font:400 12.5px/1.5 'Figtree',sans-serif;color:#6B6659">We closed it at 6:00 PM for you. <span style="color:#C8102E;font-weight:600;text-decoration:underline">Fix the time</span></div>
+            </div>
+
+            <div style="background:#C8102E;border-radius:26px;padding:26px 22px;display:flex;flex-direction:column;gap:22px;color:#fff;position:relative;overflow:hidden">
+              <div style="position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:#D62740"></div>
+              <div style="position:relative;display:flex;flex-direction:column;gap:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="font:400 11px 'Space Mono',monospace;color:#FBD3D9;letter-spacing:.1em">ON THE CLOCK</div>
+                  <div style="background:rgba(255,255,255,.18);border-radius:999px;padding:4px 10px;font:400 10.5px 'Space Mono',monospace;color:#fff">2ND SESSION</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="font:400 46px/1 'Space Mono',monospace;letter-spacing:-.04em">4:18:07</div>
+                  <div style="font:400 13px 'Figtree',sans-serif;color:#F7C3CB">Since 1:04 PM · 6h 02m today</div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center">
+                  <div style="flex:1;background:#fff;border-radius:999px;padding:18px;text-align:center;font:700 16px 'Figtree',sans-serif;color:#C8102E">Clock out</div>
+                  <div style="width:58px;height:58px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center">
+                    <div style="width:20px;height:20px;border:2.5px solid #fff;border-radius:6px"></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:7px;font:400 11.5px 'Figtree',sans-serif;color:#FBD3D9">
+                  <div style="width:5px;height:5px;border-radius:50%;background:#FBD3D9"></div>At HQ Osu · location confirmed
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">TODAY</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="background:#fff;border-radius:18px;padding:15px 17px;display:flex;align-items:center;gap:14px">
+                  <div style="width:36px;height:36px;border-radius:50%;background:#F3EDE4;display:flex;align-items:center;justify-content:center;font:400 10px 'Space Mono',monospace;color:#141210">QR</div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                    <div style="font:600 14px 'Figtree',sans-serif;color:#141210">8:42 AM — 12:26 PM</div>
+                    <div style="font:400 12px 'Figtree',sans-serif;color:#8A8478">Main entrance</div>
+                  </div>
+                  <div style="font:400 12.5px 'Space Mono',monospace;color:#5C5749">3h44</div>
+                </div>
+                <div style="background:#fff;border-radius:18px;padding:15px 17px;display:flex;align-items:center;gap:14px;border:1.5px solid #C8102E">
+                  <div style="width:36px;height:36px;border-radius:50%;background:#C8102E"></div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                    <div style="font:600 14px 'Figtree',sans-serif;color:#141210">1:04 PM — now</div>
+                    <div style="font:400 12px 'Figtree',sans-serif;color:#C8102E">Running</div>
+                  </div>
+                  <div style="font:400 12.5px 'Space Mono',monospace;color:#5C5749">2h18</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:#fff;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">THIS WEEK</div>
+                <div style="font:600 13px 'Figtree',sans-serif;color:#141210">32h 10m</div>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:9px;height:60px">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:42px;background:#E8E2D8;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8478">M</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:50px;background:#E8E2D8;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8478">T</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:34px;background:#F1B6BF;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8478">W</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:46px;background:#E8E2D8;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8478">T</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:28px;background:#141210;border-radius:999px"></div><div style="font:600 10px 'Space Mono',monospace;color:#141210">F</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:6px;background:#EFE9DF;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#C3BCAD">S</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:6px;background:#EFE9DF;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#C3BCAD">S</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="dv-card" style="width:250px;background:#F7F4EF;border-radius:14px">
+            <div style="padding:28px 22px;display:flex;flex-direction:column;gap:24px">
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <div style="width:34px;height:34px;border-radius:50%;background:#C8102E"></div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="font:300 24px/1.1 'Figtree',sans-serif;color:#141210;letter-spacing:-.03em">Hello<br><span style="font-weight:700">again</span></div>
+                  <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.04em">CLOCK IN IN TWO TAPS</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="background:#fff;border-radius:999px;padding:14px 17px;font:400 13px 'Figtree',sans-serif;color:#141210">ana@rezultz.com</div>
+                <div style="background:#fff;border-radius:999px;padding:14px 17px;font:400 13px 'Space Mono',monospace;color:#141210;border:1.5px solid #C8102E">••••••••</div>
+                <div style="background:#C8102E;border-radius:999px;padding:15px;text-align:center;font:700 14px 'Figtree',sans-serif;color:#fff">Sign in</div>
+                <div style="border:1.5px solid #DDD6CA;border-radius:999px;padding:14px;text-align:center;font:600 13px 'Figtree',sans-serif;color:#141210">Continue with Google</div>
+                <div style="text-align:center;font:400 11.5px 'Figtree',sans-serif;color:#8A8478;padding-top:4px">Forgot your password?</div>
+              </div>
+            </div>
+          </div>
+          <div class="dv-card" style="width:250px;background:#121110;border-radius:14px;border-color:#252220">
+            <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
+              <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">DARK</div>
+              <div style="background:#D62740;border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px">
+                <div style="font:400 10.5px 'Space Mono',monospace;color:#FBD3D9;letter-spacing:.1em">ON THE CLOCK</div>
+                <div style="font:400 34px/1 'Space Mono',monospace;color:#fff;letter-spacing:-.04em">4:18:07</div>
+                <div style="background:#fff;border-radius:999px;padding:14px;text-align:center;font:700 14px 'Figtree',sans-serif;color:#C8102E">Clock out</div>
+              </div>
+              <div style="font:400 10.5px/1.5 'Space Mono',monospace;color:#6B6659">PAPER → #121110<br>CARD → #1C1A18</div>
+            </div>
+          </div>
+          <div class="dv-card" style="width:250px;border-radius:14px;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
+            <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">PALETTE</div>
+            <div style="display:flex;gap:6px">
+              <div style="flex:1;height:34px;border-radius:9px;background:#C8102E"></div>
+              <div style="flex:1;height:34px;border-radius:9px;background:#141210"></div>
+              <div style="flex:1;height:34px;border-radius:9px;background:#F1B6BF"></div>
+              <div style="flex:1;height:34px;border-radius:9px;background:#F7F4EF;border:1px solid #E6DFD4"></div>
+              <div style="flex:1;height:34px;border-radius:9px;background:#fff;border:1px solid #E6DFD4"></div>
+            </div>
+            <div style="font:400 10.5px/1.6 'Space Mono',monospace;color:#6B6659">--primary oklch(.51 .21 24)<br>--ink oklch(.19 .01 60)<br>--paper oklch(.96 .008 75)<br>--radius 18px · pill CTAs</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div class="dv-olabel" style="padding-left:2px">A4 sign</div>
+          <div class="dv-card" style="width:298px;height:421px;background:#F7F4EF;border-radius:14px;display:flex;flex-direction:column;align-items:center;padding:20px;box-sizing:border-box;gap:11px;position:relative;overflow:hidden">
+            <div style="position:absolute;left:-70px;bottom:-70px;width:200px;height:200px;border-radius:50%;background:#EFE9DF"></div>
+            <div style="position:relative;display:flex;align-items:center;gap:8px">
+              <div style="width:22px;height:22px;border-radius:50%;background:#C8102E"></div>
+              <div style="font:700 13px 'Figtree',sans-serif;color:#141210">Clockit</div>
+              <div style="width:1px;height:14px;background:#D5CEC1"></div>
+              <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.08em">HQ OSU</div>
+            </div>
+            <div style="position:relative;text-align:center;display:flex;flex-direction:column;gap:4px">
+              <div style="font:300 25px/1.06 'Figtree',sans-serif;color:#141210;letter-spacing:-.03em">Scan to<br><span style="font-weight:700;color:#C8102E">clock in</span></div>
+            </div>
+            <div style="position:relative;background:#fff;border-radius:22px;padding:13px;box-shadow:0 3px 14px rgba(20,18,16,.08)">{{ qrRed }}</div>
+            <div style="position:relative;display:flex;flex-direction:column;gap:6px;align-items:center;width:100%">
+              <div style="font:400 11.5px/1.45 'Figtree',sans-serif;color:#5C5749;text-align:center;max-width:206px">Open your camera, sign in, tap the red button. Takes five seconds.</div>
+              <div style="display:flex;gap:6px">
+                <div style="background:#141210;border-radius:999px;padding:4px 10px;font:400 9.5px 'Space Mono',monospace;color:#fff">NO APP NEEDED</div>
+                <div style="background:#FBE9EC;border-radius:999px;padding:4px 10px;font:400 9.5px 'Space Mono',monospace;color:#C8102E">08:00–18:00</div>
+              </div>
+            </div>
+            <div style="position:relative;margin-top:auto;font:400 9px 'Space Mono',monospace;color:#A39B8B;letter-spacing:.04em">CLOCKIT.INTERACTIVEDIGITAL.COM.GH</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="dv-opt" id="2b">
+      <div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Ink primary — black surface, red reserved for action and attention.</div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+
+        <div class="dv-card" style="width:390px;background:#F7F4EF;font-family:'Figtree',sans-serif;border-radius:14px">
+          <div style="padding:22px 22px 28px;display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:26px;height:26px;border-radius:50%;background:#141210;display:flex;align-items:center;justify-content:center">
+                  <div style="width:9px;height:9px;border-radius:50%;background:#C8102E"></div>
+                </div>
+                <div style="font:700 15px 'Figtree',sans-serif;color:#141210;letter-spacing:-.01em">Clockit</div>
+              </div>
+              <div style="width:30px;height:30px;border-radius:50%;background:#E8E2D8;display:flex;align-items:center;justify-content:center;font:700 11px 'Figtree',sans-serif;color:#6B6659">AO</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font:300 30px/1.1 'Figtree',sans-serif;color:#141210;letter-spacing:-.03em">Good morning,<br><span style="font-weight:700">Ana</span></div>
+              <div style="font:400 12px 'Space Mono',monospace;color:#8A8478;letter-spacing:.02em">WED 5 AUG · REZULTZ</div>
+            </div>
+
+            <div style="background:#FBE9EC;border-radius:16px;padding:14px 16px;display:flex;gap:11px">
+              <div style="width:4px;border-radius:2px;background:#C8102E;flex:none"></div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="font:600 13px 'Figtree',sans-serif;color:#8E0B20">Yesterday's session stayed open</div>
+                <div style="font:400 12.5px/1.5 'Figtree',sans-serif;color:#A34355">We closed it at 6:00 PM for you. <span style="color:#C8102E;font-weight:600;text-decoration:underline">Fix the time</span></div>
+              </div>
+            </div>
+
+            <div style="background:#141210;border-radius:26px;padding:26px 22px;display:flex;flex-direction:column;gap:22px;color:#fff;position:relative;overflow:hidden">
+              <div style="position:absolute;right:-46px;top:-46px;width:150px;height:150px;border-radius:50%;background:#1F1C19"></div>
+              <div style="position:relative;display:flex;flex-direction:column;gap:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="display:flex;align-items:center;gap:7px">
+                    <div style="width:7px;height:7px;border-radius:50%;background:#FF3B54"></div>
+                    <div style="font:400 11px 'Space Mono',monospace;color:#FF7A8A;letter-spacing:.1em">ON THE CLOCK</div>
+                  </div>
+                  <div style="border:1px solid #35302B;border-radius:999px;padding:4px 10px;font:400 10.5px 'Space Mono',monospace;color:#B9B1A5">2ND SESSION</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="font:400 46px/1 'Space Mono',monospace;letter-spacing:-.04em">4:18:07</div>
+                  <div style="font:400 13px 'Figtree',sans-serif;color:#9A9287">Since 1:04 PM · 6h 02m today</div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center">
+                  <div style="flex:1;background:#C8102E;border-radius:999px;padding:18px;text-align:center;font:700 16px 'Figtree',sans-serif;color:#fff">Clock out</div>
+                  <div style="width:58px;height:58px;border-radius:50%;border:1.5px solid #35302B;display:flex;align-items:center;justify-content:center">
+                    <div style="width:20px;height:20px;border:2.5px solid #fff;border-radius:6px"></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:7px;font:400 11.5px 'Figtree',sans-serif;color:#9A9287">
+                  <div style="width:5px;height:5px;border-radius:50%;background:#9A9287"></div>At HQ Osu · location confirmed
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">TODAY</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="background:#fff;border-radius:18px;padding:15px 17px;display:flex;align-items:center;gap:14px">
+                  <div style="width:36px;height:36px;border-radius:50%;background:#F3EDE4;display:flex;align-items:center;justify-content:center;font:400 10px 'Space Mono',monospace;color:#141210">QR</div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                    <div style="font:600 14px 'Figtree',sans-serif;color:#141210">8:42 AM — 12:26 PM</div>
+                    <div style="font:400 12px 'Figtree',sans-serif;color:#8A8478">Main entrance</div>
+                  </div>
+                  <div style="font:400 12.5px 'Space Mono',monospace;color:#5C5749">3h44</div>
+                </div>
+                <div style="background:#fff;border-radius:18px;padding:15px 17px;display:flex;align-items:center;gap:14px;border:1.5px solid #141210">
+                  <div style="width:36px;height:36px;border-radius:50%;background:#141210;display:flex;align-items:center;justify-content:center">
+                    <div style="width:9px;height:9px;border-radius:50%;background:#FF3B54"></div>
+                  </div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                    <div style="font:600 14px 'Figtree',sans-serif;color:#141210">1:04 PM — now</div>
+                    <div style="font:400 12px 'Figtree',sans-serif;color:#C8102E">Running</div>
+                  </div>
+                  <div style="font:400 12.5px 'Space Mono',monospace;color:#5C5749">2h18</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:#fff;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">THIS WEEK</div>
+                <div style="font:600 13px 'Figtree',sans-serif;color:#141210">32h 10m</div>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:9px;height:60px">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:42px;background:#141210;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8478">M</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:50px;background:#141210;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8478">T</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:34px;background:#C8102E;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#C8102E">W</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:46px;background:#141210;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8478">T</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:28px;background:#8E8A82;border-radius:999px"></div><div style="font:600 10px 'Space Mono',monospace;color:#141210">F</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:6px;background:#EFE9DF;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#C3BCAD">S</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:6px;background:#EFE9DF;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#C3BCAD">S</div></div>
+              </div>
+              <div style="display:flex;gap:14px;border-top:1px solid #F1EBE1;padding-top:12px">
+                <div style="display:flex;align-items:center;gap:6px;font:400 10.5px 'Space Mono',monospace;color:#8A8478"><div style="width:7px;height:7px;border-radius:50%;background:#141210"></div>ON TIME</div>
+                <div style="display:flex;align-items:center;gap:6px;font:400 10.5px 'Space Mono',monospace;color:#8A8478"><div style="width:7px;height:7px;border-radius:50%;background:#C8102E"></div>LATE</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="dv-card" style="width:250px;background:#141210;border-radius:14px;border-color:#141210">
+            <div style="padding:28px 22px;display:flex;flex-direction:column;gap:24px">
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <div style="width:34px;height:34px;border-radius:50%;background:#C8102E"></div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="font:300 24px/1.1 'Figtree',sans-serif;color:#fff;letter-spacing:-.03em">Hello<br><span style="font-weight:700">again</span></div>
+                  <div style="font:400 11px 'Space Mono',monospace;color:#8A8478;letter-spacing:.04em">CLOCK IN IN TWO TAPS</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="background:#1F1C19;border-radius:999px;padding:14px 17px;font:400 13px 'Figtree',sans-serif;color:#F2EEE7">ana@rezultz.com</div>
+                <div style="background:#1F1C19;border-radius:999px;padding:14px 17px;font:400 13px 'Space Mono',monospace;color:#F2EEE7;border:1.5px solid #C8102E">••••••••</div>
+                <div style="background:#C8102E;border-radius:999px;padding:15px;text-align:center;font:700 14px 'Figtree',sans-serif;color:#fff">Sign in</div>
+                <div style="border:1.5px solid #35302B;border-radius:999px;padding:14px;text-align:center;font:600 13px 'Figtree',sans-serif;color:#F2EEE7">Continue with Google</div>
+                <div style="text-align:center;font:400 11.5px 'Figtree',sans-serif;color:#8A8478;padding-top:4px">Forgot your password?</div>
+              </div>
+            </div>
+          </div>
+          <div class="dv-card" style="width:250px;border-radius:14px;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
+            <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.1em">AGENCY ACCENTS</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:20px;height:20px;border-radius:50%;background:#C8102E"></div><div style="font:400 11px 'Space Mono',monospace;color:#141210">INTERACTIVE · RED</div></div>
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:20px;height:20px;border-radius:50%;background:#141210"></div><div style="font:400 11px 'Space Mono',monospace;color:#141210">REZULTZ · INK</div></div>
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:20px;height:20px;border-radius:50%;background:#8E0B20"></div><div style="font:400 11px 'Space Mono',monospace;color:#141210">BRANDALERT · DEEP</div></div>
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:20px;height:20px;border-radius:50%;background:#E5605E"></div><div style="font:400 11px 'Space Mono',monospace;color:#141210">INNOVADDB · CORAL</div></div>
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:20px;height:20px;border-radius:50%;background:#8E8A82"></div><div style="font:400 11px 'Space Mono',monospace;color:#141210">P2P · STONE</div></div>
+            </div>
+            <div style="font:400 10.5px/1.6 'Space Mono',monospace;color:#6B6659;border-top:1px solid #F1EBE1;padding-top:9px">Agencies vary within the red-to-ink ramp — never a foreign hue. Accent shows on avatars, chips and chart bars only.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div class="dv-olabel" style="padding-left:2px">A4 sign</div>
+          <div class="dv-card" style="width:298px;height:421px;background:#141210;border-radius:14px;display:flex;flex-direction:column;align-items:center;padding:20px;box-sizing:border-box;gap:11px;position:relative;overflow:hidden">
+            <div style="position:absolute;left:-80px;bottom:-80px;width:210px;height:210px;border-radius:50%;background:#1D1A17"></div>
+            <div style="position:relative;display:flex;align-items:center;gap:8px;width:100%">
+              <div style="width:22px;height:22px;border-radius:50%;background:#C8102E"></div>
+              <div style="font:700 13px 'Figtree',sans-serif;color:#fff">Clockit</div>
+              <div style="flex:1"></div>
+              <div style="font:400 10px 'Space Mono',monospace;color:#8A8478;letter-spacing:.08em">HQ OSU</div>
+            </div>
+            <div style="position:relative;text-align:center;display:flex;flex-direction:column;gap:4px">
+              <div style="font:300 25px/1.06 'Figtree',sans-serif;color:#F7F4EF;letter-spacing:-.03em">Scan to<br><span style="font-weight:700">clock in</span></div>
+            </div>
+            <div style="position:relative;background:#fff;border-radius:22px;padding:13px">{{ qrInk }}</div>
+            <div style="position:relative;display:flex;flex-direction:column;gap:6px;align-items:center;width:100%">
+              <div style="font:400 11.5px/1.45 'Figtree',sans-serif;color:#B9B1A5;text-align:center;max-width:206px">Open your camera, sign in, tap the red button. Takes five seconds.</div>
+              <div style="display:flex;gap:6px">
+                <div style="background:#C8102E;border-radius:999px;padding:4px 10px;font:400 9.5px 'Space Mono',monospace;color:#fff">NO APP NEEDED</div>
+                <div style="border:1px solid #35302B;border-radius:999px;padding:4px 10px;font:400 9.5px 'Space Mono',monospace;color:#B9B1A5">08:00–18:00</div>
+              </div>
+            </div>
+            <div style="position:relative;margin-top:auto;font:400 9px 'Space Mono',monospace;color:#6B6659;letter-spacing:.04em">CLOCKIT.INTERACTIVEDIGITAL.COM.GH</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "go with <a class="dv-oid" href="#2b">2b</a> — build the admin tables and the spec sheet" · "<a class="dv-oid" href="#2a">2a</a> but the clock card in black on dark mode only" · "show the six edge states"</p>
+</section>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Three visual directions — employee mobile first</span></div>
+  <p class="dv-note">No codebase landed, so this is built from the brief: Next.js 16 + Tailwind v4 + base-ui, Lucide icons, light + dark, per-agency accent, warm copy, QR-camera + geolocation clock-in. Each direction below is a complete token set (type, palette, radius, density) shown on the two screens that matter most — <b>/login</b> and <b>/dashboard/me</b> at 390px — plus a dark-mode slice and the printed A4 QR sign in that direction. Pick one and I'll take it through the admin tables, all six edge cases, and the token/component spec.</p>
+
+  <div class="dv-opts">
+
+    <!-- ========== 1a ========== -->
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Refined Indigo — evolution of what exists. Public Sans + Roboto Mono, 12px radius, cool neutrals.</div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+
+        <div class="dv-card" style="width:390px;background:#F7F8FB;font-family:'Public Sans',sans-serif">
+          <div style="display:flex;justify-content:space-between;padding:10px 20px 4px;font:500 11px 'Roboto Mono',monospace;color:#9AA0AE">9:41<span>Interactive Digital</span></div>
+          <div style="padding:18px 20px 26px;display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:30px;height:30px;border-radius:9px;background:#4F46E5;display:flex;align-items:center;justify-content:center;color:#fff;font:700 13px 'Public Sans',sans-serif">C</div>
+              <div style="font:700 16px/1 'Public Sans',sans-serif;color:#15161C;letter-spacing:-.01em">Clockit</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="font:700 24px/1.2 'Public Sans',sans-serif;color:#15161C;letter-spacing:-.02em">Good morning, Ana</div>
+              <div style="font:400 14px/1.45 'Public Sans',sans-serif;color:#6B7180">Wednesday, 5 August · Rezultz</div>
+            </div>
+            <div style="display:flex;gap:10px;padding:12px 14px;background:#FFF8ED;border:1px solid #F5DFB6;border-radius:12px">
+              <div style="width:16px;height:16px;border-radius:50%;background:#D9902A;flex:none;margin-top:1px"></div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="font:600 13px/1.35 'Public Sans',sans-serif;color:#6B4A12">You didn't clock out yesterday</div>
+                <div style="font:400 12.5px/1.45 'Public Sans',sans-serif;color:#8A6524">We closed the session at 6:00 PM. Tell your admin if that's wrong.</div>
+                <div style="font:600 12.5px 'Public Sans',sans-serif;color:#B0761C">Report an issue →</div>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #E7E9F0;border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:18px;box-shadow:0 1px 2px rgba(20,22,35,.04)">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="display:flex;align-items:center;gap:7px">
+                  <div style="width:7px;height:7px;border-radius:50%;background:#18A05A"></div>
+                  <div style="font:600 12px 'Public Sans',sans-serif;color:#18A05A;letter-spacing:.04em;text-transform:uppercase">Clocked in</div>
+                </div>
+                <div style="font:500 11.5px 'Roboto Mono',monospace;color:#9AA0AE">SESSION 2</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <div style="font:500 44px/1 'Roboto Mono',monospace;color:#15161C;letter-spacing:-.03em">04:18:07</div>
+                <div style="font:400 13px 'Public Sans',sans-serif;color:#6B7180">since 8:42 AM · 6h 02m today</div>
+              </div>
+              <div style="display:flex;gap:10px">
+                <div style="flex:1;background:#4F46E5;border-radius:12px;padding:16px;text-align:center;font:600 15px 'Public Sans',sans-serif;color:#fff;box-shadow:0 2px 8px rgba(79,70,229,.28)">Clock out</div>
+                <div style="width:52px;border:1px solid #E7E9F0;border-radius:12px;display:flex;align-items:center;justify-content:center">
+                  <div style="width:20px;height:20px;border:2.5px solid #4F46E5;border-radius:5px"></div>
+                </div>
+              </div>
+              <div style="font:400 12px/1.4 'Public Sans',sans-serif;color:#9AA0AE;text-align:center">Location verified · HQ Osu, 40m</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <div style="font:600 13px 'Public Sans',sans-serif;color:#15161C">Today</div>
+                <div style="font:400 12.5px 'Public Sans',sans-serif;color:#6B7180">2 sessions</div>
+              </div>
+              <div style="background:#fff;border:1px solid #E7E9F0;border-radius:12px;overflow:hidden">
+                <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid #F1F2F7">
+                  <div style="width:6px;height:34px;border-radius:3px;background:#4F46E5"></div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                    <div style="font:500 13.5px 'Roboto Mono',monospace;color:#15161C">08:42 — 12:26</div>
+                    <div style="font:400 12px 'Public Sans',sans-serif;color:#6B7180">QR · main entrance</div>
+                  </div>
+                  <div style="font:500 12.5px 'Roboto Mono',monospace;color:#6B7180">3h 44m</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;padding:13px 14px">
+                  <div style="width:6px;height:34px;border-radius:3px;background:#A5A0F5"></div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                    <div style="font:500 13.5px 'Roboto Mono',monospace;color:#15161C">13:04 — <span style="color:#18A05A">now</span></div>
+                    <div style="font:400 12px 'Public Sans',sans-serif;color:#6B7180">In app · location</div>
+                  </div>
+                  <div style="font:500 12.5px 'Roboto Mono',monospace;color:#6B7180">2h 18m</div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font:600 13px 'Public Sans',sans-serif;color:#15161C">This week</div>
+              <div style="background:#fff;border:1px solid #E7E9F0;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;align-items:flex-end;gap:8px;height:64px">
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:44px;background:#E4E2FB;border-radius:5px"></div><div style="font:500 10.5px 'Roboto Mono',monospace;color:#9AA0AE">M</div></div>
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:52px;background:#E4E2FB;border-radius:5px"></div><div style="font:500 10.5px 'Roboto Mono',monospace;color:#9AA0AE">T</div></div>
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:38px;background:#F5D9A8;border-radius:5px"></div><div style="font:500 10.5px 'Roboto Mono',monospace;color:#9AA0AE">W</div></div>
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:48px;background:#E4E2FB;border-radius:5px"></div><div style="font:500 10.5px 'Roboto Mono',monospace;color:#9AA0AE">T</div></div>
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:30px;background:#4F46E5;border-radius:5px"></div><div style="font:500 10.5px 'Roboto Mono',monospace;color:#15161C">F</div></div>
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:6px;background:#F1F2F7;border-radius:5px"></div><div style="font:500 10.5px 'Roboto Mono',monospace;color:#C6CAD4">S</div></div>
+                  <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:6px;background:#F1F2F7;border-radius:5px"></div><div style="font:500 10.5px 'Roboto Mono',monospace;color:#C6CAD4">S</div></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-top:1px solid #F1F2F7;padding-top:12px">
+                  <div style="font:400 12.5px 'Public Sans',sans-serif;color:#6B7180">32h 10m logged</div>
+                  <div style="font:500 12.5px 'Roboto Mono',monospace;color:#15161C">1 late</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="dv-card" style="width:250px;background:#F7F8FB">
+            <div style="padding:26px 22px 24px;display:flex;flex-direction:column;gap:20px">
+              <div style="display:flex;flex-direction:column;gap:14px;align-items:flex-start">
+                <div style="width:34px;height:34px;border-radius:10px;background:#4F46E5;display:flex;align-items:center;justify-content:center;color:#fff;font:700 15px 'Public Sans',sans-serif">C</div>
+                <div style="display:flex;flex-direction:column;gap:4px">
+                  <div style="font:700 20px/1.15 'Public Sans',sans-serif;color:#15161C;letter-spacing:-.02em">Welcome back</div>
+                  <div style="font:400 13px/1.4 'Public Sans',sans-serif;color:#6B7180">Sign in to clock in and out.</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="background:#fff;border:1px solid #E7E9F0;border-radius:10px;padding:12px 13px;font:400 13px 'Public Sans',sans-serif;color:#15161C">ana@rezultz.com</div>
+                <div style="background:#fff;border:1px solid #4F46E5;border-radius:10px;padding:12px 13px;font:500 13px 'Roboto Mono',monospace;color:#15161C;box-shadow:0 0 0 3px rgba(79,70,229,.12)">••••••••</div>
+                <div style="background:#4F46E5;border-radius:10px;padding:13px;text-align:center;font:600 14px 'Public Sans',sans-serif;color:#fff">Sign in</div>
+                <div style="display:flex;align-items:center;gap:10px;padding:4px 0"><div style="flex:1;height:1px;background:#E7E9F0"></div><div style="font:400 11px 'Public Sans',sans-serif;color:#9AA0AE">or</div><div style="flex:1;height:1px;background:#E7E9F0"></div></div>
+                <div style="background:#fff;border:1px solid #E7E9F0;border-radius:10px;padding:12px;text-align:center;font:600 13.5px 'Public Sans',sans-serif;color:#15161C">Continue with Google</div>
+              </div>
+            </div>
+          </div>
+          <div class="dv-card" style="width:250px;background:#111219;border-color:#22242E">
+            <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+              <div style="font:500 10px 'Roboto Mono',monospace;color:#6B7180;letter-spacing:.08em">DARK</div>
+              <div style="background:#191B24;border:1px solid #262936;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:7px"><div style="width:7px;height:7px;border-radius:50%;background:#34D77F"></div><div style="font:600 11px 'Public Sans',sans-serif;color:#34D77F;letter-spacing:.04em;text-transform:uppercase">Clocked in</div></div>
+                <div style="font:500 32px/1 'Roboto Mono',monospace;color:#F2F3F7;letter-spacing:-.03em">04:18:07</div>
+                <div style="background:#6C63FF;border-radius:10px;padding:13px;text-align:center;font:600 14px 'Public Sans',sans-serif;color:#fff">Clock out</div>
+              </div>
+            </div>
+          </div>
+          <div class="dv-card" style="width:250px;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
+            <div style="font:500 10px 'Roboto Mono',monospace;color:#9AA0AE;letter-spacing:.08em">TOKENS</div>
+            <div style="display:flex;gap:6px">
+              <div style="flex:1;height:34px;border-radius:7px;background:#4F46E5"></div>
+              <div style="flex:1;height:34px;border-radius:7px;background:#A5A0F5"></div>
+              <div style="flex:1;height:34px;border-radius:7px;background:#E4E2FB"></div>
+              <div style="flex:1;height:34px;border-radius:7px;background:#15161C"></div>
+              <div style="flex:1;height:34px;border-radius:7px;background:#F7F8FB;border:1px solid #E7E9F0"></div>
+            </div>
+            <div style="font:400 11px/1.5 'Roboto Mono',monospace;color:#6B7180">--primary oklch(.51 .21 273)<br>--radius 12px · scale 4/8/12/18/26</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div class="dv-olabel" style="padding-left:2px">A4 sign</div>
+          <div class="dv-card" style="width:298px;height:421px;box-sizing:border-box;background:#fff;position:relative;display:flex;flex-direction:column">
+            <div style="background:#4F46E5;padding:16px 18px;display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:24px;height:24px;border-radius:7px;background:#fff;display:flex;align-items:center;justify-content:center;font:700 11px 'Public Sans',sans-serif;color:#4F46E5">C</div>
+                <div style="font:700 14px 'Public Sans',sans-serif;color:#fff;letter-spacing:-.01em">Clockit</div>
+              </div>
+              <div style="font:500 10px 'Roboto Mono',monospace;color:#BDB8FF;letter-spacing:.08em">HQ · OSU</div>
+            </div>
+            <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px">
+              <div style="text-align:center;display:flex;flex-direction:column;gap:4px">
+                <div style="font:700 23px/1.1 'Public Sans',sans-serif;color:#15161C;letter-spacing:-.025em">Scan to clock in</div>
+                <div style="font:400 12px/1.4 'Public Sans',sans-serif;color:#6B7180">Point your phone camera here.<br>No app needed.</div>
+              </div>
+              <div style="padding:11px;background:#fff;border:2px solid #E4E2FB;border-radius:16px">{{ qrIndigo }}</div>
+              <div style="display:flex;gap:12px;font:500 10px 'Roboto Mono',monospace;color:#9AA0AE">
+                <div>1. SCAN</div><div>2. SIGN IN</div><div>3. TAP CLOCK IN</div>
+              </div>
+            </div>
+            <div style="border-top:1px solid #F1F2F7;padding:11px 18px;display:flex;justify-content:space-between;font:400 10px 'Public Sans',sans-serif;color:#9AA0AE">
+              <div>clockit.interactivedigital.com.gh</div><div>Trouble? Ask HR</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========== 1b ========== -->
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Teal Utility — instrument-panel. Manrope + Azeret Mono, 6px radius, dense rules, agency accent bar.</div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+
+        <div class="dv-card" style="width:390px;background:#F4F6F6;font-family:'Manrope',sans-serif;border-radius:8px">
+          <div style="background:#0B2B30;padding:12px 18px;display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:9px">
+              <div style="width:9px;height:22px;background:#17A2AF"></div>
+              <div style="font:800 13px 'Manrope',sans-serif;color:#fff;letter-spacing:.02em">CLOCKIT</div>
+            </div>
+            <div style="font:500 10px 'Azeret Mono',monospace;color:#6E9298;letter-spacing:.1em">REZULTZ / HQ</div>
+          </div>
+          <div style="padding:0 0 22px">
+            <div style="padding:18px;background:#fff;border-bottom:1px solid #DFE5E5;display:flex;flex-direction:column;gap:3px">
+              <div style="font:700 21px/1.2 'Manrope',sans-serif;color:#0B2B30;letter-spacing:-.02em">Good morning, Ana</div>
+              <div style="font:500 11px 'Azeret Mono',monospace;color:#5F7B80;letter-spacing:.04em">WED 05 AUG 2026 · SHIFT 08:30–17:30</div>
+            </div>
+
+            <div style="background:#FFF4E2;border-bottom:1px solid #F0DCBB;padding:12px 18px;display:flex;gap:10px;align-items:flex-start">
+              <div style="width:14px;height:14px;background:#C9781A;flex:none;margin-top:2px"></div>
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <div style="font:700 12.5px 'Manrope',sans-serif;color:#6B4310">Missing clock-out · Tue 04 Aug</div>
+                <div style="font:500 11.5px/1.45 'Manrope',sans-serif;color:#8A5A1C">Auto-closed 18:00. <span style="text-decoration:underline">Request a correction</span></div>
+              </div>
+            </div>
+
+            <div style="background:#0B2B30;padding:22px 18px;display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <div style="font:500 10px 'Azeret Mono',monospace;color:#17A2AF;letter-spacing:.14em">● ON THE CLOCK</div>
+                <div style="font:500 10px 'Azeret Mono',monospace;color:#6E9298;letter-spacing:.1em">SESSION 02</div>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:10px">
+                <div style="font:500 46px/.95 'Azeret Mono',monospace;color:#fff;letter-spacing:-.04em">4:18</div>
+                <div style="font:500 15px 'Azeret Mono',monospace;color:#8FB4B8">:07</div>
+              </div>
+              <div style="display:flex;gap:22px;border-top:1px solid #1B444A;padding-top:14px">
+                <div style="display:flex;flex-direction:column;gap:3px"><div style="font:500 9.5px 'Azeret Mono',monospace;color:#6E9298;letter-spacing:.1em">IN</div><div style="font:500 14px 'Azeret Mono',monospace;color:#fff">13:04</div></div>
+                <div style="display:flex;flex-direction:column;gap:3px"><div style="font:500 9.5px 'Azeret Mono',monospace;color:#6E9298;letter-spacing:.1em">TODAY</div><div style="font:500 14px 'Azeret Mono',monospace;color:#fff">6:02</div></div>
+                <div style="display:flex;flex-direction:column;gap:3px"><div style="font:500 9.5px 'Azeret Mono',monospace;color:#6E9298;letter-spacing:.1em">GEO</div><div style="font:500 14px 'Azeret Mono',monospace;color:#17A2AF">OK 40m</div></div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <div style="flex:1;background:#17A2AF;border-radius:6px;padding:17px;text-align:center;font:800 15px 'Manrope',sans-serif;color:#04262B;letter-spacing:.01em">CLOCK OUT</div>
+                <div style="width:56px;border:1px solid #2A585F;border-radius:6px;display:flex;align-items:center;justify-content:center">
+                  <div style="width:20px;height:20px;border:2.5px solid #17A2AF"></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:#fff;border-bottom:1px solid #DFE5E5">
+              <div style="padding:11px 18px;display:flex;justify-content:space-between;border-bottom:1px solid #EDF1F1">
+                <div style="font:500 10px 'Azeret Mono',monospace;color:#5F7B80;letter-spacing:.12em">TODAY · 2 SESSIONS</div>
+                <div style="font:500 10px 'Azeret Mono',monospace;color:#17A2AF;letter-spacing:.08em">6:02 TOTAL</div>
+              </div>
+              <div style="display:grid;grid-template-columns:auto 1fr auto;gap:0 12px;align-items:center;padding:12px 18px;border-bottom:1px solid #EDF1F1">
+                <div style="font:500 12.5px 'Azeret Mono',monospace;color:#0B2B30">08:42→12:26</div>
+                <div style="font:500 11px 'Manrope',sans-serif;color:#5F7B80">QR · entrance</div>
+                <div style="font:500 12.5px 'Azeret Mono',monospace;color:#0B2B30">3:44</div>
+              </div>
+              <div style="display:grid;grid-template-columns:auto 1fr auto;gap:0 12px;align-items:center;padding:12px 18px">
+                <div style="font:500 12.5px 'Azeret Mono',monospace;color:#0B2B30">13:04→<span style="color:#17A2AF">····</span></div>
+                <div style="font:500 11px 'Manrope',sans-serif;color:#5F7B80">app · geo</div>
+                <div style="font:500 12.5px 'Azeret Mono',monospace;color:#0B2B30">2:18</div>
+              </div>
+            </div>
+
+            <div style="background:#fff">
+              <div style="padding:11px 18px;border-bottom:1px solid #EDF1F1;font:500 10px 'Azeret Mono',monospace;color:#5F7B80;letter-spacing:.12em">LAST 7 DAYS</div>
+              <div style="padding:16px 18px;display:flex;flex-direction:column;gap:8px">
+                <div style="display:grid;grid-template-columns:38px 1fr 46px;align-items:center;gap:10px"><div style="font:500 10.5px 'Azeret Mono',monospace;color:#5F7B80">MON</div><div style="height:9px;background:#DFE5E5"><div style="width:88%;height:9px;background:#17A2AF"></div></div><div style="font:500 10.5px 'Azeret Mono',monospace;color:#0B2B30;text-align:right">8:12</div></div>
+                <div style="display:grid;grid-template-columns:38px 1fr 46px;align-items:center;gap:10px"><div style="font:500 10.5px 'Azeret Mono',monospace;color:#5F7B80">TUE</div><div style="height:9px;background:#DFE5E5"><div style="width:96%;height:9px;background:#17A2AF"></div></div><div style="font:500 10.5px 'Azeret Mono',monospace;color:#0B2B30;text-align:right">8:58</div></div>
+                <div style="display:grid;grid-template-columns:38px 1fr 46px;align-items:center;gap:10px"><div style="font:500 10.5px 'Azeret Mono',monospace;color:#C9781A">WED</div><div style="height:9px;background:#DFE5E5"><div style="width:70%;height:9px;background:#C9781A"></div></div><div style="font:500 10.5px 'Azeret Mono',monospace;color:#0B2B30;text-align:right">6:40</div></div>
+                <div style="display:grid;grid-template-columns:38px 1fr 46px;align-items:center;gap:10px"><div style="font:500 10.5px 'Azeret Mono',monospace;color:#5F7B80">THU</div><div style="height:9px;background:#DFE5E5"><div style="width:90%;height:9px;background:#17A2AF"></div></div><div style="font:500 10.5px 'Azeret Mono',monospace;color:#0B2B30;text-align:right">8:24</div></div>
+                <div style="display:grid;grid-template-columns:38px 1fr 46px;align-items:center;gap:10px"><div style="font:700 10.5px 'Azeret Mono',monospace;color:#0B2B30">FRI</div><div style="height:9px;background:#DFE5E5"><div style="width:64%;height:9px;background:#0B2B30"></div></div><div style="font:500 10.5px 'Azeret Mono',monospace;color:#0B2B30;text-align:right">6:02</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="dv-card" style="width:250px;background:#0B2B30;border-radius:8px;border-color:#0B2B30">
+            <div style="padding:26px 22px 24px;display:flex;flex-direction:column;gap:22px">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:9px;height:22px;background:#17A2AF"></div>
+                <div style="font:800 13px 'Manrope',sans-serif;color:#fff;letter-spacing:.02em">CLOCKIT</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <div style="font:700 20px/1.15 'Manrope',sans-serif;color:#fff;letter-spacing:-.02em">Sign in</div>
+                <div style="font:500 11px 'Azeret Mono',monospace;color:#6E9298;letter-spacing:.06em">INTERACTIVE DIGITAL GROUP</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="background:#04262B;border:1px solid #2A585F;border-radius:6px;padding:12px 13px;font:500 12.5px 'Manrope',sans-serif;color:#fff">ana@rezultz.com</div>
+                <div style="background:#04262B;border:1px solid #17A2AF;border-radius:6px;padding:12px 13px;font:500 12.5px 'Azeret Mono',monospace;color:#fff">••••••••</div>
+                <div style="background:#17A2AF;border-radius:6px;padding:14px;text-align:center;font:800 13.5px 'Manrope',sans-serif;color:#04262B;letter-spacing:.02em">SIGN IN</div>
+                <div style="border:1px solid #2A585F;border-radius:6px;padding:13px;text-align:center;font:700 12.5px 'Manrope',sans-serif;color:#fff">Continue with Google</div>
+              </div>
+            </div>
+          </div>
+          <div class="dv-card" style="width:250px;border-radius:8px;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px">
+            <div style="font:500 10px 'Azeret Mono',monospace;color:#5F7B80;letter-spacing:.1em">AGENCY ACCENTS</div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:22px;height:10px;background:#17A2AF"></div><div style="font:500 11px 'Azeret Mono',monospace;color:#0B2B30">REZULTZ</div></div>
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:22px;height:10px;background:#C9781A"></div><div style="font:500 11px 'Azeret Mono',monospace;color:#0B2B30">BRANDALERT</div></div>
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:22px;height:10px;background:#5A6ACF"></div><div style="font:500 11px 'Azeret Mono',monospace;color:#0B2B30">INNOVADDB</div></div>
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:22px;height:10px;background:#2E8B57"></div><div style="font:500 11px 'Azeret Mono',monospace;color:#0B2B30">P2P</div></div>
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:22px;height:10px;background:#0B2B30"></div><div style="font:500 11px 'Azeret Mono',monospace;color:#0B2B30">INTERACTIVE</div></div>
+            </div>
+            <div style="font:400 10.5px/1.5 'Azeret Mono',monospace;color:#5F7B80;border-top:1px solid #EDF1F1;padding-top:9px">Accent only on chrome + charts. Actions stay teal.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div class="dv-olabel" style="padding-left:2px">A4 sign</div>
+          <div class="dv-card" style="width:298px;height:421px;background:#0B2B30;border-radius:8px;display:flex;flex-direction:column;padding:18px;box-sizing:border-box;gap:13px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:9px"><div style="width:9px;height:22px;background:#17A2AF"></div><div style="font:800 13px 'Manrope',sans-serif;color:#fff;letter-spacing:.02em">CLOCKIT</div></div>
+              <div style="font:500 10px 'Azeret Mono',monospace;color:#6E9298;letter-spacing:.1em">HQ / OSU</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font:800 26px/1.02 'Manrope',sans-serif;color:#fff;letter-spacing:-.035em">SCAN TO<br>CLOCK IN</div>
+              <div style="font:500 10.5px 'Azeret Mono',monospace;color:#17A2AF;letter-spacing:.06em">08:00 – 18:00 · MON–FRI</div>
+            </div>
+            <div style="background:#fff;padding:12px;display:flex;align-items:center;justify-content:center">{{ qrTeal }}</div>
+            <div style="display:flex;flex-direction:column;gap:5px;margin-top:auto">
+              <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 10px;font:500 10px 'Azeret Mono',monospace;color:#8FB4B8">
+                <div style="color:#17A2AF">01</div><div>OPEN YOUR PHONE CAMERA</div>
+                <div style="color:#17A2AF">02</div><div>SIGN IN WITH YOUR WORK EMAIL</div>
+                <div style="color:#17A2AF">03</div><div>TAP CLOCK IN — DONE</div>
+              </div>
+              <div style="border-top:1px solid #1B444A;padding-top:8px;font:400 9px 'Azeret Mono',monospace;color:#5F7B80">CLOCKIT.INTERACTIVEDIGITAL.COM.GH</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========== 1c ========== -->
+    <div class="dv-opt" id="1c">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Forest Paper — warm and human. Figtree + Space Mono, 20px radius, ink-on-paper, one big affordance.</div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+
+        <div class="dv-card" style="width:390px;background:#F6F3EC;font-family:'Figtree',sans-serif;border-radius:14px">
+          <div style="padding:22px 22px 28px;display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:9px">
+                <div style="width:26px;height:26px;border-radius:50%;background:#1F6F4A"></div>
+                <div style="font:700 15px 'Figtree',sans-serif;color:#1B1A16;letter-spacing:-.01em">Clockit</div>
+              </div>
+              <div style="width:30px;height:30px;border-radius:50%;background:#E6E0D3;display:flex;align-items:center;justify-content:center;font:700 11px 'Figtree',sans-serif;color:#6B6656">AO</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font:300 30px/1.1 'Figtree',sans-serif;color:#1B1A16;letter-spacing:-.03em">Good morning,<br><span style="font-weight:700">Ana</span></div>
+              <div style="font:400 12px 'Space Mono',monospace;color:#8A8471;letter-spacing:.02em">WED 5 AUG · REZULTZ</div>
+            </div>
+
+            <div style="background:#FBF6EA;border:1px dashed #D9BE7E;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:5px">
+              <div style="font:600 13px 'Figtree',sans-serif;color:#7A5410">Yesterday's session stayed open</div>
+              <div style="font:400 12.5px/1.5 'Figtree',sans-serif;color:#96794A">We closed it at 6:00 PM for you. <span style="color:#1F6F4A;font-weight:600;text-decoration:underline">Fix the time</span></div>
+            </div>
+
+            <div style="background:#1F6F4A;border-radius:26px;padding:26px 22px;display:flex;flex-direction:column;gap:22px;color:#fff;position:relative;overflow:hidden">
+              <div style="position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:#2A8659"></div>
+              <div style="position:relative;display:flex;flex-direction:column;gap:16px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="font:400 11px 'Space Mono',monospace;color:#A8DCC0;letter-spacing:.1em">ON THE CLOCK</div>
+                  <div style="background:rgba(255,255,255,.16);border-radius:999px;padding:4px 10px;font:400 10.5px 'Space Mono',monospace;color:#E4F4EB">2ND SESSION</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="font:400 46px/1 'Space Mono',monospace;letter-spacing:-.04em">4:18:07</div>
+                  <div style="font:400 13px 'Figtree',sans-serif;color:#BFE6D0">Since 1:04 PM · 6h 02m today</div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:center">
+                  <div style="flex:1;background:#FBF8F1;border-radius:999px;padding:18px;text-align:center;font:700 16px 'Figtree',sans-serif;color:#1F6F4A">Clock out</div>
+                  <div style="width:58px;height:58px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center">
+                    <div style="width:20px;height:20px;border:2.5px solid #fff;border-radius:6px"></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:7px;font:400 11.5px 'Figtree',sans-serif;color:#A8DCC0">
+                  <div style="width:5px;height:5px;border-radius:50%;background:#A8DCC0"></div>At HQ Osu · location confirmed
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font:400 11px 'Space Mono',monospace;color:#8A8471;letter-spacing:.1em">TODAY</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="background:#fff;border-radius:18px;padding:15px 17px;display:flex;align-items:center;gap:14px">
+                  <div style="width:36px;height:36px;border-radius:50%;background:#E8F1EC;display:flex;align-items:center;justify-content:center;font:400 10px 'Space Mono',monospace;color:#1F6F4A">QR</div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                    <div style="font:600 14px 'Figtree',sans-serif;color:#1B1A16">8:42 AM — 12:26 PM</div>
+                    <div style="font:400 12px 'Figtree',sans-serif;color:#8A8471">Main entrance</div>
+                  </div>
+                  <div style="font:400 12.5px 'Space Mono',monospace;color:#5C5747">3h44</div>
+                </div>
+                <div style="background:#fff;border-radius:18px;padding:15px 17px;display:flex;align-items:center;gap:14px;border:1.5px solid #1F6F4A">
+                  <div style="width:36px;height:36px;border-radius:50%;background:#1F6F4A"></div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                    <div style="font:600 14px 'Figtree',sans-serif;color:#1B1A16">1:04 PM — now</div>
+                    <div style="font:400 12px 'Figtree',sans-serif;color:#1F6F4A">Running</div>
+                  </div>
+                  <div style="font:400 12.5px 'Space Mono',monospace;color:#5C5747">2h18</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:#fff;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <div style="font:400 11px 'Space Mono',monospace;color:#8A8471;letter-spacing:.1em">THIS WEEK</div>
+                <div style="font:600 13px 'Figtree',sans-serif;color:#1B1A16">32h 10m</div>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:9px;height:60px">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:42px;background:#CFE4D8;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8471">M</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:50px;background:#CFE4D8;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8471">T</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:34px;background:#E8CE97;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8471">W</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:46px;background:#CFE4D8;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#8A8471">T</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:28px;background:#1F6F4A;border-radius:999px"></div><div style="font:600 10px 'Space Mono',monospace;color:#1B1A16">F</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:6px;background:#EDE8DC;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#C2BCAA">S</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:6px;background:#EDE8DC;border-radius:999px"></div><div style="font:400 10px 'Space Mono',monospace;color:#C2BCAA">S</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="dv-card" style="width:250px;background:#F6F3EC;border-radius:14px">
+            <div style="padding:28px 22px;display:flex;flex-direction:column;gap:24px">
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <div style="width:34px;height:34px;border-radius:50%;background:#1F6F4A"></div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="font:300 24px/1.1 'Figtree',sans-serif;color:#1B1A16;letter-spacing:-.03em">Hello<br><span style="font-weight:700">again</span></div>
+                  <div style="font:400 11px 'Space Mono',monospace;color:#8A8471;letter-spacing:.04em">CLOCK IN IN TWO TAPS</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="background:#fff;border-radius:999px;padding:14px 17px;font:400 13px 'Figtree',sans-serif;color:#1B1A16">ana@rezultz.com</div>
+                <div style="background:#fff;border-radius:999px;padding:14px 17px;font:400 13px 'Space Mono',monospace;color:#1B1A16;border:1.5px solid #1F6F4A">••••••••</div>
+                <div style="background:#1F6F4A;border-radius:999px;padding:15px;text-align:center;font:700 14px 'Figtree',sans-serif;color:#fff">Sign in</div>
+                <div style="background:transparent;border:1.5px solid #DCD5C6;border-radius:999px;padding:14px;text-align:center;font:600 13px 'Figtree',sans-serif;color:#1B1A16">Continue with Google</div>
+                <div style="text-align:center;font:400 11.5px 'Figtree',sans-serif;color:#8A8471;padding-top:4px">Forgot your password?</div>
+              </div>
+            </div>
+          </div>
+          <div class="dv-card" style="width:250px;background:#14150F;border-radius:14px;border-color:#262719">
+            <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
+              <div style="font:400 10px 'Space Mono',monospace;color:#8A8471;letter-spacing:.1em">DARK</div>
+              <div style="background:#2E8659;border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px">
+                <div style="font:400 10.5px 'Space Mono',monospace;color:#BFE6D0;letter-spacing:.1em">ON THE CLOCK</div>
+                <div style="font:400 34px/1 'Space Mono',monospace;color:#fff;letter-spacing:-.04em">4:18:07</div>
+                <div style="background:#F6F3EC;border-radius:999px;padding:14px;text-align:center;font:700 14px 'Figtree',sans-serif;color:#1B4D34">Clock out</div>
+              </div>
+              <div style="font:400 10.5px/1.5 'Space Mono',monospace;color:#6B6656">PAPER → #14150F<br>CARD → #1E1F17</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div class="dv-olabel" style="padding-left:2px">A4 sign</div>
+          <div class="dv-card" style="width:298px;height:421px;background:#F6F3EC;border-radius:14px;display:flex;flex-direction:column;align-items:center;padding:20px;box-sizing:border-box;gap:11px;position:relative;overflow:hidden">
+            <div style="position:absolute;left:-70px;bottom:-70px;width:200px;height:200px;border-radius:50%;background:#EDE8DC"></div>
+            <div style="position:relative;display:flex;align-items:center;gap:8px">
+              <div style="width:22px;height:22px;border-radius:50%;background:#1F6F4A"></div>
+              <div style="font:700 13px 'Figtree',sans-serif;color:#1B1A16">Clockit</div>
+              <div style="width:1px;height:14px;background:#D3CCBC"></div>
+              <div style="font:400 10px 'Space Mono',monospace;color:#8A8471;letter-spacing:.08em">HQ OSU</div>
+            </div>
+            <div style="position:relative;text-align:center;display:flex;flex-direction:column;gap:4px">
+              <div style="font:300 25px/1.06 'Figtree',sans-serif;color:#1B1A16;letter-spacing:-.03em">Scan to<br><span style="font-weight:700">clock in</span></div>
+            </div>
+            <div style="position:relative;background:#fff;border-radius:22px;padding:13px;box-shadow:0 3px 14px rgba(27,26,22,.07)">{{ qrForest }}</div>
+            <div style="position:relative;display:flex;flex-direction:column;gap:6px;align-items:center;width:100%">
+              <div style="font:400 11.5px/1.45 'Figtree',sans-serif;color:#5C5747;text-align:center;max-width:206px">Open your camera, sign in, tap the green button. Takes five seconds.</div>
+              <div style="display:flex;gap:6px">
+                <div style="background:#E8F1EC;border-radius:999px;padding:4px 10px;font:400 9.5px 'Space Mono',monospace;color:#1F6F4A">NO APP NEEDED</div>
+                <div style="background:#E8F1EC;border-radius:999px;padding:4px 10px;font:400 9.5px 'Space Mono',monospace;color:#1F6F4A">WORKS OFFLINE*</div>
+              </div>
+            </div>
+            <div style="position:relative;margin-top:auto;font:400 9px 'Space Mono',monospace;color:#A39C89;letter-spacing:.04em">CLOCKIT.INTERACTIVEDIGITAL.COM.GH</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "take <a class="dv-oid" href="#1c">1c</a> through the admin tables and the spec sheet" · "<a class="dv-oid" href="#1b">1b</a> but warmer neutrals" · "show me the six edge states on <a class="dv-oid" href="#1a">1a</a>"</p>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1000}}">
+class Component extends DCLogic {
+  qr(opts) {
+    const size = 25, cells = [], rnd = (() => { let s = 20260805; return () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff; })();
+    const grid = [];
+    for (let y = 0; y < size; y++) { grid.push([]); for (let x = 0; x < size; x++) grid[y].push(rnd() > 0.48); }
+    const finder = (ox, oy) => { for (let y = 0; y < 7; y++) for (let x = 0; x < 7; x++) {
+      const edge = x === 0 || y === 0 || x === 6 || y === 6, core = x > 1 && x < 5 && y > 1 && y < 5;
+      grid[oy + y][ox + x] = (edge || core) ? 'F' : false; } };
+    finder(0, 0); finder(size - 7, 0); finder(0, size - 7);
+    for (let y = 8; y < 17; y++) for (let x = 8; x < 17; x++) grid[y][x] = false;
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const v = grid[y][x];
+      cells.push(React.createElement('div', { key: y + '-' + x, style: {
+        background: v === 'F' ? opts.finder : v ? opts.dark : 'transparent',
+        borderRadius: opts.round ? '50%' : 0 } }));
+    }
+    return React.createElement('div', { style: { position: 'relative', width: opts.width, height: opts.width } },
+      React.createElement('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(' + size + ', 1fr)', gridTemplateRows: 'repeat(' + size + ', 1fr)', gap: opts.round ? '1px' : 0, width: '100%', height: '100%', background: opts.light } }, cells),
+      React.createElement('div', { style: { position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: '30%', height: '30%', borderRadius: opts.logoRound, background: opts.logoBg, color: opts.logoFg, display: 'flex', alignItems: 'center', justifyContent: 'center', font: opts.logoFont } }, 'C')
+    );
+  }
+  nav(active) {
+    return ['Overview', 'Attendance', 'Employees', 'Agencies', 'Users', 'QR code'].map(label => ({
+      label,
+      bg: label === active ? '#FFFFFF' : 'transparent',
+      color: label === active ? '#141210' : '#9A9287',
+      weight: label === active ? '600 13px' : '500 13px',
+      dot: label === active ? '#C8102E' : 'transparent'
+    }));
+  }
+  renderVals() {
+    const A = (name, initials, agency, inT, outT, total, status) => {
+      const map = {
+        In: { dot: '#C8102E', badgeBg: '#FBE9EC', badgeFg: '#C8102E' },
+        Done: { dot: '#141210', badgeBg: '#F3EDE4', badgeFg: '#5C5749' },
+        Late: { dot: '#C8102E', badgeBg: '#141210', badgeFg: '#fff' },
+        Missing: { dot: '#8E8A82', badgeBg: '#fff', badgeFg: '#8E8A82' }
+      }[status];
+      return { name, initials, agency, inT, outT, total, status, ...map };
+    };
+    return {
+      navOverview: this.nav('Overview'),
+      navAttendance: this.nav('Attendance'),
+      navEmployees: this.nav('Employees'),
+      navQr: this.nav('QR code'),
+      attRows: [
+        A('Ana Otoo', 'AO', 'Rezultz', '08:42', '—', '6h 02m', 'In'),
+        A('Kwame Asare', 'KA', 'Rezultz', '08:02', '17:34', '9h 32m', 'Done'),
+        A('Nana Vodi', 'NV', 'BrandAlert', '09:26', '—', '4h 18m', 'Late'),
+        A('James Boateng', 'JB', 'InnovaDDB', '07:58', '17:58', '10h 00m', 'Done'),
+        A('Mabel Aggrey', 'MA', 'P2P', '08:15', '—', '—', 'Missing'),
+        A('Yaw Mensah', 'YM', 'Interactive', '08:31', '16:44', '8h 13m', 'Done'),
+        A('Efua Danso', 'ED', 'Rezultz', '09:41', '—', '3h 02m', 'Late')
+      ],
+      empRows: [
+        { name: 'Ana Otoo', initials: 'AO', email: 'ana@rezultz.com', agency: 'Rezultz', role: 'Designer', accent: '#141210', rate: '96%' },
+        { name: 'Kwame Asare', initials: 'KA', email: 'kwame@rezultz.com', agency: 'Rezultz', role: 'Copywriter', accent: '#141210', rate: '99%' },
+        { name: 'Nana Vodi', initials: 'NV', email: 'nana@brandalert.gh', agency: 'BrandAlert', role: 'Account lead', accent: '#8E0B20', rate: '88%' },
+        { name: 'James Boateng', initials: 'JB', email: 'james@innovaddb.com', agency: 'InnovaDDB', role: 'Art director', accent: '#E5605E', rate: '94%' },
+        { name: 'Mabel Aggrey', initials: 'MA', email: 'mabel@p2p.gh', agency: 'P2P', role: 'Producer', accent: '#8E8A82', rate: '91%' }
+      ],
+      agencyRows: [
+        { name: 'Rezultz', accent: '#141210', people: '40', present: '34' },
+        { name: 'BrandAlert', accent: '#8E0B20', people: '38', present: '29' },
+        { name: 'InnovaDDB', accent: '#E5605E', people: '41', present: '36' },
+        { name: 'P2P', accent: '#8E8A82', people: '36', present: '31' }
+      ],
+      userRows: [
+        { name: 'Ama Nkrumah', initials: 'AN', email: 'ama@interactivedigital.com', role: 'Owner', badgeBg: '#141210', badgeFg: '#fff' },
+        { name: 'Kofi Bediako', initials: 'KB', email: 'kofi@interactivedigital.com', role: 'Admin', badgeBg: '#FBE9EC', badgeFg: '#C8102E' },
+        { name: 'Sena Awuku', initials: 'SA', email: 'sena@rezultz.com', role: 'HR', badgeBg: '#F3EDE4', badgeFg: '#5C5749' }
+      ],
+      qrIndigo: this.qr({ width: 132, dark: '#2E2A6B', finder: '#4F46E5', light: '#fff', round: false, logoBg: '#4F46E5', logoFg: '#fff', logoRound: '12px', logoFont: "700 22px 'Public Sans',sans-serif" }),
+      qrTeal: this.qr({ width: 138, dark: '#0B2B30', finder: '#17A2AF', light: '#fff', round: false, logoBg: '#0B2B30', logoFg: '#17A2AF', logoRound: '0', logoFont: "800 22px 'Manrope',sans-serif" }),
+      qrRed: this.qr({ width: 130, dark: '#141210', finder: '#C8102E', light: '#fff', round: true, logoBg: '#C8102E', logoFg: '#fff', logoRound: '50%', logoFont: "700 22px 'Figtree',sans-serif" }),
+      qrInk: this.qr({ width: 130, dark: '#141210', finder: '#141210', light: '#fff', round: true, logoBg: '#C8102E', logoFg: '#fff', logoRound: '50%', logoFont: "700 22px 'Figtree',sans-serif" }),
+      qrForest: this.qr({ width: 130, dark: '#1B4D34', finder: '#1F6F4A', light: '#fff', round: true, logoBg: '#1F6F4A', logoFg: '#fff', logoRound: '50%', logoFont: "700 22px 'Figtree',sans-serif" })
+    };
+  }
+}
+</script>
+</body>
+</html>

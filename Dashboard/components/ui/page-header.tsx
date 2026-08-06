@@ -16,8 +16,8 @@ export function PageHeader({ title, description, className, children }: PageHead
   return (
     <div className={cn("flex items-center justify-between", className)}>
       <div>
-        <h1 className="text-3xl font-bold text-foreground">{title}</h1>
-        {description && <p className="text-muted-foreground mt-1">{description}</p>}
+        <h1 className="text-[26px] font-bold tracking-tight text-foreground">{title}</h1>
+        {description && <p className="mt-1 text-muted-foreground">{description}</p>}
       </div>
       {children && <div className="flex items-center gap-2">{children}</div>}
     </div>
