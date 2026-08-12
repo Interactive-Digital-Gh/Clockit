@@ -136,17 +136,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         isActive={isActive}
                         tooltip={item.label}
                         className={cn(
-                          "h-9.5 rounded-xl bg-transparent text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white/80",
+                          "relative h-9.5 rounded-xl bg-transparent text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white/80",
                           "data-active:bg-white data-active:text-[#141210] data-active:font-semibold data-active:hover:bg-white data-active:hover:text-[#141210]",
                           isCollapsed ? "justify-center px-0" : "px-3"
                         )}
                       >
-                        <span
-                          className={cn(
-                            "size-1.5 shrink-0 rounded-full",
-                            isActive ? "bg-primary" : "bg-transparent"
-                          )}
-                        />
+                        {!isCollapsed && (
+                          <span
+                            className={cn(
+                              "size-1.5 shrink-0 rounded-full",
+                              isActive ? "bg-primary" : "bg-transparent"
+                            )}
+                          />
+                        )}
                         <item.icon className="size-4 shrink-0" />
                         {!isCollapsed && (
                           <span className={cn("text-[13px]", isActive ? "font-semibold" : "font-medium")}>
