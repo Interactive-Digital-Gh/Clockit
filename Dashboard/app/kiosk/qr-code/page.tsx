@@ -66,7 +66,7 @@ export default function KioskQrCodePage() {
         <div className="bg-grid-ink pointer-events-none absolute inset-0" />
 
         <span className="relative rounded-full bg-amber-400 px-4 py-1.5 font-mono text-sm font-bold tracking-wide text-[#141210] uppercase">
-          Testing — Interactive Digital only
+          Testing — Interactive Digital only... for now
         </span>
 
         <div className="relative flex items-center gap-3">
