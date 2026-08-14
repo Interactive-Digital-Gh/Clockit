@@ -15,7 +15,9 @@ export function proxy(request: NextRequest) {
 
   if (!token && !isPublicRoute) {
     const url = request.nextUrl.clone()
+    const next = pathname + request.nextUrl.search
     url.pathname = "/login"
+    url.search = `?next=${encodeURIComponent(next)}`
     return NextResponse.redirect(url)
   }
 

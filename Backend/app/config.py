@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed origins for the dashboard. "*" for any.
     cors_origins: str = "*"
 
+    # --- Public URLs ----------------------------------------------------------
+    # The dashboard's own public origin — used to build the QR code's target
+    # link. Override locally (e.g. APP_URL=http://localhost:3000) to test the
+    # scan-to-clock-in flow against a local dashboard dev server.
+    app_url: str = "https://clockit.interactivedigital.com.gh"
+
     @property
     def allowed_google_client_ids(self) -> list[str]:
         ids = [self.google_web_client_id, self.google_ios_client_id]

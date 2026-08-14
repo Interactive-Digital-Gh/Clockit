@@ -45,7 +45,8 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   if (res.status === 401) {
     clearToken()
     if (typeof window !== "undefined" && window.location.pathname !== "/login") {
-      window.location.href = "/login"
+      const next = window.location.pathname + window.location.search
+      window.location.href = `/login?next=${encodeURIComponent(next)}`
     }
     throw new ApiError("Session expired — please sign in again.", 401)
   }

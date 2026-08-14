@@ -30,11 +30,17 @@ declare global {
   }
 }
 
+interface LoginFormProps extends React.ComponentPropsWithoutRef<"form"> {
+  /** Where to land after a successful sign-in — e.g. a QR scan link (/scan?t=...)
+   * that redirected here to authenticate first. Defaults to the dashboard home. */
+  redirectTo?: string
+}
+
 // Sign-in options:
 // - Google (production path): GIS button → ID token → POST /auth/google/admin.
 // - Password: for profiles that had a password set via /dashboard/users →
 //   POST /auth/login/password. Independent of Google.
-export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form">) {
+export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -43,9 +49,9 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 
   const finishLogin = useCallback(() => {
     toast.success("Signed in")
-    router.push("/dashboard")
+    router.push(redirectTo ?? "/dashboard")
     router.refresh()
-  }, [router])
+  }, [router, redirectTo])
 
   const initGoogle = useCallback(() => {
     if (!GOOGLE_CLIENT_ID || !window.google || !googleButtonRef.current) return

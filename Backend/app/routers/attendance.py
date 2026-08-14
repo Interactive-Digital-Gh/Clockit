@@ -15,6 +15,7 @@ import secrets
 
 from sqlalchemy import func
 
+from ..config import get_settings
 from ..database import get_db
 from ..deps import get_current_admin, get_current_employee, get_principal, require_roles
 from ..models import (
@@ -38,6 +39,16 @@ from ..services import attendance as svc
 from ..services.network import classify_location, get_client_ip
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
+settings = get_settings()
+
+
+def _mint_qr_token() -> str:
+    """A full clock-in link, not just an opaque code — scanning it with any
+    phone camera opens /scan, which handles login + one-tap clock-in. Only
+    the random suffix actually rotates; matching it against the live code is
+    a client-side UX nicety on /scan, not a server-side security check (same
+    as everywhere else in this app — ClockInRequest takes no token field)."""
+    return f"{settings.app_url}/scan?t={secrets.token_urlsafe(9)}"
 
 
 # --- Employee (mobile) ------------------------------------------------------
@@ -112,13 +123,13 @@ def _current_qr(db: Session) -> AttendanceQr:
 
 
 def _get_qr_settings(db: Session) -> AttendanceQrSettings:
-    settings = db.scalar(select(AttendanceQrSettings).limit(1))
-    if settings is None:  # pre-seed safety net; migration 0009 seeds the singleton row
-        settings = AttendanceQrSettings(rotation_minutes=None)
-        db.add(settings)
+    qr_settings = db.scalar(select(AttendanceQrSettings).limit(1))
+    if qr_settings is None:  # pre-seed safety net; migration 0009 seeds the singleton row
+        qr_settings = AttendanceQrSettings(rotation_minutes=None)
+        db.add(qr_settings)
         db.commit()
-        db.refresh(settings)
-    return settings
+        db.refresh(qr_settings)
+    return qr_settings
 
 
 def _current_qr_autorotate(db: Session) -> AttendanceQr:
@@ -126,14 +137,11 @@ def _current_qr_autorotate(db: Session) -> AttendanceQr:
     interval has elapsed since it was minted. rotation_minutes=None (the
     default) means manual-only — identical to _current_qr()."""
     qr = _current_qr(db)
-    settings = _get_qr_settings(db)
-    if settings.rotation_minutes is not None:
+    qr_settings = _get_qr_settings(db)
+    if qr_settings.rotation_minutes is not None:
         elapsed = datetime.now(timezone.utc) - qr.created_at
-        if elapsed >= timedelta(minutes=settings.rotation_minutes):
-            qr = AttendanceQr(
-                token=f"clockit:attendance:interactive-digital:{secrets.token_urlsafe(9)}",
-                rotated_by="auto",
-            )
+        if elapsed >= timedelta(minutes=qr_settings.rotation_minutes):
+            qr = AttendanceQr(token=_mint_qr_token(), rotated_by="auto")
             db.add(qr)
             db.commit()
             db.refresh(qr)
@@ -151,10 +159,7 @@ def rotate_qr(db: Session = Depends(get_db), admin: Profile = Depends(require_ro
     """Mint a new QR token, immediately invalidating the previous one.
     Old tokens are kept as rows for the audit trail. This also resets the
     auto-rotation timer, since it's based on the newest row's created_at."""
-    qr = AttendanceQr(
-        token=f"clockit:attendance:interactive-digital:{secrets.token_urlsafe(9)}",
-        rotated_by=admin.email,
-    )
+    qr = AttendanceQr(token=_mint_qr_token(), rotated_by=admin.email)
     db.add(qr)
     db.commit()
     db.refresh(qr)
@@ -190,13 +195,13 @@ def update_qr_settings(
     db: Session = Depends(get_db),
     admin: Profile = Depends(require_roles(*ADMIN_ROLES)),
 ):
-    settings = _get_qr_settings(db)
-    settings.rotation_minutes = body.rotation_minutes
-    settings.updated_by = admin.email
-    settings.updated_at = datetime.now(timezone.utc)
+    qr_settings = _get_qr_settings(db)
+    qr_settings.rotation_minutes = body.rotation_minutes
+    qr_settings.updated_by = admin.email
+    qr_settings.updated_at = datetime.now(timezone.utc)
     db.commit()
-    db.refresh(settings)
-    return settings
+    db.refresh(qr_settings)
+    return qr_settings
 
 
 # --- Personal (dashboard, any role) ----------------------------------------

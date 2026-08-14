@@ -21,36 +21,10 @@ import { QrScanner } from "@/components/qr-scanner"
 import { LocationBadge, SessionDetails } from "@/components/session-details"
 import { api, ApiError } from "@/lib/api"
 import { formatDate, formatTime, formatHours } from "@/lib/utils"
+import { getLocation } from "@/lib/geolocation"
 import { useProfile } from "@/hooks/use-profile"
 import type { AttendanceRecord } from "@/lib/types"
 import { toast } from "sonner"
-
-interface ClockLocation {
-  latitude?: number | null
-  longitude?: number | null
-  location_accuracy_m?: number | null
-}
-
-// Best-effort GPS read — never blocks clock-in. Resolves to nulls on denial,
-// timeout, or an unsupported browser.
-function getLocation(): Promise<ClockLocation> {
-  return new Promise((resolve) => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      resolve({})
-      return
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) =>
-        resolve({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          location_accuracy_m: pos.coords.accuracy,
-        }),
-      () => resolve({}),
-      { timeout: 5000, maximumAge: 60_000 },
-    )
-  })
-}
 
 export default function MyAttendancePage() {
   const { profile } = useProfile()
