@@ -69,11 +69,11 @@ export default function KioskQrCodePage() {
           Testing — Interactive Digital only
         </span>
 
-        <div className="relative flex items-center gap-2.5">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white">
-            <Image src="/logo.png" alt="Clockit logo" width={22} height={22} className="size-5" />
+        <div className="relative flex items-center gap-3">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white">
+            <Image src="/logo.png" alt="Clockit logo" width={26} height={26} className="size-6" />
           </div>
-          <span className="text-2xl font-bold tracking-tight text-white">
+          <span className="text-3xl font-bold tracking-tight text-white">
             Clock<span className="text-[#FF3B54]">it</span>
           </span>
         </div>
