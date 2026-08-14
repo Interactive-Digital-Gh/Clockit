@@ -51,7 +51,7 @@ export default function KioskQrCodePage() {
 
   return (
     <div className="flex min-h-svh items-center justify-center bg-[#0b0a09] p-8">
-      <div className="surface-ink relative flex w-full max-w-[600px] flex-col items-center gap-6 overflow-hidden rounded-3xl p-12 text-white shadow-[0_30px_80px_rgba(0,0,0,.5)]">
+      <div className="surface-ink relative flex w-full max-w-[680px] flex-col items-center gap-6 overflow-hidden rounded-3xl p-14 text-white shadow-[0_30px_80px_rgba(0,0,0,.5)]">
         <div className="bg-grid-ink pointer-events-none absolute inset-0" />
 
         <div className="relative flex items-center gap-2.5">
@@ -71,9 +71,9 @@ export default function KioskQrCodePage() {
 
         <div className="relative rounded-[28px] bg-white p-5 shadow-[0_18px_44px_rgba(0,0,0,.4)]">
           {qr ? (
-            <StyledQrCode value={qr.token} size={380} />
+            <StyledQrCode value={qr.token} size={420} />
           ) : (
-            <div className="size-[380px] animate-pulse rounded-lg bg-black/10" />
+            <div className="size-[420px] animate-pulse rounded-lg bg-black/10" />
           )}
         </div>
 
