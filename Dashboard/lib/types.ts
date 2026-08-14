@@ -67,6 +67,12 @@ export interface AttendanceQrToken {
   rotated_by: string | null
 }
 
+export interface AttendanceQrSettings {
+  rotation_minutes: number | null
+  updated_by: string | null
+  updated_at: string | null
+}
+
 export interface Profile {
   id: string
   email: string

@@ -20,9 +20,14 @@ import {
 } from "@/components/ui/dialog"
 import { RequireRole } from "@/components/require-role"
 import { StyledQrCode, downloadQrCode } from "@/components/qr-code-display"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { api, ApiError } from "@/lib/api"
 import { formatDate } from "@/lib/utils"
-import { ADMIN_ROLES, type AttendanceQrToken } from "@/lib/types"
+import { ADMIN_ROLES, type AttendanceQrSettings, type AttendanceQrToken } from "@/lib/types"
+
+type RotationMode = "manual" | "auto"
 
 export default function QrCodePage() {
   return (
@@ -38,6 +43,10 @@ function QrCodePageContent() {
   const [isRotating, setIsRotating] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
+  const [rotationMode, setRotationMode] = useState<RotationMode>("manual")
+  const [rotationMinutes, setRotationMinutes] = useState("15")
+  const [isSavingSettings, setIsSavingSettings] = useState(false)
+
   useEffect(() => {
     let cancelled = false
     api
@@ -51,6 +60,20 @@ function QrCodePageContent() {
       .finally(() => {
         if (!cancelled) setIsLoading(false)
       })
+
+    api
+      .qrSettings()
+      .then((settings: AttendanceQrSettings) => {
+        if (cancelled) return
+        if (settings.rotation_minutes != null) {
+          setRotationMode("auto")
+          setRotationMinutes(String(settings.rotation_minutes))
+        }
+      })
+      .catch(() => {
+        // Non-fatal — the settings card just falls back to "manual" if this fails.
+      })
+
     return () => {
       cancelled = true
     }
@@ -73,6 +96,27 @@ function QrCodePageContent() {
   const handleDownload = () => {
     if (!qr) return
     downloadQrCode(qr.token)
+  }
+
+  const handleSaveSettings = async () => {
+    const minutes = rotationMode === "auto" ? Number(rotationMinutes) : null
+    if (rotationMode === "auto" && (!Number.isInteger(minutes) || minutes! < 1 || minutes! > 1440)) {
+      toast.error("Enter a whole number of minutes between 1 and 1440")
+      return
+    }
+    setIsSavingSettings(true)
+    try {
+      await api.updateQrSettings(minutes)
+      toast.success(
+        minutes == null
+          ? "Auto-rotation turned off — the code only changes when you rotate it manually"
+          : `The code will now rotate automatically every ${minutes} minute${minutes === 1 ? "" : "s"}`
+      )
+    } catch (error: unknown) {
+      toast.error(error instanceof ApiError ? error.message : "Could not save the rotation setting")
+    } finally {
+      setIsSavingSettings(false)
+    }
   }
 
   return (
@@ -123,6 +167,7 @@ function QrCodePageContent() {
           </span>
         </div>
 
+        <div className="flex flex-col gap-5">
         <Card>
           <CardContent className="flex flex-col gap-5">
             <div>
@@ -178,6 +223,63 @@ function QrCodePageContent() {
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardContent className="flex flex-col gap-4">
+            <div>
+              <p className="text-sm font-medium text-foreground">Rotation</p>
+              <p className="mt-1 text-[13px] text-muted-foreground">
+                Set how often the code changes on its own, or leave it on manual and rotate it
+                yourself with the button above.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-muted-foreground">Rotation mode</Label>
+                <Select value={rotationMode} onValueChange={(value) => setRotationMode(value as RotationMode)}>
+                  <SelectTrigger className="w-44">
+                    <SelectValue>{(value: RotationMode) => (value === "auto" ? "Auto-rotate" : "Manual only")}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manual">Manual only</SelectItem>
+                    <SelectItem value="auto">Auto-rotate</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {rotationMode === "auto" && (
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-xs text-muted-foreground">Every (minutes)</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={1440}
+                    value={rotationMinutes}
+                    onChange={(e) => setRotationMinutes(e.target.value)}
+                    className="w-28"
+                  />
+                </div>
+              )}
+
+              <Button onClick={handleSaveSettings} disabled={isSavingSettings}>
+                {isSavingSettings ? "Saving…" : "Save"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="flex flex-col gap-2">
+            <p className="text-sm font-medium text-foreground">Front-desk kiosk display</p>
+            <p className="text-[13px] text-muted-foreground">
+              A no-login, full-screen version of this code lives at{" "}
+              <code className="rounded bg-muted px-1.5 py-0.5 text-xs">/kiosk/qr-code</code> — open it
+              on the screen at the entrance and it stays live on its own.
+            </p>
+          </CardContent>
+        </Card>
+        </div>
       </div>
     </div>
   )

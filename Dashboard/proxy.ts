@@ -4,7 +4,9 @@ import { NextResponse, type NextRequest } from "next/server"
 // on the API for every data call; this just keeps unauthenticated users out of
 // the dashboard shell and signed-in users off /login.)
 const TOKEN_COOKIE = "clockit_token"
-const PUBLIC_ROUTES = ["/login"]
+// /kiosk is the front-desk QR display — it's meant to run on a screen that
+// never logs in, so it stays outside the auth gate entirely.
+const PUBLIC_ROUTES = ["/login", "/kiosk"]
 
 export function proxy(request: NextRequest) {
   const token = request.cookies.get(TOKEN_COOKIE)?.value

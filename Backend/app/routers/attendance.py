@@ -5,7 +5,7 @@ Admin (dashboard): browse/filter all records and the live feed.
 """
 
 import uuid
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
@@ -17,8 +17,23 @@ from sqlalchemy import func
 
 from ..database import get_db
 from ..deps import get_current_admin, get_current_employee, get_principal, require_roles
-from ..models import ADMIN_ROLES, VIEW_ALL_ROLES, AttendanceQr, AttendanceRecord, Employee, Profile
-from ..schemas import AttendanceOut, AttendanceQrOut, AttendanceWithEmployee, ClockInRequest
+from ..models import (
+    ADMIN_ROLES,
+    VIEW_ALL_ROLES,
+    AttendanceQr,
+    AttendanceQrSettings,
+    AttendanceRecord,
+    Employee,
+    Profile,
+)
+from ..schemas import (
+    AttendanceOut,
+    AttendanceQrOut,
+    AttendanceQrSettingsOut,
+    AttendanceQrSettingsUpdate,
+    AttendanceWithEmployee,
+    ClockInRequest,
+)
 from ..services import attendance as svc
 from ..services.network import classify_location, get_client_ip
 
@@ -96,16 +111,46 @@ def _current_qr(db: Session) -> AttendanceQr:
     return qr
 
 
+def _get_qr_settings(db: Session) -> AttendanceQrSettings:
+    settings = db.scalar(select(AttendanceQrSettings).limit(1))
+    if settings is None:  # pre-seed safety net; migration 0009 seeds the singleton row
+        settings = AttendanceQrSettings(rotation_minutes=None)
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+    return settings
+
+
+def _current_qr_autorotate(db: Session) -> AttendanceQr:
+    """The active QR token, auto-rotating it first if the admin-configured
+    interval has elapsed since it was minted. rotation_minutes=None (the
+    default) means manual-only — identical to _current_qr()."""
+    qr = _current_qr(db)
+    settings = _get_qr_settings(db)
+    if settings.rotation_minutes is not None:
+        elapsed = datetime.now(timezone.utc) - qr.created_at
+        if elapsed >= timedelta(minutes=settings.rotation_minutes):
+            qr = AttendanceQr(
+                token=f"clockit:attendance:interactive-digital:{secrets.token_urlsafe(9)}",
+                rotated_by="auto",
+            )
+            db.add(qr)
+            db.commit()
+            db.refresh(qr)
+    return qr
+
+
 @router.get("/qr", response_model=AttendanceQrOut)
 def get_qr(db: Session = Depends(get_db), _=Depends(require_roles(*ADMIN_ROLES))):
     """The active QR token, for the dashboard's QR management page."""
-    return _current_qr(db)
+    return _current_qr_autorotate(db)
 
 
 @router.post("/qr/rotate", response_model=AttendanceQrOut)
 def rotate_qr(db: Session = Depends(get_db), admin: Profile = Depends(require_roles(*ADMIN_ROLES))):
     """Mint a new QR token, immediately invalidating the previous one.
-    Old tokens are kept as rows for the audit trail."""
+    Old tokens are kept as rows for the audit trail. This also resets the
+    auto-rotation timer, since it's based on the newest row's created_at."""
     qr = AttendanceQr(
         token=f"clockit:attendance:interactive-digital:{secrets.token_urlsafe(9)}",
         rotated_by=admin.email,
@@ -121,7 +166,37 @@ def get_qr_current(db: Session = Depends(get_db), _=Depends(get_principal)):
     """The active QR token, for the mobile/web scanner to validate scans
     against. Any signed-in Employee or Profile — this isn't a security
     control, just the value the client compares a scan to before clocking in."""
-    return _current_qr(db)
+    return _current_qr_autorotate(db)
+
+
+@router.get("/qr/display", response_model=AttendanceQrOut)
+def get_qr_display(db: Session = Depends(get_db)):
+    """The active QR token, with no auth requirement at all. Meant for a
+    front-desk kiosk screen that never logs in — it returns exactly what's
+    already physically visible on that screen, so there's nothing extra
+    exposed by making the read itself public (mirrors /qr/current, which
+    already only requires *some* signed-in principal rather than an admin)."""
+    return _current_qr_autorotate(db)
+
+
+@router.get("/qr/settings", response_model=AttendanceQrSettingsOut)
+def get_qr_settings(db: Session = Depends(get_db), _=Depends(require_roles(*ADMIN_ROLES))):
+    return _get_qr_settings(db)
+
+
+@router.patch("/qr/settings", response_model=AttendanceQrSettingsOut)
+def update_qr_settings(
+    body: AttendanceQrSettingsUpdate,
+    db: Session = Depends(get_db),
+    admin: Profile = Depends(require_roles(*ADMIN_ROLES)),
+):
+    settings = _get_qr_settings(db)
+    settings.rotation_minutes = body.rotation_minutes
+    settings.updated_by = admin.email
+    settings.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(settings)
+    return settings
 
 
 # --- Personal (dashboard, any role) ----------------------------------------

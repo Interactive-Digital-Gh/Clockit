@@ -194,6 +194,22 @@ class AttendanceQr(Base):
     rotated_by: Mapped[str | None] = mapped_column(String)  # profile email, for the audit trail
 
 
+class AttendanceQrSettings(Base):
+    """Singleton row controlling automatic QR rotation. rotation_minutes=None
+    means manual-only (today's behavior, and the seeded default)."""
+
+    __tablename__ = "attendance_qr_settings"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    rotation_minutes: Mapped[int | None] = mapped_column(Integer)
+    updated_by: Mapped[str | None] = mapped_column(String)  # profile email
+    # Set explicitly on every PATCH (see routers/attendance.py) rather than
+    # relying on an onupdate= hook, to avoid adding a new sqlalchemy.func import.
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
+
+
 class PushToken(Base):
     """An Expo push token for one of an employee's devices. An employee may
     have several (multiple devices); re-registering the same token updates

@@ -2,7 +2,7 @@
 // access the dashboard used to do. Auth is a bearer JWT stored in a cookie so
 // both client fetches (below) and the proxy/middleware can read it.
 
-import type { AdminNotification, Agency, AttendanceQrToken, AttendanceRecord, Employee, Profile, Role } from "@/lib/types"
+import type { AdminNotification, Agency, AttendanceQrSettings, AttendanceQrToken, AttendanceRecord, Employee, Profile, Role } from "@/lib/types"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8010"
 
@@ -123,6 +123,15 @@ export const api = {
   // Attendance QR management (admin roles)
   attendanceQr: () => apiFetch<AttendanceQrToken>("/attendance/qr"),
   rotateAttendanceQr: () => apiFetch<AttendanceQrToken>("/attendance/qr/rotate", { method: "POST" }),
+  qrSettings: () => apiFetch<AttendanceQrSettings>("/attendance/qr/settings"),
+  updateQrSettings: (rotation_minutes: number | null) =>
+    apiFetch<AttendanceQrSettings>("/attendance/qr/settings", {
+      method: "PATCH",
+      body: JSON.stringify({ rotation_minutes }),
+    }),
+
+  /** No-auth read of the current QR token, for the public front-desk kiosk display. */
+  qrDisplay: () => apiFetch<AttendanceQrToken>("/attendance/qr/display"),
 
   // Data
   overview: () => apiFetch<OverviewMetrics>("/reports/overview"),

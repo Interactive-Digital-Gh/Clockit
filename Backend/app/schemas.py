@@ -259,6 +259,25 @@ class AttendanceQrOut(BaseModel):
     rotated_by: str | None = None
 
 
+class AttendanceQrSettingsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    rotation_minutes: int | None = None
+    updated_by: str | None = None
+    updated_at: datetime | None = None
+
+
+class AttendanceQrSettingsUpdate(BaseModel):
+    rotation_minutes: int | None  # None = manual-only
+
+    @field_validator("rotation_minutes")
+    @classmethod
+    def _check_range(cls, v: int | None) -> int | None:
+        if v is not None and not (1 <= v <= 1440):
+            raise ValueError("rotation_minutes must be between 1 and 1440")
+        return v
+
+
 # --- Reports ----------------------------------------------------------------
 class AttendanceSummary(BaseModel):
     date: date
