@@ -19,7 +19,7 @@ export default async function LoginPage({
 }) {
   const { next } = await searchParams
   return (
-    <div className="bg-grid-paper relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-10">
+    <div className="bg-grid-paper relative flex min-h-svh flex-col items-center justify-center overflow-x-hidden overflow-y-auto px-6 py-6 sm:py-10">
       <div className="relative z-10 flex w-full max-w-sm flex-col items-center gap-8">
         <div className="flex items-center gap-2.5">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -30,12 +30,12 @@ export default async function LoginPage({
           </span>
         </div>
 
-        <div className="w-full rounded-2xl border border-border bg-card p-7 shadow-[0_14px_34px_rgba(20,18,16,.08)]">
+        <div className="w-full rounded-2xl border border-border bg-card p-6 shadow-[0_14px_34px_rgba(20,18,16,.08)] sm:p-7">
           <LoginForm redirectTo={sanitizeNext(next)} />
         </div>
 
         <span className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
-          Interactive Digital Group
+          Ninani Group
         </span>
       </div>
     </div>

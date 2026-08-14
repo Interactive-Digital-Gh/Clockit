@@ -74,10 +74,15 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
         }
       },
     })
+    // GIS wants a fixed pixel width, not a percentage — a hardcoded value
+    // overflows on narrow phones (most scans of the front-desk QR land here),
+    // so size it to whatever room the card actually has instead. Google
+    // clamps to its own [200, 400] range regardless.
+    const width = Math.min(googleButtonRef.current.offsetWidth || 320, 400)
     window.google.accounts.id.renderButton(googleButtonRef.current, {
       theme: "outline",
       size: "large",
-      width: 320,
+      width,
       text: "signin_with",
       shape: "rectangular",
     })
@@ -139,9 +144,14 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
           <Input
             id="email"
             type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
             placeholder="you@interactivedigital.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="h-11"
           />
         </div>
         <div className="grid gap-2">
@@ -149,8 +159,10 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
           <Input
             id="password"
             type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="h-11"
           />
         </div>
         <Button type="submit" className="h-11 w-full" disabled={isLoading}>

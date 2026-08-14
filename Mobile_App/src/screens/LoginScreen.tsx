@@ -104,7 +104,7 @@ export default function LoginScreen() {
           </View>
           
           <Text style={styles.headline}>Welcome back,{'\n'}let's clock in.</Text>
-          <Text style={styles.subtitle}>INTERACTIVE DIGITAL GROUP</Text>
+          <Text style={styles.subtitle}>NINANI GROUP</Text>
         </View>
 
         <View style={styles.formContainer}>
