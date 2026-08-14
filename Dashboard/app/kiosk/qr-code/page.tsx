@@ -12,6 +12,12 @@ const POLL_INTERVAL_MS = 10_000
 // blip (dev-server restart, brief network hiccup) shouldn't alarm whoever's
 // watching the screen; the code shown is still valid until it visibly changes.
 const STALE_AFTER_MISSES = 3
+// This is an unattended screen — nobody's going to walk over and hit refresh
+// after a deploy. Polling only picks up new QR *data*; a full reload is the
+// only way an open tab ever sees new *code* (layout/copy changes like this
+// page's own styling). Frequent enough that a deploy shows up on its own
+// within minutes, rare enough not to be disruptive.
+const RELOAD_INTERVAL_MS = 10 * 60 * 1000
 
 /** Public, login-free front-desk display. No dashboard chrome — this route is
  * outside the auth gate (see Dashboard/proxy.ts) so a kiosk screen can show
@@ -47,6 +53,11 @@ export default function KioskQrCodePage() {
       cancelled = true
       clearInterval(id)
     }
+  }, [])
+
+  useEffect(() => {
+    const id = setInterval(() => window.location.reload(), RELOAD_INTERVAL_MS)
+    return () => clearInterval(id)
   }, [])
 
   return (
