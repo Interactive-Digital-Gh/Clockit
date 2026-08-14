@@ -51,7 +51,7 @@ export default function KioskQrCodePage() {
 
   return (
     <div className="flex min-h-svh items-center justify-center bg-[#0b0a09] p-8">
-      <div className="surface-ink relative flex w-full max-w-[520px] flex-col items-center gap-6 overflow-hidden rounded-3xl p-10 text-white shadow-[0_30px_80px_rgba(0,0,0,.5)]">
+      <div className="surface-ink relative flex w-full max-w-[600px] flex-col items-center gap-6 overflow-hidden rounded-3xl p-12 text-white shadow-[0_30px_80px_rgba(0,0,0,.5)]">
         <div className="bg-grid-ink pointer-events-none absolute inset-0" />
 
         <div className="relative flex items-center gap-2.5">
@@ -69,17 +69,21 @@ export default function KioskQrCodePage() {
           clock in.
         </p>
 
-        <div className="relative rounded-[28px] bg-white p-4 shadow-[0_18px_44px_rgba(0,0,0,.4)]">
+        <div className="relative rounded-[28px] bg-white p-5 shadow-[0_18px_44px_rgba(0,0,0,.4)]">
           {qr ? (
-            <StyledQrCode value={qr.token} size={340} />
+            <StyledQrCode value={qr.token} size={380} />
           ) : (
-            <div className="size-[340px] animate-pulse rounded-lg bg-black/10" />
+            <div className="size-[380px] animate-pulse rounded-lg bg-black/10" />
           )}
         </div>
 
-        <p className="relative max-w-[320px] text-center text-sm leading-relaxed text-white/60">
+        <p className="relative max-w-[360px] text-center text-base leading-relaxed text-white/60">
           Open your camera, sign in, tap the red button. Five seconds.
         </p>
+
+        <span className="btn-action relative rounded-full px-2.5 py-1 font-mono text-[9.5px] text-white">
+          TESTING — INTERACTIVE DIGITAL ONLY
+        </span>
 
         {misses >= STALE_AFTER_MISSES && (
           <p className="relative text-xs font-medium text-amber-300/90">
