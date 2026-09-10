@@ -123,7 +123,7 @@ function QrCodePageContent() {
     <div className="space-y-6">
       <PageHeader
         title="Attendance QR code"
-        description="Print it and post it at the entrance so employees can scan it to clock in."
+        description="The code employees scan to clock in — shown live on the kiosk display, or printed and posted if rotation is set to manual."
       />
 
       <div className="grid gap-5 lg:grid-cols-[340px_1fr]">
@@ -230,7 +230,9 @@ function QrCodePageContent() {
               <p className="text-sm font-medium text-foreground">Rotation</p>
               <p className="mt-1 text-[13px] text-muted-foreground">
                 Set how often the code changes on its own, or leave it on manual and rotate it
-                yourself with the button above.
+                yourself with the button above. With auto-rotate on, printed copies go stale as
+                soon as the code changes — use the kiosk display below instead; printing only
+                suits manual mode.
               </p>
             </div>
 

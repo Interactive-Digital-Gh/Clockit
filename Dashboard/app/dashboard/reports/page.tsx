@@ -38,18 +38,31 @@ import {
   subMonths,
   subYears,
 } from "date-fns"
-import { Users, UserCheck, Clock, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react"
+import { Users, UserCheck, Clock, TrendingUp, ChevronLeft, ChevronRight, Mail } from "lucide-react"
+import { toast } from "sonner"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label as FieldLabel } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { ExportMenu } from "@/components/export-menu"
 import { RequireRole } from "@/components/require-role"
-import { api } from "@/lib/api"
+import { api, ApiError } from "@/lib/api"
 import { formatHours, cn } from "@/lib/utils"
+import { useProfile } from "@/hooks/use-profile"
 import { VIEW_ALL_ROLES, type AttendanceRecord, type Employee } from "@/lib/types"
 
 type Timeframe = "week" | "month" | "year"
@@ -81,6 +94,89 @@ export default function ReportsPage() {
     <RequireRole allowed={VIEW_ALL_ROLES}>
       <ReportsPageContent />
     </RequireRole>
+  )
+}
+
+function EmailReportDialog({ start, end, periodLabel }: { start: Date; end: Date; periodLabel: string }) {
+  const { profile } = useProfile()
+  const [open, setOpen] = useState(false)
+  const [to, setTo] = useState("")
+  const [message, setMessage] = useState("")
+  const [isSending, setIsSending] = useState(false)
+
+  // Pre-fill with the signed-in user's own email when the dialog opens.
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next)
+    if (next && !to && profile?.email) setTo(profile.email)
+  }
+
+  const handleSend = async () => {
+    setIsSending(true)
+    try {
+      const result = await api.emailReport({
+        date_from: format(start, "yyyy-MM-dd"),
+        date_to: format(end, "yyyy-MM-dd"),
+        to: to || undefined,
+        message: message.trim() || undefined,
+      })
+      toast.success(`Report sent to ${result.to}`)
+      setOpen(false)
+      setMessage("")
+    } catch (error: unknown) {
+      toast.error(error instanceof ApiError ? error.message : "Could not send the report")
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger render={<Button variant="outline" />}>
+        <Mail className="mr-2 h-4 w-4" />
+        Email report
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Email this report</DialogTitle>
+          <DialogDescription>
+            Sends the attendance report for <b>{periodLabel}</b> — summary in the email, report
+            attached as PDF and CSV.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <FieldLabel htmlFor="report-email-to">Send to</FieldLabel>
+            <Input
+              id="report-email-to"
+              type="email"
+              placeholder="you@interactivedigital.com"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <FieldLabel htmlFor="report-email-message">Message (optional)</FieldLabel>
+            <textarea
+              id="report-email-message"
+              rows={3}
+              maxLength={2000}
+              placeholder="A short note to include at the top of the email…"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="w-full min-w-0 resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={isSending}>
+            Cancel
+          </Button>
+          <Button onClick={handleSend} disabled={isSending || !to}>
+            {isSending ? "Sending…" : "Send"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -262,6 +358,7 @@ function ReportsPageContent() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          <EmailReportDialog start={start} end={end} periodLabel={periodLabel} />
           <ExportMenu records={records} dateRange={{ start, end }} filenamePrefix="attendance_analytics" />
 
           <div className="flex items-center border rounded-md p-1 bg-muted/40">

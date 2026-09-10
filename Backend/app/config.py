@@ -42,6 +42,21 @@ class Settings(BaseSettings):
     # scan-to-clock-in flow against a local dashboard dev server.
     app_url: str = "https://clockit.interactivedigital.com.gh"
 
+    # --- Outbound email (SMTP) ------------------------------------------------
+    # Gmail Workspace relay (same account VouchFlow/Nubiro/Sway use). Unset
+    # smtp_host disables sending — the mailer becomes a no-op rather than an
+    # error, so environments without credentials (CI, fresh dev) still run.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+
+    # Shared secret for the scheduled weekly-report trigger endpoint
+    # (POST /reports/email/weekly, called by a systemd timer via curl).
+    # Unset = that endpoint is disabled.
+    report_email_key: str = ""
+
     @property
     def allowed_google_client_ids(self) -> list[str]:
         ids = [self.google_web_client_id, self.google_ios_client_id]

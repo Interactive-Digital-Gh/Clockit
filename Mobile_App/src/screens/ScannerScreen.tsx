@@ -8,9 +8,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../context/AppContext';
-import { clockInEmployee, fetchAttendanceQrToken } from '../services/attendanceService';
+import { clockInEmployee, fetchAttendanceQrToken, looksLikeAttendanceQr } from '../services/attendanceService';
 import { notifyLateClockIn } from '../lib/notifications';
-import { ATTENDANCE_QR_PAYLOAD } from '../config/attendance';
+import { confirmIdentityForClockIn } from '../lib/biometricGate';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 type NavProp = NativeStackNavigationProp<RootStackParamList>;
@@ -32,10 +32,12 @@ export default function ScannerScreen() {
   const [scanned, setScanned] = useState(false);
   const [wrongCode, setWrongCode] = useState(false);
   const wrongCodeRef = useRef(false);
-  // Admins can rotate the QR from the dashboard — ask the server which token
-  // is current. Falls back to cache/seed offline; ref so the scan callback
-  // (fired from the camera thread many times a second) reads the latest.
-  const expectedQrRef = useRef(ATTENDANCE_QR_PAYLOAD);
+  // The QR rotates (admin-set interval or manual) — ask the server which token
+  // is current. Falls back to the cached value offline; null means we don't
+  // know the current token, in which case the scan handler accepts any
+  // Clockit-shaped code instead of rejecting valid scans. Ref so the scan
+  // callback (fired from the camera thread many times a second) reads the latest.
+  const expectedQrRef = useRef<string | null>(null);
   useEffect(() => {
     fetchAttendanceQrToken().then((token) => {
       expectedQrRef.current = token;
@@ -74,13 +76,31 @@ export default function ScannerScreen() {
   }, [scanState]);
 
   // Clock-in is identified by the auth token and classified on-site/remote
-  // server-side from the IP; the scanner only accepts the official attendance
-  // QR (ATTENDANCE_QR_PAYLOAD). Guarded by a ref because the scan callback
-  // fires many times per second.
+  // server-side from the IP; the scanner only accepts the current attendance
+  // QR (expectedQrRef). Guarded by a ref because the scan callback fires many
+  // times per second.
   const doClockIn = async () => {
     if (scannedRef.current || !user) return;
     scannedRef.current = true;
     setScanned(true);
+    // Face ID / fingerprint before the record is written — the QR proves
+    // you're at the desk, this proves the account owner is the one holding
+    // the phone. Devices that can't verify pass through (see biometricGate).
+    if (!(await confirmIdentityForClockIn())) {
+      // Keep the scan guard up until the alert is dismissed — the camera is
+      // still pointed at the code and fires many times a second, so resetting
+      // immediately would re-open the biometric prompt in a loop.
+      Alert.alert('Identity check failed', 'Face ID / fingerprint is required to clock in. Try again.', [
+        {
+          text: 'OK',
+          onPress: () => {
+            scannedRef.current = false;
+            setScanned(false);
+          },
+        },
+      ]);
+      return;
+    }
     try {
       const record = await clockInEmployee(user.id);
       // record.clock_in_time is always the day's FIRST arrival (used for the
@@ -109,7 +129,12 @@ export default function ScannerScreen() {
     onObjectsScanned: (objects) => {
       const code = objects.find(isScannedCode);
       if (!code?.value) return;
-      if (code.value === expectedQrRef.current) {
+      const expected = expectedQrRef.current;
+      // Exact match against the live token when we have it; offline with no
+      // cache (expected === null), accept anything Clockit-shaped so a dead
+      // network doesn't block a valid scan.
+      const accepted = expected !== null ? code.value === expected : looksLikeAttendanceQr(code.value);
+      if (accepted) {
         setWrongCode(false);
         doClockIn();
       } else if (!wrongCodeRef.current) {

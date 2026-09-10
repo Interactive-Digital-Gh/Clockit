@@ -25,7 +25,9 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.interactivedigital.clockit",
-      "permissions": ["android.permission.CAMERA"]
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "bundler": "metro"
@@ -55,6 +57,12 @@
           "locationWhenInUsePermission": "Allow Clockit to check your location so office clock-ins can be verified as on-site.",
           "locationAlwaysAndWhenInUsePermission": "Allow Clockit to check your location in the background so it can automatically clock you in when you arrive at the office and out when you leave. Optional — this only supplements the office WiFi check.",
           "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Clockit to use Face ID to confirm it's you before clocking in."
         }
       ]
     ],

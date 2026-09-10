@@ -7,25 +7,36 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../lib/api';
 import { googleSignIn } from '../lib/googleAuth';
-import { ATTENDANCE_QR_PAYLOAD } from '../config/attendance';
 import { getLocalIpAddress } from '../utils/networkCheck';
 import { getDeviceLocation, getBackgroundLocationIfAvailable } from '../utils/locationCheck';
 
 const QR_CACHE_KEY = '@attendance:qr_token';
 
 /**
- * The QR token the scanner should accept. Fetched from the server (admins can
- * rotate it from the dashboard); falls back to the last cached value, then to
- * the built-in seed token, so scanning still works offline.
+ * The QR token the scanner should accept. Fetched from the server (it rotates —
+ * admins set an auto-rotation interval or rotate manually from the dashboard);
+ * falls back to the last cached value. Returns null when offline with nothing
+ * cached — the caller should then accept any Clockit-shaped code rather than
+ * reject valid scans (a baked-in fallback token would be stale by definition).
  */
-export async function fetchAttendanceQrToken(): Promise<string> {
+export async function fetchAttendanceQrToken(): Promise<string | null> {
   try {
     const { token } = await api.getAttendanceQr();
     await AsyncStorage.setItem(QR_CACHE_KEY, token);
     return token;
   } catch {
-    return (await AsyncStorage.getItem(QR_CACHE_KEY)) ?? ATTENDANCE_QR_PAYLOAD;
+    return AsyncStorage.getItem(QR_CACHE_KEY);
   }
+}
+
+/**
+ * Loose shape check for when the current token is unknown (see above): the
+ * front-desk QR is either the scan-page link (…/scan?t=…) or a legacy
+ * clockit:attendance:… payload. Keeps random other QRs rejected without
+ * blocking a valid clock-in offline.
+ */
+export function looksLikeAttendanceQr(value: string): boolean {
+  return value.includes('/scan?t=') || value.startsWith('clockit:attendance:');
 }
 
 export interface EmployeeRecord {

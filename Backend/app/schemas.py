@@ -291,3 +291,17 @@ class OverviewMetrics(BaseModel):
     agencies: int
     clocked_in_today: int
     late_today: int
+
+
+class EmailReportRequest(BaseModel):
+    date_from: date
+    date_to: date
+    # Defaults to the requesting profile's own email.
+    to: EmailStr | None = None
+    # Optional personal note shown at the top of the email body.
+    message: str | None = Field(default=None, max_length=2000)
+
+
+class EmailReportResult(BaseModel):
+    sent: bool
+    to: str

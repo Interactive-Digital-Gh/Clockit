@@ -6,12 +6,12 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { api, ApiError } from "@/lib/api"
-import { formatTime } from "@/lib/utils"
+import { formatHours, formatTime } from "@/lib/utils"
 import { getLocation } from "@/lib/geolocation"
 import { useProfile } from "@/hooks/use-profile"
 import type { AttendanceRecord } from "@/lib/types"
 
-type Status = "loading" | "expired" | "ready" | "clocking-in" | "done" | "already-in"
+type Status = "loading" | "expired" | "ready" | "clocking-in" | "done" | "already-in" | "clocking-out" | "clocked-out"
 
 /** Where the front-desk QR code actually sends you. Not public — this route
  * stays behind the normal auth gate (Dashboard/proxy.ts), so an
@@ -58,6 +58,19 @@ export default function ScanPage({ searchParams }: { searchParams: Promise<{ t?:
     }
   }, [t])
 
+  const handleClockOut = useCallback(async () => {
+    setStatus("clocking-out")
+    try {
+      const record = await api.myClockOut()
+      setToday(record)
+      setStatus("clocked-out")
+      toast.success("Clocked out")
+    } catch (error: unknown) {
+      toast.error(error instanceof ApiError ? error.message : "Could not clock out — try again.")
+      setStatus("already-in")
+    }
+  }, [])
+
   const handleClockIn = useCallback(async () => {
     setStatus("clocking-in")
     try {
@@ -95,11 +108,30 @@ export default function ScanPage({ searchParams }: { searchParams: Promise<{ t?:
           </div>
         )}
 
-        {(status === "already-in" || status === "done") && (
-          <div className="relative flex flex-col items-center gap-2 text-center">
-            <p className="text-lg font-semibold text-white">You&apos;re clocked in</p>
-            {today?.clock_in_time && (
-              <p className="text-sm text-white/60">since {formatTime(today.clock_in_time)}</p>
+        {(status === "already-in" || status === "done" || status === "clocking-out") && (
+          <div className="relative flex w-full flex-col items-center gap-4 text-center">
+            <div className="flex flex-col items-center gap-1">
+              <p className="text-lg font-semibold text-white">You&apos;re clocked in</p>
+              {today?.clock_in_time && (
+                <p className="text-sm text-white/60">since {formatTime(today.clock_in_time)}</p>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              className="h-12 w-full border-white/25 bg-transparent text-base text-white hover:bg-white/10 hover:text-white"
+              onClick={handleClockOut}
+              disabled={status === "clocking-out"}
+            >
+              {status === "clocking-out" ? "Clocking out…" : "Clock out"}
+            </Button>
+          </div>
+        )}
+
+        {status === "clocked-out" && (
+          <div className="relative flex flex-col items-center gap-1 text-center">
+            <p className="text-lg font-semibold text-white">Clocked out — see you tomorrow!</p>
+            {today?.total_hours != null && (
+              <p className="text-sm text-white/60">{formatHours(today.total_hours)} today</p>
             )}
           </div>
         )}

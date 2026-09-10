@@ -5,17 +5,22 @@ Returns JSON; the dashboard renders PDF/Excel client-side (jsPDF / xlsx).
 
 from datetime import date, timedelta
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+import secrets as pysecrets
+
+from ..config import get_settings
 from ..database import get_db
 from ..deps import require_roles
-from ..models import VIEW_ALL_ROLES, Agency, AttendanceRecord, Employee
-from ..schemas import AttendanceSummary, OverviewMetrics
+from ..models import VIEW_ALL_ROLES, Agency, AttendanceRecord, Employee, Profile
+from ..schemas import AttendanceSummary, EmailReportRequest, EmailReportResult, OverviewMetrics
 from ..services.attendance import today
+from ..services.report_email import send_report
 
 router = APIRouter(prefix="/reports", tags=["reports"])
+settings = get_settings()
 
 
 @router.get("/overview", response_model=OverviewMetrics)
@@ -62,4 +67,44 @@ def attendance_summary(
     ).all()
     return [
         AttendanceSummary(date=r.date, present=r.present, late=r.late, total=r.total) for r in rows
+    ]
+
+
+@router.post("/email", response_model=EmailReportResult)
+def email_report(
+    body: EmailReportRequest,
+    db: Session = Depends(get_db),
+    prof: Profile = Depends(require_roles(*VIEW_ALL_ROLES)),
+):
+    """Build the attendance report for the range and email it (HTML summary +
+    CSV attachment). Defaults to the requester's own address."""
+    if body.date_from > body.date_to:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "date_from must be on or before date_to")
+    to = body.to or prof.email
+    if not send_report(db, to, body.date_from, body.date_to, message=body.message):
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Could not send the report email")
+    return EmailReportResult(sent=True, to=to)
+
+
+@router.post("/email/weekly", response_model=list[EmailReportResult])
+def email_weekly_report(
+    db: Session = Depends(get_db),
+    x_report_key: str | None = Header(default=None),
+):
+    """Scheduled trigger (systemd timer + curl): email last week's (Mon-Sun)
+    report to every viewer-role profile. Guarded by a shared secret header
+    instead of a session, since no user is involved."""
+    if not settings.report_email_key:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "REPORT_EMAIL_KEY not configured")
+    if not x_report_key or not pysecrets.compare_digest(x_report_key, settings.report_email_key):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Invalid report key")
+
+    t = today()
+    last_monday = t - timedelta(days=t.weekday() + 7)
+    last_sunday = last_monday + timedelta(days=6)
+
+    recipients = db.scalars(select(Profile).where(Profile.role.in_(VIEW_ALL_ROLES))).all()
+    return [
+        EmailReportResult(sent=send_report(db, p.email, last_monday, last_sunday), to=p.email)
+        for p in recipients
     ]

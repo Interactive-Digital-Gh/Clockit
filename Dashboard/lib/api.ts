@@ -136,6 +136,12 @@ export const api = {
 
   // Data
   overview: () => apiFetch<OverviewMetrics>("/reports/overview"),
+  /** Server builds the report for the range and emails it (PDF + CSV attached). */
+  emailReport: (body: { date_from: string; date_to: string; to?: string; message?: string }) =>
+    apiFetch<{ sent: boolean; to: string }>("/reports/email", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   employees: () => apiFetch<Employee[]>("/employees"),
   updateEmployee: (id: string, body: { agency_id?: string | null }) =>
     apiFetch<Employee>(`/employees/${id}`, {

@@ -1,0 +1,16 @@
+# Weekly attendance report trigger for Clockit.
+# Install (on the ID server, as root):
+#   1. Add REPORT_EMAIL_KEY=<long random string> to /var/www/production/clockit-api/.env
+#      (generate one with: openssl rand -hex 32)
+#   2. Put the same key in this file below, then:
+#      cp clockit-weekly-report.{service,timer} /etc/systemd/system/
+#      systemctl daemon-reload && systemctl enable --now clockit-weekly-report.timer
+#   3. Check: systemctl list-timers clockit-weekly-report.timer
+[Unit]
+Description=Email the weekly Clockit attendance report
+After=network-online.target
+
+[Service]
+Type=oneshot
+# Adjust the port to the clockit-api service's local port.
+ExecStart=/usr/bin/curl -fsS -X POST http://127.0.0.1:8010/reports/email/weekly -H "X-Report-Key: CHANGE-ME"
