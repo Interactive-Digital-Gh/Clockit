@@ -67,10 +67,6 @@ export default function KioskQrCodePage() {
       <div className={`surface-ink ${styles.panel}`}>
         <div className="bg-grid-ink pointer-events-none absolute inset-0" />
 
-        <span className={styles.badge}>
-          Testing — Interactive Digital only
-        </span>
-
         <div className={styles.brand}>
           <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white">
             <Image src="/logo.png" alt="Clockit logo" width={26} height={26} className="size-6" />

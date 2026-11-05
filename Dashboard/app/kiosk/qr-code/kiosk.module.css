@@ -23,17 +23,6 @@
 }
 
 .panel > :not(:first-child) { position: relative; }
-.badge {
-  border-radius: 999px;
-  padding: 7px 14px;
-  background: #fbbf24;
-  color: #141210;
-  font-size: clamp(10px, 1.7vmin, 14px);
-  font-weight: 700;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
 .brand { display: flex; align-items: center; gap: 12px; }
 .heading {
   font-size: clamp(32px, 5.5vmin, 64px);
@@ -71,17 +60,16 @@
 @media (orientation: landscape) and (min-width: 600px) {
   .panel {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
-    grid-template-rows: auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto;
     column-gap: clamp(24px, 4vw, 64px);
   }
-  .badge { grid-column: 1; grid-row: 1; }
-  .brand { grid-column: 1; grid-row: 2; }
-  .heading { grid-column: 1; grid-row: 3; }
-  .instructions { grid-column: 1; grid-row: 4; }
-  .status { grid-column: 1; grid-row: 5; }
+  .brand { grid-column: 1; grid-row: 1; }
+  .heading { grid-column: 1; grid-row: 2; }
+  .instructions { grid-column: 1; grid-row: 3; }
+  .status { grid-column: 1; grid-row: 4; }
   .qr {
     grid-column: 2;
-    grid-row: 1 / 6;
+    grid-row: 1 / 5;
     align-self: center;
     width: min(100%, 76svh, 560px);
   }
