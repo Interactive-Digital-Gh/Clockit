@@ -7,6 +7,8 @@ import { StyledQrCode } from "@/components/qr-code-display"
 import { api } from "@/lib/api"
 import type { AttendanceQrToken } from "@/lib/types"
 
+import styles from "./kiosk.module.css"
+
 const POLL_INTERVAL_MS = 10_000
 // A handful of consecutive failed polls before we say anything — a single
 // blip (dev-server restart, brief network hiccup) shouldn't alarm whoever's
@@ -61,15 +63,15 @@ export default function KioskQrCodePage() {
   }, [])
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-[#0b0a09] p-8">
-      <div className="surface-ink relative flex w-full max-w-[760px] flex-col items-center gap-6 overflow-hidden rounded-3xl p-16 text-white shadow-[0_30px_80px_rgba(0,0,0,.5)]">
+    <main className={styles.screen}>
+      <div className={`surface-ink ${styles.panel}`}>
         <div className="bg-grid-ink pointer-events-none absolute inset-0" />
 
-        <span className="relative rounded-full bg-amber-400 px-4 py-1.5 font-mono text-sm font-bold tracking-wide text-[#141210] uppercase">
-          Testing — Interactive Digital only... for now
+        <span className={styles.badge}>
+          Testing — Interactive Digital only
         </span>
 
-        <div className="relative flex items-center gap-3">
+        <div className={styles.brand}>
           <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white">
             <Image src="/logo.png" alt="Clockit logo" width={26} height={26} className="size-6" />
           </div>
@@ -78,30 +80,32 @@ export default function KioskQrCodePage() {
           </span>
         </div>
 
-        <p className="relative text-center text-4xl leading-[1.1] font-bold tracking-tight text-white">
+        <h1 className={styles.heading}>
           Scan to
           <br />
           clock in.
-        </p>
+        </h1>
 
-        <div className="relative rounded-[28px] bg-white p-5 shadow-[0_18px_44px_rgba(0,0,0,.4)]">
+        <div className={styles.qr} role="img" aria-label={qr ? "Scan this QR code to clock in" : "Loading QR code"}>
           {qr ? (
-            <StyledQrCode value={qr.token} size={460} />
+            <StyledQrCode value={qr.token} size={640} className={styles.code} />
           ) : (
-            <div className="size-[460px] animate-pulse rounded-lg bg-black/10" />
+            <div className="h-full w-full animate-pulse rounded-lg bg-black/10" />
           )}
         </div>
 
-        <p className="relative max-w-[360px] text-center text-base leading-relaxed text-white/60">
-          Open your camera, sign in, tap the red button. Five seconds.
+        <p className={styles.instructions}>
+          Open your phone’s camera, scan the code, sign in, and tap the red button.
         </p>
 
-        {misses >= STALE_AFTER_MISSES && (
-          <p className="relative text-xs font-medium text-amber-300/90">
-            Having trouble reaching the server — showing the last known code.
-          </p>
-        )}
+        <p className={styles.status} role="status">
+          {misses >= STALE_AFTER_MISSES
+            ? qr
+              ? "Connection interrupted — showing the last known code."
+              : "Connecting to the server — please wait."
+            : qr ? "Ready to scan" : "Loading your code…"}
+        </p>
       </div>
-    </div>
+    </main>
   )
 }

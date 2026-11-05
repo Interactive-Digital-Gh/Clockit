@@ -1,0 +1,88 @@
+.screen {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 2.5vmin, 28px);
+  background: #0b0a09;
+  color: white;
+}
+
+.panel {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: clamp(12px, 2svh, 24px);
+  width: 100%;
+  max-width: 1200px;
+  min-height: calc(100svh - clamp(24px, 5vmin, 56px));
+  padding: clamp(16px, 3vmin, 36px);
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgb(0 0 0 / 50%);
+}
+
+.panel > :not(:first-child) { position: relative; }
+.badge {
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: #fbbf24;
+  color: #141210;
+  font-size: clamp(10px, 1.7vmin, 14px);
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.heading {
+  font-size: clamp(32px, 5.5vmin, 64px);
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -.04em;
+  text-align: center;
+}
+.qr {
+  width: min(100%, 60vmin, 48svh, 560px);
+  aspect-ratio: 1;
+  padding: clamp(12px, 2vmin, 20px);
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 18px 44px rgb(0 0 0 / 40%);
+}
+.code, .code svg { display: block; width: 100%; height: 100%; }
+.instructions {
+  max-width: 360px;
+  text-align: center;
+  font-size: clamp(14px, 2.3vmin, 19px);
+  line-height: 1.5;
+  color: rgb(255 255 255 / 70%);
+}
+.status {
+  min-height: 2.8em;
+  max-width: 420px;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  color: #fcd34d;
+}
+
+/* Match orientation, not physical pixels: Android scales the CSS viewport. */
+@media (orientation: landscape) and (min-width: 600px) {
+  .panel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    grid-template-rows: auto auto auto auto auto;
+    column-gap: clamp(24px, 4vw, 64px);
+  }
+  .badge { grid-column: 1; grid-row: 1; }
+  .brand { grid-column: 1; grid-row: 2; }
+  .heading { grid-column: 1; grid-row: 3; }
+  .instructions { grid-column: 1; grid-row: 4; }
+  .status { grid-column: 1; grid-row: 5; }
+  .qr {
+    grid-column: 2;
+    grid-row: 1 / 6;
+    align-self: center;
+    width: min(100%, 76svh, 560px);
+  }
+}
