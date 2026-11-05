@@ -1,19 +1,24 @@
 import type { Metadata } from "next";
-import { Figtree, Space_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
-const figtree = Figtree({
+const figtree = localFont({
+  src: "./fonts/Figtree-Variable.ttf",
   variable: "--font-figtree",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: "300 900",
+  style: "normal",
+  display: "swap",
 });
 
-const spaceMono = Space_Mono({
+const spaceMono = localFont({
+  src: [
+    { path: "./fonts/SpaceMono-Regular.ttf", weight: "400", style: "normal" },
+    { path: "./fonts/SpaceMono-Bold.ttf", weight: "700", style: "normal" },
+  ],
   variable: "--font-space-mono",
-  subsets: ["latin"],
-  weight: ["400", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
