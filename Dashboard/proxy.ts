@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from "next/server"
 const TOKEN_COOKIE = "clockit_token"
 // /kiosk is the front-desk QR display — it's meant to run on a screen that
 // never logs in, so it stays outside the auth gate entirely.
-const PUBLIC_ROUTES = ["/login", "/kiosk"]
+const PUBLIC_ROUTES = ["/login", "/kiosk", "/api/client-events"]
 
 export function proxy(request: NextRequest) {
   const token = request.cookies.get(TOKEN_COOKIE)?.value

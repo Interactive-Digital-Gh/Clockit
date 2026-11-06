@@ -11,6 +11,8 @@ import { api, ApiError } from "@/lib/api"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 
+import { reportDiagnostic } from "@/lib/client-diagnostics"
+
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 // Minimal typing for the Google Identity Services global.
@@ -58,11 +60,14 @@ export function LoginForm({ className, redirectTo, ...props }: LoginFormProps) {
     window.google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
       callback: async ({ credential }) => {
+        reportDiagnostic("google_started")
         setIsLoading(true)
         try {
           await api.googleLogin(credential)
+          reportDiagnostic("google_success")
           finishLogin()
         } catch (error: unknown) {
+          reportDiagnostic("google_failed", error, error instanceof ApiError ? error.status : undefined)
           const message =
             error instanceof ApiError && error.status === 403
               ? "This Google account has no dashboard access. Ask an administrator to add you."

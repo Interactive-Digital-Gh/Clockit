@@ -73,7 +73,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     if (profile && ADMIN_ROLES.includes(profile.role)) {
       managementItems.push({ href: "/dashboard/employees", label: "Employees", icon: UsersRound })
       managementItems.push({ href: "/dashboard/agencies", label: "Agencies", icon: Building2 })
-      managementItems.push({ href: "/dashboard/qr-code", label: "QR code", icon: QrCode })
+      if (profile.role !== "hr") {
+        managementItems.push({ href: "/dashboard/qr-code", label: "QR code", icon: QrCode })
+      }
       managementItems.push({ href: "/dashboard/notifications", label: "Notifications", icon: BellRing })
     }
     if (profile && USER_MANAGER_ROLES.includes(profile.role)) {

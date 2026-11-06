@@ -11,6 +11,8 @@ import { getLocation } from "@/lib/geolocation"
 import { useProfile } from "@/hooks/use-profile"
 import type { AttendanceRecord } from "@/lib/types"
 
+import { reportDiagnostic } from "@/lib/client-diagnostics"
+
 type Status = "loading" | "expired" | "ready" | "clocking-in" | "done" | "already-in" | "clocking-out" | "clocked-out"
 
 /** Where the front-desk QR code actually sends you. Not public — this route
@@ -49,6 +51,7 @@ export default function ScanPage({ searchParams }: { searchParams: Promise<{ t?:
         }
       }
 
+      reportDiagnostic("scan_ready")
       setStatus("ready")
     }
 

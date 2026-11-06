@@ -4,6 +4,8 @@
 
 import type { AdminNotification, Agency, AttendanceQrSettings, AttendanceQrToken, AttendanceRecord, Employee, Profile, Role } from "@/lib/types"
 
+import { reportDiagnostic } from "@/lib/client-diagnostics"
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8010"
 
 export const TOKEN_COOKIE = "clockit_token"
@@ -40,7 +42,12 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
       ...(token ? { authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
+  }).catch((error: unknown) => {
+    reportDiagnostic("api_failed", error)
+    throw error
   })
+
+  if (!res.ok) reportDiagnostic("api_failed", undefined, res.status)
 
   if (res.status === 401) {
     clearToken()
