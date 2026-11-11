@@ -105,7 +105,31 @@ class AgencyRef(ORMModel):
 
 
 # --- Employees --------------------------------------------------------------
+WorkMode = Literal["office", "remote", "off"]
+
+
+class WorkSchedule(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    starts_on: date
+    weeks: list[list[WorkMode]] = Field(min_length=1, max_length=2)
+
+    @field_validator("starts_on")
+    @classmethod
+    def monday_start(cls, value: date) -> date:
+        if value.weekday() != 0:
+            raise ValueError("Schedule start must be a Monday")
+        return value
+
+    @field_validator("weeks")
+    @classmethod
+    def seven_days(cls, value: list[list[WorkMode]]) -> list[list[WorkMode]]:
+        if any(len(week) != 7 for week in value):
+            raise ValueError("Each week must have seven days, Monday through Sunday")
+        return value
+
+
 class EmployeeBase(BaseModel):
+    work_schedule: WorkSchedule | None = None
     name: str
     email: EmailStr | None = None
     emp_id: str | None = None
@@ -121,6 +145,7 @@ class EmployeeCreate(EmployeeBase):
 
 
 class EmployeeUpdate(BaseModel):
+    work_schedule: WorkSchedule | None = None
     name: str | None = None
     email: EmailStr | None = None
     emp_id: str | None = None
@@ -139,6 +164,7 @@ class EmployeeSelfUpdate(BaseModel):
 
 
 class EmployeeOut(ORMModel, EmployeeBase):
+    expected_work_mode: WorkMode | None = None
     id: uuid.UUID
     agency: AgencyRef | None = None
 

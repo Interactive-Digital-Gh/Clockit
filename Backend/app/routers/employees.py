@@ -76,7 +76,10 @@ def get_employee(
 def create_employee(
     body: EmployeeCreate, db: Session = Depends(get_db), _=Depends(require_roles(*ADMIN_ROLES))
 ):
-    emp = Employee(**body.model_dump())
+    values = body.model_dump()
+    if body.work_schedule is not None:
+        values["work_schedule"] = body.work_schedule.model_dump(mode="json")
+    emp = Employee(**values)
     db.add(emp)
     db.commit()
     db.refresh(emp)
@@ -93,7 +96,10 @@ def update_employee(
     emp = db.get(Employee, employee_id)
     if not emp:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Employee not found")
-    for key, value in body.model_dump(exclude_unset=True).items():
+    values = body.model_dump(exclude_unset=True)
+    if body.work_schedule is not None:
+        values["work_schedule"] = body.work_schedule.model_dump(mode="json")
+    for key, value in values.items():
         setattr(emp, key, value)
     db.commit()
     db.refresh(emp)

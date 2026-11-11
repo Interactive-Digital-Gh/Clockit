@@ -11,6 +11,7 @@ import { api, ApiError } from "@/lib/api"
 import { getInitials } from "@/lib/utils"
 import { RequireRole } from "@/components/require-role"
 import { ADMIN_ROLES, type Agency, type Employee } from "@/lib/types"
+import { EmployeeSchedule } from "@/components/employee-schedule"
 import { toast } from "sonner"
 
 const UNASSIGNED = "unassigned"
@@ -101,6 +102,11 @@ function EmployeesPageContent() {
           </SelectContent>
         </Select>
       ),
+    },
+    {
+      key: "work_schedule",
+      header: "Work schedule",
+      render: (row) => <EmployeeSchedule employee={row} onSaved={(updated) => setEmployees((current) => current.map((employee) => employee.id === updated.id ? updated : employee))} />,
     },
     {
       key: "is_active",

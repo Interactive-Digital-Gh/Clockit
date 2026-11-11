@@ -2,7 +2,7 @@
 // access the dashboard used to do. Auth is a bearer JWT stored in a cookie so
 // both client fetches (below) and the proxy/middleware can read it.
 
-import type { AdminNotification, Agency, AttendanceQrSettings, AttendanceQrToken, AttendanceRecord, Employee, Profile, Role } from "@/lib/types"
+import type { AdminNotification, Agency, AttendanceQrSettings, AttendanceQrToken, AttendanceRecord, Employee, Profile, Role, WorkSchedule } from "@/lib/types"
 
 import { reportDiagnostic } from "@/lib/client-diagnostics"
 
@@ -150,7 +150,7 @@ export const api = {
       body: JSON.stringify(body),
     }),
   employees: () => apiFetch<Employee[]>("/employees"),
-  updateEmployee: (id: string, body: { agency_id?: string | null }) =>
+  updateEmployee: (id: string, body: { agency_id?: string | null; work_schedule?: WorkSchedule | null }) =>
     apiFetch<Employee>(`/employees/${id}`, {
       method: "PATCH",
       body: JSON.stringify(body),

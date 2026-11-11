@@ -17,7 +17,12 @@ export interface Agency {
   geofence_radius_m: number | null
 }
 
+export type WorkMode = "office" | "remote" | "off"
+export interface WorkSchedule { starts_on: string; weeks: WorkMode[][] }
+
 export interface Employee {
+  work_schedule?: WorkSchedule | null
+  expected_work_mode?: WorkMode | null
   id: string
   name: string
   email: string | null

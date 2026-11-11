@@ -72,6 +72,7 @@ class Employee(Base):
     emp_id: Mapped[str | None] = mapped_column(String)
     job_title: Mapped[str | None] = mapped_column(String)
     employment_type: Mapped[str | None] = mapped_column(String)
+    work_schedule: Mapped[dict | None] = mapped_column(JSONB)
     date_join: Mapped[date | None] = mapped_column(Date)
     agency_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("agencies.id", ondelete="SET NULL")
@@ -88,6 +89,12 @@ class Employee(Base):
     attendance: Mapped[list["AttendanceRecord"]] = relationship(
         back_populates="employee", cascade="all, delete-orphan"
     )
+
+    @property
+    def expected_work_mode(self) -> str | None:
+        from .services.work_schedule import scheduled_mode
+        from .services.attendance import today
+        return scheduled_mode(self.work_schedule, today())
 
 
 class AttendanceRecord(Base):
