@@ -359,7 +359,7 @@ function ReportsPageContent() {
 
         <div className="flex items-center gap-3 flex-wrap">
           <EmailReportDialog start={start} end={end} periodLabel={periodLabel} />
-          <ExportMenu records={records} dateRange={{ start, end }} filenamePrefix="attendance_analytics" />
+          <ExportMenu employees={employees} records={records} dateRange={{ start, end }} filenamePrefix="attendance_analytics" />
 
           <div className="flex items-center border rounded-md p-1 bg-muted/40">
             <Button variant="ghost" size="icon-sm" onClick={() => navigate("prev")} className="h-8 w-8">

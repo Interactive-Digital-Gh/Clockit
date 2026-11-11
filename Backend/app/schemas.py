@@ -217,6 +217,7 @@ class AttendanceOut(ORMModel):
 
 
 class EmployeeRef(ORMModel):
+    work_schedule: WorkSchedule | None = None
     id: uuid.UUID
     name: str
     email: str | None = None

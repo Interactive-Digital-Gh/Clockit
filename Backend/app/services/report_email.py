@@ -21,13 +21,15 @@ from html import escape
 from math import cos, pi, sin
 
 from fpdf import FPDF
+from fpdf.fonts import FontFace
 from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from ..config import get_settings
 from ..models import AttendanceRecord, Employee
 from .attendance import today as today_utc
 from .mailer import send_email
+from .report_locations import build_location_rows, NOTE
 
 settings = get_settings()
 
@@ -52,6 +54,7 @@ class EmployeeSummary:
     l2: int = 0
     l3: int = 0
     total_hours: float = 0.0
+    missing_days: int | None = None
 
     @property
     def late_total(self) -> int:
@@ -66,6 +69,7 @@ class EmployeeSummary:
 class Report:
     date_from: date
     date_to: date
+    locations: list[dict] = field(default_factory=list)
     working_days: int = 0
     total_records: int = 0
     total_hours: float = 0.0
@@ -79,7 +83,7 @@ class Report:
         return self.bands[1] + self.bands[2] + self.bands[3]
 
     def absent_days(self, s: EmployeeSummary) -> int:
-        return max(self.working_days - s.present, 0)
+        return s.missing_days if s.missing_days is not None else max(self.working_days - s.present, 0)
 
     @property
     def perfectly_early(self) -> list[EmployeeSummary]:
@@ -154,7 +158,7 @@ def build_report(db: Session, date_from: date, date_to: date) -> Report:
 
     records = db.scalars(
         select(AttendanceRecord)
-        .options(joinedload(AttendanceRecord.employee).joinedload(Employee.agency))
+        .options(joinedload(AttendanceRecord.employee).joinedload(Employee.agency), selectinload(AttendanceRecord.sessions))
         .where(AttendanceRecord.date >= date_from, AttendanceRecord.date <= date_to)
         .order_by(AttendanceRecord.date)
     ).all()
@@ -176,6 +180,14 @@ def build_report(db: Session, date_from: date, date_to: date) -> Report:
         summary.total_hours += hours
         report.total_hours += hours
 
+    report.locations = build_location_rows(employees, records, date_from, date_to)
+    for summary in by_id.values():
+        summary.missing_days = 0
+    for row in report.locations:
+        day = date.fromisoformat(row['date'])
+        expected = row['planned'] in ('Office', 'Remote') or (row['planned'] == 'Not set' and day.weekday() < 5)
+        if expected and day <= today_utc() and row['actual'] == 'No clock-in':
+            by_id[row['employee_id']].missing_days += 1
     report.total_records = len(records)
     report.employees = sorted(by_id.values(), key=lambda s: s.name.lower())
 
@@ -197,6 +209,11 @@ def render_csv(report: Report) -> bytes:
             [s.name, s.email, s.agency, s.early, s.l1, s.l2, s.l3,
              s.late_total, s.present, report.absent_days(s), f"{s.total_hours:.2f}"]
         )
+    writer.writerow([])
+    writer.writerow([NOTE])
+    writer.writerow(["Date", "Name", "Email", "Agency", "Planned location", "Recorded location", "Schedule check"])
+    for row in report.locations:
+        writer.writerow([row[k] for k in ['date', 'name', 'email', 'agency', 'planned', 'actual', 'check']])
     return buf.getvalue().encode()
 
 
@@ -360,7 +377,7 @@ def render_pdf(report: Report) -> bytes:
     # --- 3. Interpretation ---------------------------------------------------
     _heading(pdf, "3. INTERPRETATION OF TABLE 1")
     total_emp = len(report.employees) or 1
-    _body(pdf, f"The expected number of days to report to work in this period was {report.working_days}.")
+    _body(pdf, f"This period contains {report.working_days} elapsed Monday-to-Friday days. Individual schedules and recorded locations are listed in section 5.")
     early_all = report.perfectly_early
     if early_all:
         pdf.ln(1)
@@ -402,12 +419,26 @@ def render_pdf(report: Report) -> bytes:
             pdf,
             f"{len(absentees)} team members, accounting for {len(absentees) * 100 / total_emp:.0f}% of "
             f"{len(report.employees)} team members, recorded absences during the period under review. "
-            "Reasons (leave, work-from-home schedules, approved days off, client events) are not tracked "
-            "in Clockit and need to be filled in manually.",
+            "Remote days still require a clock-in; scheduled off-duty days are excluded. "
+            "For employees without a schedule, Monday to Friday is assumed. Leave reasons need to be filled in manually.",
         )
     else:
         _body(pdf, "No absences recorded in this period.")
 
+    pdf.add_page(orientation="L")
+    _heading(pdf, "5. PLANNED AND RECORDED WORK LOCATION")
+    _body(pdf, NOTE)
+    pdf.ln(3)
+    pdf.set_font("Helvetica", "", 8)
+    pdf.set_fill_color(255, 255, 255)
+    with pdf.table(col_widths=(25, 48, 33, 45, 70), line_height=5, padding=2, cell_fill_color=(255, 255, 255), headings_style=FontFace(emphasis="BOLD", fill_color=(235, 237, 240))) as table:
+        header = table.row()
+        for value in ["Date", "Team member", "Planned location", "Recorded location", "Schedule check"]:
+            header.cell(value)
+        for item in report.locations:
+            row = table.row()
+            for key in ['date', 'name', 'planned', 'actual', 'check']:
+                row.cell(item[key])
     return bytes(pdf.output())
 
 
@@ -427,6 +458,7 @@ def render_html(report: Report, message: str | None = None) -> str:
         f"<td style='{cell};text-align:right'>{report.absent_days(s)}</td></tr>"
         for s in report.employees
     )
+    location_rows = "".join("<tr>" + "".join(f"<td style='{cell}'>{escape(row[key])}</td>" for key in ['date', 'name', 'planned', 'actual', 'check']) + "</tr>" for row in report.locations)
     pcts = _pct(report.bands)
     bands = " · ".join(f"{label.split(' ')[0]} {p:.0f}%" for label, p in zip(BAND_LABELS, pcts))
     return f"""
@@ -451,6 +483,12 @@ def render_html(report: Report, message: str | None = None) -> str:
     </tr>
     {rows}
   </table>
+  <h3>Planned and recorded work location</h3>
+  <p style="font-size:12px">{escape(NOTE)}</p>
+  <table style="border-collapse:collapse;width:100%;font-size:12px">
+    <tr><th>Date</th><th>Team member</th><th>Planned location</th><th>Recorded location</th><th>Schedule check</th></tr>
+    {location_rows}
+  </table>
   <p style="margin:16px 0 0;color:#999;font-size:12px">
     Full report attached as PDF, raw data as CSV · Sent by Clockit
   </p>
@@ -471,6 +509,8 @@ def render_text(report: Report, message: str | None = None) -> str:
             f"- {s.name}: {s.early} early, {s.late_total} late, "
             f"{s.present} present, {report.absent_days(s)} absent"
         )
+    lines += ["", NOTE, "Planned and recorded work location:"]
+    lines += [f"{r['date']} | {r['name']} | Planned: {r['planned']} | Recorded: {r['actual']} | {r['check']}" for r in report.locations]
     lines += ["", "Full report attached as PDF, raw data as CSV."]
     return "\n".join(lines)
 

@@ -60,7 +60,7 @@ export interface AttendanceRecord {
   clock_in_local_ip?: string | null
   clock_in_latitude?: number | null
   clock_in_longitude?: number | null
-  employee?: Pick<Employee, "id" | "name" | "email" | "agency"> | null
+  employee?: Pick<Employee, "id" | "name" | "email" | "agency" | "work_schedule"> | null
   sessions?: AttendanceSession[]
 }
 

@@ -3,12 +3,15 @@ import jsPDF from "jspdf"
 import { autoTable } from "jspdf-autotable"
 import { format } from "date-fns"
 
-import type { AttendanceRecord } from "./types"
+import type { Employee } from "./types"
 import { formatDate, formatTime, formatHours, ATTENDANCE_STATUS, type AttendanceStatusKey } from "./utils"
+
+import { prepareReportRows, SCHEDULE_NOTE, type ReportRecord } from "./report-locations"
 
 export type ExportFileFormat = "csv" | "excel" | "pdf"
 
 export interface ExportOptions {
+  employees?: Employee[]
   format: ExportFileFormat
   filename?: string
   dateRange?: { start: Date; end: Date }
@@ -26,8 +29,9 @@ function defaultFilename(ext: string): string {
 // CSV
 // ---------------------------------------------------------------------------
 
-export function toCsv(records: AttendanceRecord[]): string {
-  const header = ["Date", "Employee", "Email", "Agency", "Clock in", "Clock out", "Status", "Total hours"]
+export function toCsv(records: ReportRecord[]): string {
+  records = records.every((r) => r.planned) ? records : prepareReportRows(records)
+  const header = ["Date", "Employee", "Email", "Agency", "Clock in", "Clock out", "Status", "Total hours", "Planned location (current schedule)", "Recorded location", "Schedule check"]
   const lines = records.map((r) =>
     [
       r.date,
@@ -38,6 +42,7 @@ export function toCsv(records: AttendanceRecord[]): string {
       formatTime(r.clock_out_time),
       statusLabel(r.status),
       r.total_hours ?? "",
+      r.planned ?? "Not set", r.actual ?? "Unknown", r.schedule_check ?? "",
     ]
       .map((v) => `"${String(v).replace(/"/g, '""')}"`)
       .join(",")
@@ -68,7 +73,7 @@ interface EmployeeSummary {
   totalHours: number
 }
 
-function summarizeByEmployee(records: AttendanceRecord[]): EmployeeSummary[] {
+function summarizeByEmployee(records: ReportRecord[]): EmployeeSummary[] {
   const map = new Map<string, EmployeeSummary>()
   for (const r of records) {
     const entry = map.get(r.employee_id) ?? {
@@ -91,12 +96,13 @@ function summarizeByEmployee(records: AttendanceRecord[]): EmployeeSummary[] {
 // Excel export
 // ---------------------------------------------------------------------------
 
-export function exportToExcel(records: AttendanceRecord[], options: Partial<ExportOptions> = {}): void {
+export function exportToExcel(records: ReportRecord[], options: Partial<ExportOptions> = {}): void {
+  records = records.every((r) => r.planned) ? records : prepareReportRows(records, options.employees, options.dateRange)
   const filename = options.filename ?? defaultFilename("xlsx")
   const workbook = XLSX.utils.book_new()
 
   const recordRows = [
-    ["Date", "Employee", "Email", "Agency", "Clock in", "Clock out", "Status", "Total hours"],
+    ["Date", "Employee", "Email", "Agency", "Clock in", "Clock out", "Status", "Total hours", "Planned location (current schedule)", "Recorded location", "Schedule check"],
     ...records.map((r) => [
       r.date,
       r.employee?.name ?? "",
@@ -106,6 +112,7 @@ export function exportToExcel(records: AttendanceRecord[], options: Partial<Expo
       formatTime(r.clock_out_time),
       statusLabel(r.status),
       r.total_hours ?? "",
+      r.planned ?? "Not set", r.actual ?? "Unknown", r.schedule_check ?? "",
     ]),
   ]
   const recordSheet = XLSX.utils.aoa_to_sheet(recordRows)
@@ -117,11 +124,12 @@ export function exportToExcel(records: AttendanceRecord[], options: Partial<Expo
     { wch: 12 },
     { wch: 12 },
     { wch: 10 },
-    { wch: 12 },
+    { wch: 12 }, { wch: 25 }, { wch: 30 }, { wch: 35 },
   ]
   XLSX.utils.book_append_sheet(workbook, recordSheet, "Attendance Records")
 
-  const summary = summarizeByEmployee(records)
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([[SCHEDULE_NOTE]]), "Notes")
+  const summary = summarizeByEmployee(records.filter((r) => !r.missing))
   const summaryRows = [
     ["Employee", "Email", "Agency", "Days present", "Days late", "Total hours"],
     ...summary.map((s) => [s.name, s.email, s.agency, s.daysPresent, s.daysLate, Math.round(s.totalHours * 10) / 10]),
@@ -139,9 +147,10 @@ export function exportToExcel(records: AttendanceRecord[], options: Partial<Expo
 
 type DocWithAutoTable = jsPDF & { lastAutoTable?: { finalY: number } }
 
-export function exportToPDF(records: AttendanceRecord[], options: Partial<ExportOptions> = {}): void {
+export function exportToPDF(records: ReportRecord[], options: Partial<ExportOptions> = {}): void {
+  records = records.every((r) => r.planned) ? records : prepareReportRows(records, options.employees, options.dateRange)
   const filename = options.filename ?? defaultFilename("pdf")
-  const pdf = new jsPDF("portrait", "mm", "a4") as DocWithAutoTable
+  const pdf = new jsPDF("landscape", "mm", "a4") as DocWithAutoTable
   const pageWidth = pdf.internal.pageSize.getWidth()
   const pageHeight = pdf.internal.pageSize.getHeight()
 
@@ -162,7 +171,7 @@ export function exportToPDF(records: AttendanceRecord[], options: Partial<Export
     yPos += 6
   }
 
-  const present = records.filter((r) => r.status !== "late").length
+  const present = records.filter((r) => !r.missing && r.status !== "late").length
   const late = records.filter((r) => r.status === "late").length
   const totalHours = records.reduce((sum, r) => sum + (r.total_hours ?? 0), 0)
 
@@ -174,7 +183,7 @@ export function exportToPDF(records: AttendanceRecord[], options: Partial<Export
   autoTable(pdf, {
     startY: yPos,
     head: [["Total records", "On time", "Late", "Total hours"]],
-    body: [[String(records.length), String(present), String(late), formatHours(totalHours)]],
+    body: [[String(records.filter((r) => !r.missing).length), String(present), String(late), formatHours(totalHours)]],
     theme: "grid",
     headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontSize: 9 },
     styles: { fontSize: 9, cellPadding: 3, halign: "center" },
@@ -188,6 +197,12 @@ export function exportToPDF(records: AttendanceRecord[], options: Partial<Export
   pdf.text("Attendance Records", 14, yPos)
   yPos += 6
 
+  pdf.setFontSize(8)
+  pdf.setFont("helvetica", "normal")
+  const noteLines = pdf.splitTextToSize(SCHEDULE_NOTE, pageWidth - 28)
+  pdf.text(noteLines, 14, yPos)
+  yPos += noteLines.length * 4 + 3
+
   const tableData = records.map((r) => [
     formatDate(r.date),
     r.employee?.name ?? "—",
@@ -195,12 +210,12 @@ export function exportToPDF(records: AttendanceRecord[], options: Partial<Export
     formatTime(r.clock_in_time),
     formatTime(r.clock_out_time),
     formatHours(r.total_hours),
-    statusLabel(r.status),
+    statusLabel(r.status), r.planned ?? "Not set", r.actual ?? "Unknown", r.schedule_check ?? "",
   ])
 
   autoTable(pdf, {
     startY: yPos,
-    head: [["Date", "Employee", "Agency", "Clock in", "Clock out", "Hours", "Status"]],
+    head: [["Date", "Employee", "Agency", "Clock in", "Clock out", "Hours", "Status", "Planned location", "Recorded location", "Schedule check"]],
     body: tableData,
     theme: "grid",
     headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontSize: 8 },
@@ -222,7 +237,8 @@ export function exportToPDF(records: AttendanceRecord[], options: Partial<Export
 // Entry point
 // ---------------------------------------------------------------------------
 
-export function exportAttendanceReport(records: AttendanceRecord[], options: ExportOptions): void {
+export function exportAttendanceReport(records: ReportRecord[], options: ExportOptions): void {
+  records = prepareReportRows(records, options.employees, options.dateRange)
   if (!records || records.length === 0) {
     throw new Error("No records to export")
   }

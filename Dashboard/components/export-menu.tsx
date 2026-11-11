@@ -11,17 +11,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { exportAttendanceReport } from "@/lib/export-utils"
-import type { AttendanceRecord } from "@/lib/types"
+import type { AttendanceRecord, Employee } from "@/lib/types"
 
 interface ExportMenuProps {
+  employees?: Employee[]
   records: AttendanceRecord[]
   dateRange?: { start: Date; end: Date }
   filenamePrefix?: string
 }
 
-export function ExportMenu({ records, dateRange, filenamePrefix = "attendance_report" }: ExportMenuProps) {
+export function ExportMenu({ records, employees, dateRange, filenamePrefix = "attendance_report" }: ExportMenuProps) {
   const handleExport = (exportFormat: "csv" | "excel" | "pdf") => {
-    if (records.length === 0) {
+    if (records.length === 0 && !employees?.length) {
       toast.error("No data to export", { description: "Adjust your filters to include some records." })
       return
     }
@@ -36,6 +37,7 @@ export function ExportMenu({ records, dateRange, filenamePrefix = "attendance_re
         format: exportFormat,
         filename: `${filenamePrefix}_${dateSuffix}.${ext}`,
         dateRange,
+        employees,
       })
       toast.success("Report exported", { description: `Your ${exportFormat.toUpperCase()} file has been downloaded.` })
     } catch (error) {
