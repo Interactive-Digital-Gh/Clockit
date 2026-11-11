@@ -4,7 +4,7 @@ import uuid
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 Role = Literal["super_admin", "it", "hr", "front_desk", "employee"]
 
@@ -110,15 +110,20 @@ WorkMode = Literal["office", "remote", "off"]
 
 class WorkSchedule(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    pattern: Literal["cycle", "monthly"] = "cycle"
     starts_on: date
-    weeks: list[list[WorkMode]] = Field(min_length=1, max_length=2)
+    weeks: list[list[WorkMode]] = Field(min_length=1, max_length=8)
 
-    @field_validator("starts_on")
-    @classmethod
-    def monday_start(cls, value: date) -> date:
-        if value.weekday() != 0:
+    @model_validator(mode="after")
+    def valid_pattern(self):
+        if self.pattern == "monthly":
+            if self.starts_on.day != 1:
+                raise ValueError("Monthly schedules must start on the first of a month")
+            if len(self.weeks) != 5:
+                raise ValueError("Monthly schedules need five date blocks, including days 29–end")
+        elif self.starts_on.weekday() != 0:
             raise ValueError("Schedule start must be a Monday")
-        return value
+        return self
 
     @field_validator("weeks")
     @classmethod

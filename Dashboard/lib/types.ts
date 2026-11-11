@@ -18,7 +18,7 @@ export interface Agency {
 }
 
 export type WorkMode = "office" | "remote" | "off"
-export interface WorkSchedule { starts_on: string; weeks: WorkMode[][] }
+export interface WorkSchedule { pattern?: "cycle" | "monthly"; starts_on: string; weeks: WorkMode[][] }
 
 export interface Employee {
   work_schedule?: WorkSchedule | null

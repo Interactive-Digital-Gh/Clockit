@@ -30,8 +30,26 @@ class WorkScheduleTests(unittest.TestCase):
         self.assertIsNone(scheduled_mode(schedule, date(2026, 12, 20)))
         self.assertIsNone(scheduled_mode(None, date(2026, 12, 20)))
 
+    def test_two_remote_two_office(self):
+        schedule = WorkSchedule(starts_on=date(2026, 11, 9), weeks=[REMOTE, REMOTE, ['office'] * 7, ['office'] * 7]).model_dump(mode='json')
+        for day, expected in [(9, 'remote'), (16, 'remote'), (23, 'office'), (30, 'office')]:
+            self.assertEqual(scheduled_mode(schedule, date(2026, 11, day)), expected)
+        self.assertEqual(scheduled_mode(schedule, date(2026, 12, 7)), 'remote')
+
+    def test_monthly_resets_including_leap_day(self):
+        schedule = WorkSchedule(pattern='monthly', starts_on=date(2028, 1, 1), weeks=[REMOTE, REMOTE, ['office'] * 7, ['office'] * 7, ['office'] * 7]).model_dump(mode='json')
+        self.assertEqual(scheduled_mode(schedule, date(2028, 2, 14)), 'remote')
+        self.assertEqual(scheduled_mode(schedule, date(2028, 2, 15)), 'office')
+        self.assertEqual(scheduled_mode(schedule, date(2028, 2, 29)), 'office')
+        self.assertEqual(scheduled_mode(schedule, date(2028, 3, 1)), 'remote')
+        self.assertIsNone(scheduled_mode(schedule, date(2027, 12, 31)))
+        with self.assertRaises(ValidationError):
+            WorkSchedule(pattern='monthly', starts_on=date(2028, 1, 1), weeks=[REMOTE] * 4)
+        with self.assertRaises(ValidationError):
+            WorkSchedule(pattern='monthly', starts_on=date(2028, 1, 2), weeks=[REMOTE] * 5)
+
     def test_reject_invalid_patterns(self):
-        for weeks in [[], [REMOTE] * 3, [['office']], [['unknown'] * 7]]:
+        for weeks in [[], [REMOTE] * 9, [['office']], [['unknown'] * 7]]:
             with self.assertRaises(ValidationError):
                 self.schedule(weeks=weeks if weeks else [[]])
         with self.assertRaises(ValidationError):

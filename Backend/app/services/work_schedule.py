@@ -9,5 +9,5 @@ def scheduled_mode(schedule: dict | None, day: date) -> str | None:
     if day < start:
         return None
     weeks = schedule['weeks']
-    week = ((day - start).days // 7) % len(weeks)
+    week = (day.day - 1) // 7 if schedule.get("pattern") == "monthly" else ((day - start).days // 7) % len(weeks)
     return weeks[week][day.weekday()]
