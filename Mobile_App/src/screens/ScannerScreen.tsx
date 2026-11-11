@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '../context/AppContext';
-import { clockInEmployee, fetchAttendanceQrToken, looksLikeAttendanceQr } from '../services/attendanceService';
+import { clockInEmployee, looksLikeAttendanceQr } from '../services/attendanceService';
 import { notifyLateClockIn } from '../lib/notifications';
 import { confirmIdentityForClockIn } from '../lib/biometricGate';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -32,17 +32,6 @@ export default function ScannerScreen() {
   const [scanned, setScanned] = useState(false);
   const [wrongCode, setWrongCode] = useState(false);
   const wrongCodeRef = useRef(false);
-  // The QR rotates (admin-set interval or manual) — ask the server which token
-  // is current. Falls back to the cached value offline; null means we don't
-  // know the current token, in which case the scan handler accepts any
-  // Clockit-shaped code instead of rejecting valid scans. Ref so the scan
-  // callback (fired from the camera thread many times a second) reads the latest.
-  const expectedQrRef = useRef<string | null>(null);
-  useEffect(() => {
-    fetchAttendanceQrToken().then((token) => {
-      expectedQrRef.current = token;
-    });
-  }, []);
   const { hasPermission, canRequestPermission, requestPermission } = useCameraPermission();
   const isFocused = useIsFocused();
   const scannedRef = useRef(false);
@@ -75,11 +64,8 @@ export default function ScannerScreen() {
     return () => loop.stop();
   }, [scanState]);
 
-  // Clock-in is identified by the auth token and classified on-site/remote
-  // server-side from the IP; the scanner only accepts the current attendance
-  // QR (expectedQrRef). Guarded by a ref because the scan callback fires many
-  // times per second.
-  const doClockIn = async () => {
+  // The server validates the scanned code against the live QR at clock-in.
+  const doClockIn = async (qrToken?: string) => {
     if (scannedRef.current || !user) return;
     scannedRef.current = true;
     setScanned(true);
@@ -102,7 +88,7 @@ export default function ScannerScreen() {
       return;
     }
     try {
-      const record = await clockInEmployee(user.id);
+      const record = await clockInEmployee(user.id, false, qrToken);
       // record.clock_in_time is always the day's FIRST arrival (used for the
       // late cutoff) — accurate only for that first session. A re-entry
       // scan later in the day returns the same day record with total_hours
@@ -129,14 +115,12 @@ export default function ScannerScreen() {
     onObjectsScanned: (objects) => {
       const code = objects.find(isScannedCode);
       if (!code?.value) return;
-      const expected = expectedQrRef.current;
-      // Exact match against the live token when we have it; offline with no
-      // cache (expected === null), accept anything Clockit-shaped so a dead
-      // network doesn't block a valid scan.
-      const accepted = expected !== null ? code.value === expected : looksLikeAttendanceQr(code.value);
+
+      // Shape check only; the server rejects stale or invalid codes.
+      const accepted = looksLikeAttendanceQr(code.value);
       if (accepted) {
         setWrongCode(false);
-        doClockIn();
+        doClockIn(code.value);
       } else if (!wrongCodeRef.current) {
         // Some other QR — tell the user, then let them keep scanning.
         wrongCodeRef.current = true;
@@ -252,7 +236,7 @@ export default function ScannerScreen() {
         <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
           <TouchableOpacity
             style={styles.manualBtn}
-            onPress={doClockIn}
+            onPress={() => doClockIn()}
             activeOpacity={0.85}
             disabled={scanned}
           >

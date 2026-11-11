@@ -119,7 +119,7 @@ export const api = {
   /** The signed-in user's own attendance (any role). */
   myAttendance: (limit = 60) => apiFetch<AttendanceRecord[]>(`/attendance/my?limit=${limit}`),
   myToday: () => apiFetch<AttendanceRecord | null>("/attendance/my/today"),
-  myClockIn: (body: { latitude?: number | null; longitude?: number | null; location_accuracy_m?: number | null } = {}) =>
+  myClockIn: (body: { qr_token?: string; latitude?: number | null; longitude?: number | null; location_accuracy_m?: number | null } = {}) =>
     apiFetch<AttendanceRecord>("/attendance/my/clock-in", {
       method: "POST",
       body: JSON.stringify(body),
@@ -132,10 +132,10 @@ export const api = {
   attendanceQr: () => apiFetch<AttendanceQrToken>("/attendance/qr"),
   rotateAttendanceQr: () => apiFetch<AttendanceQrToken>("/attendance/qr/rotate", { method: "POST" }),
   qrSettings: () => apiFetch<AttendanceQrSettings>("/attendance/qr/settings"),
-  updateQrSettings: (rotation_minutes: number | null) =>
+  updateQrSettings: (rotation_seconds: number | null) =>
     apiFetch<AttendanceQrSettings>("/attendance/qr/settings", {
       method: "PATCH",
-      body: JSON.stringify({ rotation_minutes }),
+      body: JSON.stringify({ rotation_seconds }),
     }),
 
   /** No-auth read of the current QR token, for the public front-desk kiosk display. */

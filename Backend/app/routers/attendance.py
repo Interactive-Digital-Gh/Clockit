@@ -43,11 +43,7 @@ settings = get_settings()
 
 
 def _mint_qr_token() -> str:
-    """A full clock-in link, not just an opaque code — scanning it with any
-    phone camera opens /scan, which handles login + one-tap clock-in. Only
-    the random suffix actually rotates; matching it against the live code is
-    a client-side UX nicety on /scan, not a server-side security check (same
-    as everywhere else in this app — ClockInRequest takes no token field)."""
+    """A rotating clock-in link, validated by the server on QR clock-in."""
     return f"{settings.app_url}/scan?t={secrets.token_urlsafe(9)}"
 
 
@@ -94,9 +90,15 @@ def clock_in(
         device_latitude=body.latitude,
         device_longitude=body.longitude,
     )
+    if body.qr_token is not None:
+        live = _current_qr_autorotate(db)
+        if not secrets.compare_digest(body.qr_token.encode(), live.token.encode()):
+            raise HTTPException(status.HTTP_409_CONFLICT, "This QR code has expired. Please scan the current code at the front desk.")
+        verified, source = True, "office_qr"
     return svc.clock_in(
         db,
         emp.id,
+        verification_method="qr" if body.qr_token is not None else "manual",
         location_verified=verified,
         verification_source=source,
         public_ip=public_ip,
@@ -125,7 +127,7 @@ def _current_qr(db: Session) -> AttendanceQr:
 def _get_qr_settings(db: Session) -> AttendanceQrSettings:
     qr_settings = db.scalar(select(AttendanceQrSettings).limit(1))
     if qr_settings is None:  # pre-seed safety net; migration 0009 seeds the singleton row
-        qr_settings = AttendanceQrSettings(rotation_minutes=None)
+        qr_settings = AttendanceQrSettings(rotation_seconds=None)
         db.add(qr_settings)
         db.commit()
         db.refresh(qr_settings)
@@ -134,13 +136,13 @@ def _get_qr_settings(db: Session) -> AttendanceQrSettings:
 
 def _current_qr_autorotate(db: Session) -> AttendanceQr:
     """The active QR token, auto-rotating it first if the admin-configured
-    interval has elapsed since it was minted. rotation_minutes=None (the
+    interval has elapsed since it was minted. rotation_seconds=None (the
     default) means manual-only — identical to _current_qr()."""
+    qr_settings = db.scalar(select(AttendanceQrSettings).with_for_update()) or _get_qr_settings(db)
     qr = _current_qr(db)
-    qr_settings = _get_qr_settings(db)
-    if qr_settings.rotation_minutes is not None:
+    if qr_settings.rotation_seconds is not None:
         elapsed = datetime.now(timezone.utc) - qr.created_at
-        if elapsed >= timedelta(minutes=qr_settings.rotation_minutes):
+        if elapsed >= timedelta(seconds=qr_settings.rotation_seconds):
             qr = AttendanceQr(token=_mint_qr_token(), rotated_by="auto")
             db.add(qr)
             db.commit()
@@ -148,10 +150,19 @@ def _current_qr_autorotate(db: Session) -> AttendanceQr:
     return qr
 
 
+def _qr_response(db: Session, qr: AttendanceQr) -> AttendanceQrOut:
+    result = AttendanceQrOut.model_validate(qr)
+    interval = _get_qr_settings(db).rotation_seconds
+    if interval is not None:
+        age = (datetime.now(timezone.utc) - qr.created_at).total_seconds()
+        result.expires_in_seconds = max(0, interval - age)
+    return result
+
+
 @router.get("/qr", response_model=AttendanceQrOut)
 def get_qr(db: Session = Depends(get_db), _=Depends(require_roles(*ADMIN_ROLES))):
     """The active QR token, for the dashboard's QR management page."""
-    return _current_qr_autorotate(db)
+    return _qr_response(db, _current_qr_autorotate(db))
 
 
 @router.post("/qr/rotate", response_model=AttendanceQrOut)
@@ -163,15 +174,13 @@ def rotate_qr(db: Session = Depends(get_db), admin: Profile = Depends(require_ro
     db.add(qr)
     db.commit()
     db.refresh(qr)
-    return qr
+    return _qr_response(db, qr)
 
 
 @router.get("/qr/current", response_model=AttendanceQrOut)
 def get_qr_current(db: Session = Depends(get_db), _=Depends(get_principal)):
-    """The active QR token, for the mobile/web scanner to validate scans
-    against. Any signed-in Employee or Profile — this isn't a security
-    control, just the value the client compares a scan to before clocking in."""
-    return _current_qr_autorotate(db)
+    """Current QR for signed-in clients; clock-in validates submitted codes."""
+    return _qr_response(db, _current_qr_autorotate(db))
 
 
 @router.get("/qr/display", response_model=AttendanceQrOut)
@@ -181,7 +190,7 @@ def get_qr_display(db: Session = Depends(get_db)):
     already physically visible on that screen, so there's nothing extra
     exposed by making the read itself public (mirrors /qr/current, which
     already only requires *some* signed-in principal rather than an admin)."""
-    return _current_qr_autorotate(db)
+    return _qr_response(db, _current_qr_autorotate(db))
 
 
 @router.get("/qr/settings", response_model=AttendanceQrSettingsOut)
@@ -196,7 +205,7 @@ def update_qr_settings(
     admin: Profile = Depends(require_roles(*ADMIN_ROLES)),
 ):
     qr_settings = _get_qr_settings(db)
-    qr_settings.rotation_minutes = body.rotation_minutes
+    qr_settings.rotation_seconds = body.rotation_seconds
     qr_settings.updated_by = admin.email
     qr_settings.updated_at = datetime.now(timezone.utc)
     db.commit()
@@ -260,9 +269,15 @@ def my_clock_in_as_profile(
         device_latitude=body.latitude,
         device_longitude=body.longitude,
     )
+    if body.qr_token is not None:
+        live = _current_qr_autorotate(db)
+        if not secrets.compare_digest(body.qr_token.encode(), live.token.encode()):
+            raise HTTPException(status.HTTP_409_CONFLICT, "This QR code has expired. Please scan the current code at the front desk.")
+        verified, source = True, "office_qr"
     return svc.clock_in(
         db,
         emp.id,
+        verification_method="qr" if body.qr_token is not None else "manual",
         location_verified=verified,
         verification_source=source,
         public_ip=public_ip,

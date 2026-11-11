@@ -34,7 +34,7 @@ export interface AttendanceSession {
   clock_out_time: string | null
   verification_method: string
   location_verified: boolean
-  verification_source: "office_ip" | "office_gps" | "office_subnet" | "off_site"
+  verification_source: "office_qr" | "office_ip" | "office_gps" | "office_subnet" | "off_site"
   clock_in_public_ip: string | null
   clock_in_local_ip: string | null
   clock_in_latitude: number | null
@@ -50,7 +50,7 @@ export interface AttendanceRecord {
   total_hours: number | null
   employee_id: string
   location_verified?: boolean
-  verification_source?: "office_ip" | "office_gps" | "office_subnet" | "off_site"
+  verification_source?: "office_qr" | "office_ip" | "office_gps" | "office_subnet" | "off_site"
   clock_in_public_ip?: string | null
   clock_in_local_ip?: string | null
   clock_in_latitude?: number | null
@@ -62,13 +62,14 @@ export interface AttendanceRecord {
 export type Role = "super_admin" | "it" | "hr" | "front_desk" | "employee"
 
 export interface AttendanceQrToken {
+  expires_in_seconds?: number | null
   token: string
   created_at: string | null
   rotated_by: string | null
 }
 
 export interface AttendanceQrSettings {
-  rotation_minutes: number | null
+  rotation_seconds: number | null
   updated_by: string | null
   updated_at: string | null
 }

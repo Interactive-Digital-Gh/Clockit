@@ -156,10 +156,12 @@ export const api = {
   clockIn: (
     localIp: string | null,
     location?: { latitude: number; longitude: number; accuracyM: number | null } | null,
+    qrToken?: string,
   ) =>
     apiFetch<ApiAttendance>('/attendance/clock-in', {
       method: 'POST',
       body: JSON.stringify({
+        qr_token: qrToken,
         local_ip: localIp,
         latitude: location?.latitude ?? null,
         longitude: location?.longitude ?? null,

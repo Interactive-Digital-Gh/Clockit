@@ -7,9 +7,10 @@ import { StyledQrCode } from "@/components/qr-code-display"
 import { api } from "@/lib/api"
 import type { AttendanceQrToken } from "@/lib/types"
 
+import { watchQr } from "@/lib/qr-refresh"
+
 import styles from "./kiosk.module.css"
 
-const POLL_INTERVAL_MS = 10_000
 // A handful of consecutive failed polls before we say anything — a single
 // blip (dev-server restart, brief network hiccup) shouldn't alarm whoever's
 // watching the screen; the code shown is still valid until it visibly changes.
@@ -30,32 +31,14 @@ export default function KioskQrCodePage() {
   const [misses, setMisses] = useState(0)
   const missesRef = useRef(0)
 
-  useEffect(() => {
-    let cancelled = false
-
-    const poll = () => {
-      api
-        .qrDisplay()
-        .then((data) => {
-          if (cancelled) return
-          setQr(data)
-          missesRef.current = 0
-          setMisses(0)
-        })
-        .catch(() => {
-          if (cancelled) return
-          missesRef.current += 1
-          setMisses(missesRef.current)
-        })
-    }
-
-    poll()
-    const id = setInterval(poll, POLL_INTERVAL_MS)
-    return () => {
-      cancelled = true
-      clearInterval(id)
-    }
-  }, [])
+  useEffect(() => watchQr(api.qrDisplay, (data) => {
+    setQr(data)
+    missesRef.current = 0
+    setMisses(0)
+  }, () => {
+    missesRef.current += 1
+    setMisses(missesRef.current)
+  }), [])
 
   useEffect(() => {
     const id = setInterval(() => window.location.reload(), RELOAD_INTERVAL_MS)

@@ -145,6 +145,7 @@ class EmployeeOut(ORMModel, EmployeeBase):
 
 # --- Attendance -------------------------------------------------------------
 class ClockInRequest(BaseModel):
+    qr_token: str | None = Field(default=None, max_length=2048)
     # Device-reported LAN IP, validated against the agency's allowed subnets.
     local_ip: str | None = None
     # Device-reported GPS coordinates, checked against the agency's geofence.
@@ -257,24 +258,25 @@ class AttendanceQrOut(BaseModel):
     token: str
     created_at: datetime | None = None
     rotated_by: str | None = None
+    expires_in_seconds: float | None = None
 
 
 class AttendanceQrSettingsOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    rotation_minutes: int | None = None
+    rotation_seconds: int | None = None
     updated_by: str | None = None
     updated_at: datetime | None = None
 
 
 class AttendanceQrSettingsUpdate(BaseModel):
-    rotation_minutes: int | None  # None = manual-only
+    rotation_seconds: int | None  # None = manual-only
 
-    @field_validator("rotation_minutes")
+    @field_validator("rotation_seconds")
     @classmethod
     def _check_range(cls, v: int | None) -> int | None:
-        if v is not None and not (1 <= v <= 1440):
-            raise ValueError("rotation_minutes must be between 1 and 1440")
+        if v is not None and not (1 <= v <= 86400):
+            raise ValueError("rotation_seconds must be between 1 and 86400")
         return v
 
 

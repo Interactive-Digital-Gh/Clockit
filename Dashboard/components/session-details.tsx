@@ -7,6 +7,7 @@ import type { AttendanceSession } from "@/lib/types"
 // Shared with the top-level day-summary location badge — one source of truth
 // for the tooltip copy per verification source.
 export const LOCATION_TITLE: Record<string, string> = {
+  office_qr: "Verified — scanned a valid office QR code",
   office_ip: "Verified — request came from the office network",
   office_gps: "Verified — device GPS was within the office geofence",
   office_subnet: "Verified — device reported an office WiFi subnet",

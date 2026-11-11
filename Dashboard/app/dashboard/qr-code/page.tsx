@@ -27,6 +27,8 @@ import { api, ApiError } from "@/lib/api"
 import { formatDate } from "@/lib/utils"
 import { ADMIN_ROLES, type AttendanceQrSettings, type AttendanceQrToken } from "@/lib/types"
 
+import { watchQr } from "@/lib/qr-refresh"
+
 type RotationMode = "manual" | "auto"
 
 export default function QrCodePage() {
@@ -40,34 +42,23 @@ export default function QrCodePage() {
 function QrCodePageContent() {
   const [qr, setQr] = useState<AttendanceQrToken | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [refreshKey, setRefreshKey] = useState(0)
   const [isRotating, setIsRotating] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   const [rotationMode, setRotationMode] = useState<RotationMode>("manual")
-  const [rotationMinutes, setRotationMinutes] = useState("15")
+  const [rotationSeconds, setRotationSeconds] = useState("900")
   const [isSavingSettings, setIsSavingSettings] = useState(false)
 
   useEffect(() => {
     let cancelled = false
     api
-      .attendanceQr()
-      .then((data) => {
-        if (!cancelled) setQr(data)
-      })
-      .catch((error: unknown) => {
-        toast.error(error instanceof ApiError ? error.message : "Could not load the QR code")
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
-
-    api
       .qrSettings()
       .then((settings: AttendanceQrSettings) => {
         if (cancelled) return
-        if (settings.rotation_minutes != null) {
+        if (settings.rotation_seconds != null) {
           setRotationMode("auto")
-          setRotationMinutes(String(settings.rotation_minutes))
+          setRotationSeconds(String(settings.rotation_seconds))
         }
       })
       .catch(() => {
@@ -79,12 +70,20 @@ function QrCodePageContent() {
     }
   }, [])
 
+  useEffect(() => watchQr(api.attendanceQr, (current) => {
+    setQr(current)
+    setIsLoading(false)
+  }, () => {
+    setIsLoading(false)
+  }), [refreshKey])
+
   const handleRotate = async () => {
     setIsRotating(true)
     try {
       const next = await api.rotateAttendanceQr()
       setQr(next)
       setConfirmOpen(false)
+      setRefreshKey((key) => key + 1)
       toast.success("QR code rotated — print and post the new code")
     } catch (error: unknown) {
       toast.error(error instanceof ApiError ? error.message : "Rotation failed")
@@ -99,18 +98,19 @@ function QrCodePageContent() {
   }
 
   const handleSaveSettings = async () => {
-    const minutes = rotationMode === "auto" ? Number(rotationMinutes) : null
-    if (rotationMode === "auto" && (!Number.isInteger(minutes) || minutes! < 1 || minutes! > 1440)) {
-      toast.error("Enter a whole number of minutes between 1 and 1440")
+    const seconds = rotationMode === "auto" ? Number(rotationSeconds) : null
+    if (rotationMode === "auto" && (!Number.isInteger(seconds) || seconds! < 1 || seconds! > 86400)) {
+      toast.error("Enter a whole number of seconds between 1 and 86400")
       return
     }
     setIsSavingSettings(true)
     try {
-      await api.updateQrSettings(minutes)
+      await api.updateQrSettings(seconds)
+      setRefreshKey((key) => key + 1)
       toast.success(
-        minutes == null
+        seconds == null
           ? "Auto-rotation turned off — the code only changes when you rotate it manually"
-          : `The code will now rotate automatically every ${minutes} minute${minutes === 1 ? "" : "s"}`
+          : `The code will now rotate automatically every ${seconds} second${seconds === 1 ? "" : "s"}`
       )
     } catch (error: unknown) {
       toast.error(error instanceof ApiError ? error.message : "Could not save the rotation setting")
@@ -252,15 +252,21 @@ function QrCodePageContent() {
 
               {rotationMode === "auto" && (
                 <div className="flex flex-col gap-1.5">
-                  <Label className="text-xs text-muted-foreground">Every (minutes)</Label>
+                  <Label className="text-xs text-muted-foreground">Every (seconds)</Label>
+                  <div className="flex items-center gap-2">
                   <Input
+                    aria-label="Rotation interval in seconds"
                     type="number"
                     min={1}
-                    max={1440}
-                    value={rotationMinutes}
-                    onChange={(e) => setRotationMinutes(e.target.value)}
+                    max={86400}
+                    value={rotationSeconds}
+                    onChange={(e) => setRotationSeconds(e.target.value)}
                     className="w-28"
                   />
+                  <span className="text-xs text-muted-foreground" aria-live="polite">
+                    = {Number.isFinite(Number(rotationSeconds)) && Number(rotationSeconds) > 0 ? Number((Number(rotationSeconds) / 60).toFixed(2)) : 0} minutes
+                  </span>
+                  </div>
                 </div>
               )}
 

@@ -38,9 +38,8 @@ export default function ScanPage({ searchParams }: { searchParams: Promise<{ t?:
         return
       }
 
-      // If this link carries a code, check it's still the live one. Purely a
-      // friendly heads-up — like the rest of the app, the scan itself isn't
-      // enforced server-side, clocking in works either way.
+      // If this link carries a code, check it's still the live one for an
+      // early heads-up; the server also validates it at clock-in.
       if (t) {
         const expected = await api.qrDisplay().catch(() => null)
         if (cancelled) return
@@ -77,16 +76,16 @@ export default function ScanPage({ searchParams }: { searchParams: Promise<{ t?:
   const handleClockIn = useCallback(async () => {
     setStatus("clocking-in")
     try {
-      const location = await getLocation()
-      const record = await api.myClockIn(location)
+      const location = t ? {} : await getLocation()
+      const record = await api.myClockIn({ ...location, ...(t ? { qr_token: `${window.location.origin}/scan?t=${encodeURIComponent(t)}` } : {}) })
       setToday(record)
       setStatus("done")
       toast.success("Clocked in")
     } catch (error: unknown) {
       toast.error(error instanceof ApiError ? error.message : "Could not clock in — try again.")
-      setStatus("ready")
+      setStatus(error instanceof ApiError && error.status === 409 && t ? "expired" : "ready")
     }
-  }, [])
+  }, [t])
 
   return (
     <div className="flex min-h-svh items-center justify-center bg-[#0b0a09] p-6">

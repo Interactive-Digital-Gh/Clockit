@@ -120,12 +120,13 @@ export async function fetchTodayAttendance(
 export async function clockInEmployee(
   _employeeId: string,
   background = false,
+  qrToken?: string,
 ): Promise<AttendanceRecord> {
   const [localIp, location] = await Promise.all([
     getLocalIpAddress(),
-    background ? getBackgroundLocationIfAvailable() : getDeviceLocation(),
+    qrToken ? Promise.resolve(null) : background ? getBackgroundLocationIfAvailable() : getDeviceLocation(),
   ]);
-  return api.clockIn(localIp, location);
+  return api.clockIn(localIp, location, qrToken);
 }
 
 /** Close today's open clock-in. */
